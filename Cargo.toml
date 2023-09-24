@@ -8,7 +8,6 @@ edition = "2021"
 [dependencies]
 glob = "0.3.1"
 clap = { version = "4.4.4", features = [ "derive" ] }
-# deno_core = "0.216.0"
-# deno_console = "0.119.0"
-# tokio = { version = "1.32.0", features = ["full"] }
 js-sandbox = "0.2.0-rc.2"
+lychee-lib = "0.13.0"
+tokio = "1.32.0"

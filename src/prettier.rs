@@ -1,4 +1,5 @@
-use js_sandbox::Script;
+use std::fs;
+use js_sandbox::{Script, AnyError};
 
 pub fn format(md: &String) -> String {
     match Script::from_file("/Users/vvoinov/Documents/repos/md-checker/src/js/bundle.js") {
@@ -8,4 +9,11 @@ pub fn format(md: &String) -> String {
         }
         Err(_e) => return String::from(md)
     }
+}
+
+pub fn check_format(path: &String) -> Result<bool, AnyError> {
+    println!("Checking format of {:?}...", path);
+    let original = fs::read_to_string(path)?;
+    let formatted = format(&original);
+    return Ok(original.eq(&formatted));
 }

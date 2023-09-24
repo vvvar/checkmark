@@ -1,24 +1,23 @@
 mod args;
 mod md;
+mod link_checker;
 mod prettier;
 
-use std::fs;
+async fn check(path: &String) -> Result<bool, Box<dyn std::error::Error>> {
+    println!("Checking {}...", path);
+    return Ok(link_checker::check(&path).await? && prettier::check_format(&path)?);
+}
 
-fn main() {
-    match md::list(&args::read().root) {
-        Ok(files) => {
-            for file in files {
-                println!("Processing {:?}...", file);
-                match fs::read_to_string(file) {
-                    Ok(content) => {
-                        println!("Before: {:?}", content);
-                        println!("After: {:?}", prettier::format(&content));
-                    },
-                    Err(_e) => {}
-                }
-                
-            }
-        },
-        Err(e) => println!("{:?}", e)
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let arguments = args::read();
+    for file in md::list(&arguments.root).expect("Failed to read Markdown files") {
+        let result = check(&file).await;
+        if result? {
+            println!("OK: {:?}", &file);
+        } else {
+            println!("ERROR: {:?}", &file);
+        }
     }
+    return Ok(());
 }
