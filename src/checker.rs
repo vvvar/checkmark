@@ -6,7 +6,7 @@ pub struct Issue {
     pub file_path: String,
     pub category: String,
     pub description: String,
-    pub suggestion: String
+    pub suggestions: Vec<String>
 }
 
 pub async fn check(path: &String) -> Result<Vec<Issue>, Box<dyn std::error::Error>> {

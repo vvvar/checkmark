@@ -3,7 +3,6 @@ use std::path::PathBuf;
 
 pub fn list(root: &String) -> Result<Vec<String>, GlobError> {
     let absolute_root_path = PathBuf::from(&root).canonicalize().unwrap().display().to_string();
-    // println!("Reading all Markdown files from {}...", absolute_root_path);
     let pattern = format!("{}{}", &absolute_root_path, "/**/*.md");
     let mut results = Vec::<String>::new();
     for entry in glob(&pattern).expect("Failed to read glob pattern") {

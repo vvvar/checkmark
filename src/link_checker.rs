@@ -33,28 +33,36 @@ pub async fn check(path: &str) -> Result<Vec<Issue>> {
                         file_path: String::from(path),
                         category: String::from("Link/URL"),
                         description: format!("{}: {}", url, err.details().unwrap()),
-                        suggestion: String::from("Please check following link is reachable or ignore it")
+                        suggestions: vec![
+                            String::from("Please check following link is reachable or ignore it")
+                        ]
                     }),
                     Status::Timeout(_option) => issues.push(Issue {
                         id: String::from("MD002"),
                         file_path: String::from(path),
                         category: String::from("Link/URL"),
                         description: format!("{}: {}", url, "Request timeout"),
-                        suggestion: String::from("Please check following link is reachable or ignore it")
+                        suggestions: vec![
+                            String::from("Please check following link is reachable or ignore it")
+                        ]
                     }),
                     Status::Redirected(_status) => issues.push(Issue {
                         id: String::from("MD002"),
                         file_path: String::from(path),
                         category: String::from("Link/URL"),
                         description: format!("{}: {}", url, "Request redirected"),
-                        suggestion: String::from("Please check following link is reachable or ignore it")
+                        suggestions: vec![
+                            String::from("Please check following link is reachable or ignore it")
+                        ]
                     }),
                     Status::UnknownStatusCode(status_code) => issues.push(Issue {
                         id: String::from("MD002"),
                         file_path: String::from(path),
                         category: String::from("Link/URL"),
                         description: format!("{}: {}: {}", url, "Request replied with unknown stats code", status_code),
-                        suggestion: String::from("Please check following link is reachable or ignore it")
+                        suggestions: vec![
+                            String::from("Please check following link is reachable or ignore it")
+                        ]
                     }),
                     Status::Excluded => {},
                     Status::Unsupported(_err) => {},
@@ -66,7 +74,9 @@ pub async fn check(path: &str) -> Result<Vec<Issue>> {
                 file_path: String::from(path),
                 category: String::from("Link/URL"),
                 description: format!("{}", error),
-                suggestion: String::from("Please check following link is reachable or ignore it")
+                suggestions: vec![
+                    String::from("Please check following link is reachable or ignore it")
+                ]
             })
         }
     }

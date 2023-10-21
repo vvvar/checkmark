@@ -23,7 +23,9 @@ pub fn check_format(path: &String) -> Result<Vec<Issue>, AnyError> {
             file_path: String::from(path),
             category: String::from("Format"),
             description: String::from("File has a wrong formatting"),
-            suggestion: String::from("Please autoformat the file")
+            suggestions: vec![
+                String::from("Please autoformat the file")
+            ]
         });
     }
     return Ok(issues);

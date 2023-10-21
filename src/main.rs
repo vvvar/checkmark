@@ -20,6 +20,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             sp.stop_with_symbol("❌");
             for issue in issues {
                 println!("  └→❗️{}: {}: {}", "Error".bright_red().bold(), &issue.category.bold(), &issue.description);
+                for suggestion in issue.suggestions {
+                    println!("      └→💡{}: {}", "Suggestion".yellow(), &suggestion);
+                }
             }
         }
     }
