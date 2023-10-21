@@ -1,6 +1,8 @@
 use std::fs;
 use js_sandbox::{Script, AnyError};
 
+use crate::checker::Issue;
+
 pub fn format(md: &String) -> String {
     match Script::from_file("/Users/vvoinov/Documents/repos/md-checker/src/js/bundle.js") {
         Ok(mut script) => match script.call("format_markdown", (md,)) {
@@ -11,9 +13,18 @@ pub fn format(md: &String) -> String {
     }
 }
 
-pub fn check_format(path: &String) -> Result<bool, AnyError> {
-    println!("Checking format of {:?}...", path);
+pub fn check_format(path: &String) -> Result<Vec<Issue>, AnyError> {
+    let mut issues = Vec::<Issue>::new();
     let original = fs::read_to_string(path)?;
     let formatted = format(&original);
-    return Ok(original.eq(&formatted));
+    if !original.eq(&formatted) {
+        issues.push(Issue {
+            id: String::from("MD001"),
+            file_path: String::from(path),
+            category: String::from("Format"),
+            description: String::from("File has a wrong formatting"),
+            suggestion: String::from("Please autoformat the file")
+        });
+    }
+    return Ok(issues);
 }

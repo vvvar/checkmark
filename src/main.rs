@@ -1,22 +1,26 @@
 mod args;
-mod md;
+mod checker;
 mod link_checker;
+mod md;
 mod prettier;
 
-async fn check(path: &String) -> Result<bool, Box<dyn std::error::Error>> {
-    println!("Checking {}...", path);
-    return Ok(link_checker::check(&path).await? && prettier::check_format(&path)?);
-}
+use colored::Colorize;
+use spinners::{Spinner, Spinners};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    
     let arguments = args::read();
     for file in md::list(&arguments.root).expect("Failed to read Markdown files") {
-        let result = check(&file).await;
-        if result? {
-            println!("OK: {:?}", &file);
+        let mut sp = Spinner::new(Spinners::Triangle, format!("{} {}", "Check".cyan().bold(), &file).into());
+        let issues = checker::check(&file).await?;
+        if issues.is_empty() {
+            sp.stop_with_symbol("✅");
         } else {
-            println!("ERROR: {:?}", &file);
+            sp.stop_with_symbol("❌");
+            for issue in issues {
+                println!("  └→❗️{}: {}: {}", "Error".bright_red().bold(), &issue.category.bold(), &issue.description);
+            }
         }
     }
     return Ok(());
