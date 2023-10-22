@@ -32,7 +32,7 @@ pub async fn check(path: &str) -> Result<Vec<Issue>> {
                         id: String::from("MD002"),
                         file_path: String::from(path),
                         category: String::from("Link/URL"),
-                        description: format!("{}: {}", url, err.details().unwrap()),
+                        description: format!("{}: {}", url, if err.details().is_some() { err.details().unwrap() } else { String::from("") }),
                         suggestions: vec![
                             String::from("Please check following link is reachable or ignore it")
                         ]
