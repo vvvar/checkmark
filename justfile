@@ -6,10 +6,10 @@ build:
     cargo build
 
 check:
-    cargo run -- --root "."
+    cargo run -- .
 
 autoformat:
-    cargo run -- --root "." --autoformat
+    cargo run -- --autoformat .
 
 help:
-    cargo run -- --root "." --help
+    cargo run -- --help

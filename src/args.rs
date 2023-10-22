@@ -4,8 +4,7 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
-    /// Root where to search for md files
-    #[arg(short, long)]
+    /// Root of your project. Recursively search for Markdown files in this folder
     pub root: String,
 
     /// Perform auto-formatting of files. 
