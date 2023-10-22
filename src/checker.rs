@@ -1,5 +1,7 @@
 use crate::link_checker;
 use crate::prettier;
+use crate::grammar;
+use std::env;
 
 pub struct Issue {
     pub id: String,
@@ -19,6 +21,15 @@ pub async fn check(path: &String) -> Result<Vec<Issue>, Box<dyn std::error::Erro
     let mut link_check_issues = link_checker::check(&path).await?;
     if  !link_check_issues.is_empty() {
         issues.append(&mut link_check_issues);
+    }
+    match env::var("SAPLING_API_KEY") {
+        Ok(val) => {
+            let mut grammar_check_issues = grammar::check(&path, &val).await?;
+            if  !grammar_check_issues.is_empty() {
+                issues.append(&mut grammar_check_issues);
+            }
+        },
+        Err(_e) => {}
     }
     return Ok(issues);
 }

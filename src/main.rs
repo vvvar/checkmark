@@ -3,6 +3,7 @@ mod checker;
 mod link_checker;
 mod md;
 mod prettier;
+mod grammar;
 
 use colored::Colorize;
 use spinners::{Spinner, Spinners};
@@ -26,9 +27,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             } else {
                 sp.stop_with_symbol("❌");
                 for issue in issues {
-                    println!("  └→❗️{}: {}: {}", "Error".bright_red().bold(), &issue.category.bold(), &issue.description);
+                    println!("  └→❗️{}: {}: {}: {}", &issue.file_path.bold(), "Error".bright_red().bold(), &issue.category.bold(), &issue.description);
                     for suggestion in issue.suggestions {
-                        println!("      └→💡{}: {}", "Suggestion".yellow(), &suggestion);
+                        println!("    └→💡{}: {}", "Suggestion".yellow(), &suggestion);
                     }
                 }
             }

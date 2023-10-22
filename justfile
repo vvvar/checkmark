@@ -1,3 +1,5 @@
+set dotenv-load
+
 [macos]
 install:
     brew install protobuf

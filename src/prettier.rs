@@ -22,7 +22,7 @@ pub fn check_format(path: &String) -> Result<Vec<Issue>, AnyError> {
     if !original.eq(&formatted) {
         issues.push(Issue {
             id: String::from("MD001"),
-            file_path: String::from(path),
+            file_path: format!("{}:{}.0-{}.0", &path, 1, original.lines().count() + 1),
             category: String::from("Format"),
             description: String::from("File has a wrong formatting"),
             suggestions: vec![
