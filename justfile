@@ -5,5 +5,11 @@ install:
 build:
     cargo build
 
-run:
-    cargo run -- -r "."
+check:
+    cargo run -- --root "."
+
+autoformat:
+    cargo run -- --root "." --autoformat
+
+help:
+    cargo run -- --root "." --help
