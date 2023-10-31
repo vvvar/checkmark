@@ -8,6 +8,7 @@ pub struct Issue {
     pub file_path: String,
     pub category: String,
     pub description: String,
+    pub issue_in_code: Option<String>,
     pub suggestions: Vec<String>
 }
 

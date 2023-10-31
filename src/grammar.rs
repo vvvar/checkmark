@@ -31,6 +31,7 @@ pub async fn check(path: &String, api_key: &String) -> Result<Vec<Issue>, Box<dy
                             file_path: format!("{}:{}", &path, &num_line + 1),
                             category: format!("{}", &general_error_type),
                             description: format!("{:?} has {} error in a phrase {:?}", &sentence, &general_error_type.to_ascii_lowercase(), &problematic_part_of_phrase),
+                            issue_in_code: None,
                             suggestions: vec![
                                 format!("Replace {:?} in a {:?} with {:?}, so it will be {:?}", &problematic_part_of_phrase, &sentence, &replacement, &sentence.replace(&problematic_part_of_phrase, &replacement))
                             ]

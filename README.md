@@ -6,10 +6,16 @@ Test MaekDown dfsa File
 
 ## Dummy h2
 
-
-
-http://nonexistentsiteindeed.coom
+[NonExistent](./myfile.md)
 
 Here is the dummy h2 section
 
+[Stupid link](https:://fsdfdsfsdf.com)
+
+http://exaaaaaampleee.com
+
 fsdfsdfsdfs
+
+[Another Link](http://exaaaaaampleee.com)
+
+[Another Link](http://exaaaaaampleee.com)

@@ -25,6 +25,7 @@ pub fn check_format(path: &String) -> Result<Vec<Issue>, AnyError> {
             file_path: format!("{}:{}.0-{}.0", &path, 1, original.lines().count() + 1),
             category: String::from("Format"),
             description: String::from("File has a wrong formatting"),
+            issue_in_code: None,
             suggestions: vec![
                 String::from("Try auto-formatting a file with '--autoformat' flag")
             ]

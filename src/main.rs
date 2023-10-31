@@ -18,10 +18,16 @@ fn print_gcc_style_error(issues: &Vec<checker::Issue>) {
                                                     .expect("Unable to determine problematic file path")
                                                     .to_string_lossy());
         println!("{}: {}: {}: {}", &file_path_rel.bold(), "error".bright_red().bold(), &issue.category.bold(), &issue.description);
-        for suggestion in &issue.suggestions {
-            println!("   {}: {}", "Suggestion".yellow(), &suggestion);
-            println!("");
+        match &issue.issue_in_code {
+            Some(issue_in_code) => {
+                println!("{}", issue_in_code);
+            },
+            None => {}
         }
+        for suggestion in &issue.suggestions {
+            println!("   {}{} {}", "Suggestion".blue(), ":".blue(), &suggestion.blue());
+        }
+        println!("");
     }
 }
 
