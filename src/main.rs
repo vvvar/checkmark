@@ -4,6 +4,7 @@ mod link_checker;
 mod md;
 mod prettier;
 mod grammar;
+mod spell_checker;
 
 use colored::Colorize;
 use spinners::{Spinner, Spinners};

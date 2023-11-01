@@ -1,6 +1,7 @@
 use crate::link_checker;
 use crate::prettier;
 use crate::grammar;
+use crate::spell_checker;
 use std::env;
 
 pub struct Issue {
@@ -31,6 +32,10 @@ pub async fn check(path: &String) -> Result<Vec<Issue>, Box<dyn std::error::Erro
             }
         },
         Err(_e) => {}
+    }
+    let mut spell_check_issues = spell_checker::check(&path).await?;
+    if  !spell_check_issues.is_empty() {
+        issues.append(&mut spell_check_issues);
     }
     return Ok(issues);
 }
