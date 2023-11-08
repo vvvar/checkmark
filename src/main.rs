@@ -2,6 +2,7 @@ mod args;
 mod checker;
 mod grammar;
 mod link_checker;
+mod linter;
 mod md;
 mod prettier;
 mod spell_checker;
