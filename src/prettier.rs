@@ -1,6 +1,6 @@
+use js_sandbox::{AnyError, Script};
 use std::fs;
 use std::include_str;
-use js_sandbox::{Script, AnyError};
 
 use crate::checker::Issue;
 
@@ -8,9 +8,9 @@ pub fn format(md: &String) -> String {
     match Script::from_string(include_str!("js/bundle.js")) {
         Ok(mut script) => match script.call("format_markdown", (md,)) {
             Ok(formatted) => return formatted,
-            Err(_e) => return String::from(md)
-        }
-        Err(_e) => return String::from(md)
+            Err(_e) => return String::from(md),
+        },
+        Err(_e) => return String::from(md),
     }
 }
 
@@ -27,9 +27,9 @@ pub fn check_format(path: &String) -> Result<Vec<Issue>, AnyError> {
             category: String::from("Format"),
             description: String::from("File has a wrong formatting"),
             issue_in_code: None,
-            suggestions: vec![
-                String::from("Try auto-formatting a file with '--autoformat' flag")
-            ]
+            suggestions: vec![String::from(
+                "Try auto-formatting a file with '--autoformat' flag",
+            )],
         });
     }
     return Ok(issues);

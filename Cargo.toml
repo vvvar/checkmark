@@ -1,5 +1,5 @@
 [package]
-name = "md-checker"
+name = "marklint"
 version = "0.1.0"
 edition = "2021"
 
@@ -12,7 +12,6 @@ js-sandbox = "0.2.0-rc.2"
 lychee-lib = "0.13.0"
 tokio = "1.32.0"
 anyhow = "1.0.75"
-const_format = "0.2.31"
 secrecy = "0.8.0"
 serde = "1.0.188"
 strum = "0.25.0"
@@ -24,6 +23,4 @@ serde_json = "1.0.107"
 markdown_to_text = "1.0.0"
 pathdiff = "0.2.1"
 symspell = { git = "https://github.com/vvvar/symspell.git", branch = "no_print_progress" }
-glob-match = "0.2.1"
-route-recognizer = "0.3.1"
 wildmatch = "2.1.1"
