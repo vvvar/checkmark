@@ -1,6 +1,7 @@
 use crate::checker::Issue;
 use lychee_lib::Result;
 use std::fs;
+use std::include_str;
 use colored::Colorize;
 
 use symspell::{SymSpell, AsciiStringStrategy, Verbosity};
@@ -10,13 +11,12 @@ pub async fn check(path: &str) -> Result<Vec<Issue>> {
 
     let mut symspell: SymSpell<AsciiStringStrategy> = SymSpell::default();
 
-    symspell.load_dictionary("/Users/vvoinov/Documents/repos/md-checker/src/spell_dictionary/frequency_dictionary_en_82_765.txt", 0, 1, " ");
-    symspell.load_bigram_dictionary(
-      "/Users/vvoinov/Documents/repos/md-checker/src/spell_dictionary/frequency_bigramdictionary_en_243_342.txt",
-      0,
-      2,
-      " "
-    );
+    for line in String::from(include_str!("spell_dictionary/frequency_dictionary_en_82_765.txt")).lines() {
+      symspell.load_dictionary_line(line, 0, 1, " ");
+    }
+    for line in String::from(include_str!("spell_dictionary/frequency_bigramdictionary_en_243_342.txt")).lines() {
+      symspell.load_bigram_dictionary_line(line,0,2," ");
+    }
 
     let file = fs::read_to_string(path)?;
     for (num_line, line) in file.lines().enumerate() {
