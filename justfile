@@ -8,7 +8,7 @@ build:
     cargo build
 
 check:
-    cargo run -- .
+    cargo run -- --ignore-url=*does-not-exist* --ignore-url=http://exaaaaaampleee.com
 
 autoformat:
     cargo run -- --autoformat .

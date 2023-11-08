@@ -10,6 +10,8 @@ Test MaekDown dfsa File
 
 Here is the dummy h2 section
 
+[Non-existing link](https://this-link-does-not-exist-indeed.com)
+
 [Stupid link](https:://fsdfdsfsdf.com)
 
 http://exaaaaaampleee.com

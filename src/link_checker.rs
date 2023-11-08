@@ -9,9 +9,12 @@ use std::fs;
 use lychee_lib::ErrorKind;
 use std::collections::HashMap;
 use std::path::Path;
+use wildmatch::WildMatch;
 
+use crate::args;
+
+/// Collect links from file
 async fn collect_links(path: &str) -> Result<HashMap<String, lychee_lib::Request>> {
-    // Collect links from file
     let input = Input{
         source: lychee_lib::InputSource::FsPath(PathBuf::from(path)),
         file_type_hint: None,
@@ -27,8 +30,20 @@ async fn collect_links(path: &str) -> Result<HashMap<String, lychee_lib::Request
         .await?;
     // Dedup them
     let mut links_map: HashMap<String, lychee_lib::Request> = HashMap::new();
+    let ignored_uri_wildcards = args::read().ignore_url;
     for link in links {
-        links_map.insert(link.uri.to_string(), link);
+        let uri = link.uri.as_str();
+        let matches_any_ignored_uri_wildcard = ignored_uri_wildcards.iter()
+            .any(|ignored_wildcard| {
+                if let Some(stripped_uri) = uri.strip_suffix("/") {
+                    WildMatch::new(&ignored_wildcard).matches(&stripped_uri)
+                } else {
+                    WildMatch::new(&ignored_wildcard).matches(&uri)
+                }                
+            });
+        if !matches_any_ignored_uri_wildcard {
+            links_map.insert(uri.to_string(), link.clone());
+        }
     }
     // Return result
     Ok(links_map)
