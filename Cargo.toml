@@ -24,3 +24,7 @@ markdown_to_text = "1.0.0"
 pathdiff = "0.2.1"
 symspell = { git = "https://github.com/vvvar/symspell.git", branch = "no_print_progress" }
 wildmatch = "2.1.1"
+assert_cmd = "2.0.12"
+predicates = "3.0.4"
+log = "0.4.20"
+env_logger = "0.10.1"

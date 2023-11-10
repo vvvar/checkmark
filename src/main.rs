@@ -8,45 +8,49 @@ mod prettier;
 mod spell_checker;
 
 use colored::Colorize;
-use pathdiff;
+use env_logger;
+use log::warn;
+use std::fmt;
 use spinners::{Spinner, Spinners};
-use std::path::PathBuf;
+
+#[derive(Debug)]
+struct AppError {
+    message: String,
+}
+
+impl std::error::Error for AppError {}
+
+impl fmt::Display for AppError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.message)
+    }
+}
 
 /// Print GCC style error: https://www.gnu.org/prep/standards/html_node/Errors.html#Errors
 fn print_gcc_style_error(issues: &Vec<checker::Issue>) {
     for issue in issues {
-        let check_root_abs = PathBuf::from(&args::read().root)
-            .canonicalize()
-            .unwrap()
-            .display()
-            .to_string();
-        let file_path_rel = String::from(
-            pathdiff::diff_paths(&issue.file_path, check_root_abs)
-                .expect("Unable to determine problematic file path")
-                .to_string_lossy(),
-        );
-        println!(
+        eprintln!(
             "{}: {}: {}: {}",
-            &file_path_rel.bold(),
+            &issue.file_path.bold(),
             "error".bright_red().bold(),
             &issue.category.bold(),
             &issue.description
         );
         match &issue.issue_in_code {
             Some(issue_in_code) => {
-                println!("{}", issue_in_code);
+                eprintln!("{}", issue_in_code);
             }
             None => {}
         }
         for suggestion in &issue.suggestions {
-            println!(
+            eprintln!(
                 "   {}{} {}",
                 "Suggestion".blue(),
                 ":".blue(),
                 &suggestion.blue()
             );
         }
-        println!("");
+        eprintln!();
     }
 }
 
@@ -68,32 +72,48 @@ fn print_custom_style_error(issues: &Vec<checker::Issue>) {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), AppError> {
+    env_logger::init();
     let arguments = args::read();
-    for file in md::list(&arguments.root).expect("Failed to read Markdown files") {
+    let mut has_any_issue = false;
+    for file in md::list(&arguments.root) {
         if arguments.autoformat {
-            let mut sp = Spinner::new(
-                Spinners::Triangle,
-                format!("{}: {}", "Auto-format".cyan().bold(), &file).into(),
-            );
+            // let mut sp = Spinner::new(
+            //     Spinners::Triangle,
+            //     format!("{}: {}", "Auto-format".cyan().bold(), &file).into(),
+            // );
             if prettier::auto_format(&file) {
-                sp.stop_with_symbol("✅");
+                println!("✅{}: {}", "Auto-format".cyan().bold(), &file);
+                // sp.stop_with_symbol("✅");
             } else {
-                sp.stop_with_symbol("❎");
+                println!("❎{}: {}", "Auto-format".cyan().bold(), &file);
+                // sp.stop_with_symbol("❎");
             }
         } else {
             let mut sp = Spinner::new(
-                Spinners::Triangle,
+                Spinners::Point,
                 format!("{}: {}", "Check".cyan().bold(), &file).into(),
             );
-            let issues = checker::check(&file).await?;
-            if issues.is_empty() {
-                sp.stop_with_symbol("✅");
+            if let Ok(issues) = checker::check(&file).await {
+                if issues.is_empty() {
+                    sp.stop_with_symbol("✅");
+                } else {
+                    sp.stop_with_symbol("❌");
+                    print_gcc_style_error(&issues);
+                    has_any_issue = true;
+                }
             } else {
                 sp.stop_with_symbol("❌");
-                print_gcc_style_error(&issues);
+                has_any_issue = true;
+                warn!("Unexpected error while checking a file");
             }
         }
     }
-    return Ok(());
+    if has_any_issue {
+        Err(AppError {
+            message: String::from("Some files failed a check"),
+        })
+    } else {
+        Ok(())
+    }
 }

@@ -15,7 +15,6 @@ pub struct Issue {
 }
 
 pub async fn check(path: &String) -> Result<Vec<Issue>, Box<dyn std::error::Error>> {
-    // println!("Checking {}...", path);
     let mut issues = Vec::<Issue>::new();
     let mut formatting_issues = prettier::check_format(&path)?;
     if !formatting_issues.is_empty() {

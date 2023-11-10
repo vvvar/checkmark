@@ -8,10 +8,10 @@ build:
     cargo build --release
 
 check:
-    cargo run -- --ignore-url=*shall-be-ignored*
+    RUST_LOG=info cargo run
 
 autoformat:
-    cargo run -- --autoformat .
+    cargo run -- --autoformat
 
 help:
     cargo run -- --help
