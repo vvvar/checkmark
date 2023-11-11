@@ -4,14 +4,17 @@ set dotenv-load
 install:
     brew install protobuf
 
-build:
+release:
     cargo build --release
 
 check:
-    RUST_LOG=info cargo run
+    RUST_LOG=info cargo run -- $(pwd)
 
 autoformat:
-    cargo run -- --autoformat
+    RUST_LOG=info cargo run -- $(pwd) --autoformat
+
+test:
+    RUST_LOG=info cargo test
 
 help:
-    cargo run -- --help
+    RUST_LOG=info cargo run -- --help

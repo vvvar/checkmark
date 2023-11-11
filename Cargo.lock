@@ -533,6 +533,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "checkmark"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "assert_cmd",
+ "async-std",
+ "clap",
+ "colored",
+ "env_logger",
+ "glob",
+ "js-sandbox",
+ "log",
+ "lychee-lib",
+ "markdown_to_text",
+ "pathdiff",
+ "predicates",
+ "reqwest",
+ "secrecy",
+ "serde",
+ "serde_json",
+ "spinners",
+ "strum 0.25.0",
+ "symspell",
+ "tokio",
+ "wildmatch",
+]
+
+[[package]]
 name = "chrono"
 version = "0.4.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1923,34 +1951,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1dd3e978a3e6c89d951afc457219773398da38449602162939a8cb0d351d2941"
 dependencies = [
  "pulldown-cmark 0.7.2",
-]
-
-[[package]]
-name = "marklint"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "assert_cmd",
- "async-std",
- "clap",
- "colored",
- "env_logger",
- "glob",
- "js-sandbox",
- "log",
- "lychee-lib",
- "markdown_to_text",
- "pathdiff",
- "predicates",
- "reqwest",
- "secrecy",
- "serde",
- "serde_json",
- "spinners",
- "strum 0.25.0",
- "symspell",
- "tokio",
- "wildmatch",
 ]
 
 [[package]]
