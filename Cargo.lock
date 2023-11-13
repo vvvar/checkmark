@@ -546,6 +546,7 @@ dependencies = [
  "js-sandbox",
  "log",
  "lychee-lib",
+ "markdown",
  "markdown_to_text",
  "pathdiff",
  "predicates",
@@ -1943,6 +1944,17 @@ name = "maplit"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3e2e65a1a2e43cfcb47a895c4c8b10d1f4a61097f9f254f183aee60cad9c651d"
+
+[[package]]
+name = "markdown"
+version = "1.0.0-alpha.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d2a51befc5a2b4a052c473ffbc9ad462e358de59dcc2fde4997fd2a16403dcbd"
+dependencies = [
+ "log",
+ "serde",
+ "unicode-id",
+]
 
 [[package]]
 name = "markdown_to_text"

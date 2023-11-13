@@ -8,7 +8,7 @@ release:
     cargo build --release
 
 check:
-    RUST_LOG=info cargo run -- $(pwd)
+    RUST_LOG=info cargo run -- /Users/vvoinov/Documents/repos/md-checker/tests/data/lists.md
 
 autoformat:
     RUST_LOG=info cargo run -- $(pwd) --autoformat
