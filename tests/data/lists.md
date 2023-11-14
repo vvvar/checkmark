@@ -115,3 +115,27 @@ Using footnotes is fun![^1] They let you reference relevant information without 
 Text here and here and here.
 [Learn more about markdown and footnotes in markdown](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#footnotes)
 
+## Table
+
+| Month    | Savings |
+| :------- | ------- |
+| January  | $250    |
+| February | $80     |
+| March    | $420    |
+
+| Month    | Savings |
+| -------- | ------- |
+| January  | $250    |
+| February | $80     |
+| March    | $420    |
+
+| Month    | Savings |
+| :------: | ------: |
+| January  | $250    |
+| February | $80     |
+| March    | $420    |
+
+| Month    | Savings |
+| January  | $250    |
+| February | $80     |
+| March    | $420    |

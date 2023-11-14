@@ -12,6 +12,7 @@ use env_logger;
 use log::warn;
 use markdown;
 use markdown::mdast;
+use markdown::mdast::AlignKind;
 use md::list;
 use mdast::Node;
 use predicates::reflection::PredicateReflection;
@@ -247,62 +248,37 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String) {
             }
         }
         Node::Table(t) => {
-            // let mut s = String::new();
-            // let mut longest = vec![0; t.align.len()];
-            // // A 1d vector of (Cell render, width) pairs, omitting overrun cells
-            // let mut table_skeleton: Vec<Option<(String, usize)>> =
-            //     vec![None; t.children.len() * t.align.len()];
-
-            // for (row_index, row) in t.children.iter().enumerate() {
-            //     if let Node::TableRow(r) = row {
-            //         for (column_index, cell) in r.children.iter().enumerate().take(t.align.len()) {
-            //             if let Node::TableCell(c) = cell {
-            //                 let cell_string = recursive_mdast_string(ctx, &c.children, "");
-            //                 let cell_width = UnicodeWidthStr::width(cell_string.as_str());
-            //                 longest[column_index] = longest[column_index].max(cell_width);
-            //                 table_skeleton[row_index * t.align.len() + column_index] =
-            //                     Some((cell_string, cell_width));
-            //             }
-            //         }
-            //     }
-            // }
-            // let delim = &format!(
-            //     "| {} |\n",
-            //     longest
-            //         .iter()
-            //         .zip(t.align.iter())
-            //         .map(|(len, align)| match align {
-            //             mdast::AlignKind::Left => format!(":{}", "-".repeat(*len - 1)),
-            //             mdast::AlignKind::Center => format!(":{}:", "-".repeat(*len - 2)),
-            //             mdast::AlignKind::Right => format!("{}:", "-".repeat(*len - 1)),
-            //             mdast::AlignKind::None => "-".repeat(*len),
-            //         })
-            //         .collect::<Vec<String>>()
-            //         .join(" | ")
-            // );
-
-            // for (i, cell) in table_skeleton.iter().enumerate() {
-            //     if i != 0 && i <= t.align.len() && i % t.align.len() == 0 {
-            //         s += delim;
-            //     }
-            //     if let Some((cell_string, cell_width)) = cell {
-            //         s += &format!(
-            //             "| {}{} ",
-            //             cell_string,
-            //             " ".repeat(longest[i % t.align.len()] - cell_width)
-            //         );
-            //     }
-            //     if i % t.align.len() == t.align.len() - 1 {
-            //         s += "|\n";
-            //     }
-            // }
-
-            // // ensure empty table keep the delim
-            // if t.children.len() == 1 {
-            //     s += delim;
-            // }
-            // s
+            for child in &t.children {
+                if &child == &t.children.first().unwrap() {
+                    travel_md_ast(&child, &mut buffer);
+                    buffer.push_str("|");
+                    for align in &t.align  {
+                        match align {
+                            AlignKind::Left => buffer.push_str(" :-- |"),
+                            AlignKind::Right => buffer.push_str(" --: |"),
+                            AlignKind::Center => buffer.push_str(" :-: |"),
+                            AlignKind::None => buffer.push_str(" --- |")
+                        }
+                    }
+                    buffer.push_str("\n");
+                } else {
+                    travel_md_ast(&child, &mut buffer);
+                }
+            }
         }
+        Node::TableCell(tc) => {
+            for child in &tc.children {  
+                travel_md_ast(&child, &mut buffer);
+            }
+            buffer.push_str(" | ");
+        },
+        Node::TableRow(tr) => {
+            buffer.push_str("| ");
+            for child in &tr.children {
+                travel_md_ast(&child, &mut buffer);
+            }
+            buffer.push_str("\n");
+        },
         _ => panic!("Unexpected node type {node:#?}"),
     }
 }
