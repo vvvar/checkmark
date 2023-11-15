@@ -19,6 +19,8 @@ use predicates::reflection::PredicateReflection;
 use spinners::{Spinner, Spinners};
 use std::fmt;
 use std::fs;
+use similar::{ChangeTag, TextDiff};
+use console::Style;
 
 #[derive(Debug)]
 struct AppError {
@@ -84,6 +86,7 @@ fn render_list_node(
     nesting_level: usize,
     is_ordered: bool,
     num_item: u32,
+    is_in_block_quote: bool
 ) {
     match node {
         Node::List(list) => {
@@ -93,13 +96,13 @@ fn render_list_node(
                 0
             };
             for child in &list.children {
-                render_list_node(&child, &mut buffer, nesting_level + 1, is_ordered, start);
+                render_list_node(&child, &mut buffer, nesting_level + 1, is_ordered, start, is_in_block_quote);
                 start += 1;
             }
         }
         Node::ListItem(list_item) => {
             for child in &list_item.children {
-                render_list_node(&child, &mut buffer, nesting_level, is_ordered, num_item);
+                render_list_node(&child, &mut buffer, nesting_level, is_ordered, num_item, is_in_block_quote);
             }
         }
         Node::Paragraph(paragraph) => {
@@ -110,22 +113,22 @@ fn render_list_node(
                 buffer.push_str("+ ");
             }
             for child in &paragraph.children {
-                render_list_node(&child, &mut buffer, nesting_level, is_ordered, num_item);
+                travel_md_ast(&child, &mut buffer, is_in_block_quote);
             }
             buffer.push_str("\n");
         }
         Node::Text(text) => {
             buffer.push_str(&text.value);
         }
-        _ => {}
+        _ => travel_md_ast(&node, &mut buffer, is_in_block_quote)
     }
 }
 
-fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String) {
+fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String, is_in_block_quote: bool) {
     match node {
         Node::Root(r) => {
             for child in &r.children {
-                travel_md_ast(&child, &mut buffer);
+                travel_md_ast(&child, &mut buffer, is_in_block_quote);
                 buffer.push_str("\n");
             }
         }
@@ -133,16 +136,20 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String) {
             buffer.push_str("#".repeat(heading.depth as usize).as_str());
             buffer.push_str(" ");
             for child in &heading.children {
-                travel_md_ast(&child, &mut buffer);
+                travel_md_ast(&child, &mut buffer, is_in_block_quote);
             }
             buffer.push_str("\n");
         }
         Node::Text(t) => {
-            buffer.push_str(&t.value);
+            if is_in_block_quote {
+                buffer.push_str(&t.value.replace("\n", &format!("\n> ")));
+            } else {
+                buffer.push_str(&t.value);
+            }
         }
         Node::Paragraph(p) => {
             for child in &p.children {
-                travel_md_ast(&child, &mut buffer);
+                travel_md_ast(&child, &mut buffer, is_in_block_quote);
             }
             buffer.push_str("\n");
         }
@@ -153,7 +160,10 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String) {
                 0
             };
             for child in &l.children {
-                render_list_node(&child, &mut buffer, 0, l.ordered, start);
+                if is_in_block_quote && &child != &l.children.first().unwrap() {
+                    buffer.push_str("> ");
+                }
+                render_list_node(&child, &mut buffer, 0, l.ordered, start, is_in_block_quote);
                 start += 1;
             }
         }
@@ -161,11 +171,20 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String) {
             // Not needed since we're rendering through render_list_node
         }
         Node::Code(c) => {
-            buffer.push_str(&format!(
-                "```{}\n{}\n```\n",
-                c.lang.as_ref().unwrap_or(&String::new()),
-                c.value
-            ));
+            if is_in_block_quote {
+                buffer.push_str(&format!(
+                    "```{}\n{}\n```\n",
+                    c.lang.as_ref().unwrap_or(&String::new()),
+                    c.value
+                ).replace("\n", &format!("\n> ")));
+            } else {
+                buffer.push_str(&format!(
+                    "```{}\n{}\n```\n",
+                    c.lang.as_ref().unwrap_or(&String::new()),
+                    c.value
+                ));
+            }
+            
         }
         Node::InlineCode(c) => {
             buffer.push_str(&format!("`{}`", &c.value));
@@ -173,21 +192,21 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String) {
         Node::Emphasis(e) => {
             buffer.push_str("*");
             for child in &e.children {
-                travel_md_ast(&child, &mut buffer);
+                travel_md_ast(&child, &mut buffer, is_in_block_quote);
             }
             buffer.push_str("*");
         }
         Node::Strong(s) => {
             buffer.push_str("**");
             for child in &s.children {
-                travel_md_ast(&child, &mut buffer);
+                travel_md_ast(&child, &mut buffer, is_in_block_quote);
             }
             buffer.push_str("**");
         }
         Node::Delete(d) => {
             buffer.push_str("~~");
             for child in &d.children {
-                travel_md_ast(&child, &mut buffer);
+                travel_md_ast(&child, &mut buffer, is_in_block_quote);
             }
             buffer.push_str("~~");
         }
@@ -197,7 +216,7 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String) {
         Node::Link(l) => {
             buffer.push_str("[");
             for child in &l.children {
-                travel_md_ast(&child, &mut buffer);
+                travel_md_ast(&child, &mut buffer, is_in_block_quote);
             }
             buffer.push_str("]");
             buffer.push_str(&format!("({})", &l.url.clone().as_str()));
@@ -206,13 +225,18 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String) {
             buffer.push_str(&format!("![{}]({})", &i.alt, &i.url));
         }
         Node::BlockQuote(b) => {
+            dbg!(&b);
+            // buffer.push_str("> ");
             for child in &b.children {
                 buffer.push_str("> ");
-                travel_md_ast(&child, &mut buffer);
+                if &child != &b.children.first().unwrap() {
+                    buffer.push_str("\n> ");
+                }
+                travel_md_ast(&child, &mut buffer, true);
             }
         }
         Node::ThematicBreak(_) => {
-            buffer.push_str("---\n");
+            buffer.push_str("----\n");
         }
         Node::Html(h) => {
             buffer.push_str(&h.value);
@@ -233,10 +257,10 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String) {
             buffer.push_str(&format!("[^{}]: ", &f.identifier));
             for child in &f.children {
                 if &child == &f.children.first().unwrap() {
-                    travel_md_ast(&child, &mut buffer);
+                    travel_md_ast(&child, &mut buffer, is_in_block_quote);
                 } else {
                     let mut tmp_buffer = String::from("");
-                    travel_md_ast(&child, &mut tmp_buffer);
+                    travel_md_ast(&child, &mut tmp_buffer, is_in_block_quote);
                     if let Some(position) = child.position() {
                         for line in tmp_buffer.lines() {
                             buffer.push_str(&" ".repeat(position.clone().start.column));
@@ -250,7 +274,7 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String) {
         Node::Table(t) => {
             for child in &t.children {
                 if &child == &t.children.first().unwrap() {
-                    travel_md_ast(&child, &mut buffer);
+                    travel_md_ast(&child, &mut buffer, is_in_block_quote);
                     buffer.push_str("|");
                     for align in &t.align  {
                         match align {
@@ -262,20 +286,20 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String) {
                     }
                     buffer.push_str("\n");
                 } else {
-                    travel_md_ast(&child, &mut buffer);
+                    travel_md_ast(&child, &mut buffer, is_in_block_quote);
                 }
             }
         }
         Node::TableCell(tc) => {
             for child in &tc.children {  
-                travel_md_ast(&child, &mut buffer);
+                travel_md_ast(&child, &mut buffer, is_in_block_quote);
             }
             buffer.push_str(" | ");
         },
         Node::TableRow(tr) => {
             buffer.push_str("| ");
             for child in &tr.children {
-                travel_md_ast(&child, &mut buffer);
+                travel_md_ast(&child, &mut buffer, is_in_block_quote);
             }
             buffer.push_str("\n");
         },
@@ -293,8 +317,26 @@ async fn main() -> Result<(), AppError> {
         let mut buffer: String = String::from("");
         let ast = markdown::to_mdast(&original, &markdown::ParseOptions::gfm()).unwrap();
         // dbg!(&ast);
-        travel_md_ast(&ast, &mut buffer);
-        println!("{}", &buffer);
+        travel_md_ast(&ast, &mut buffer, false);
+        // println!("{}", &buffer);
+
+        fs::write("/Users/vvoinov/Documents/repos/md-checker/rendered.md", &buffer).expect("Cannot save result md");
+
+        let diff = TextDiff::from_lines(
+            &original,
+            &buffer,
+        );
+        for op in diff.ops() {
+            for change in diff.iter_changes(op) {
+                let (sign, style) = match change.tag() {
+                    ChangeTag::Delete => ("-", Style::new().red()),
+                    ChangeTag::Insert => ("+", Style::new().green()),
+                    ChangeTag::Equal => (" ", Style::new()),
+                };
+                print!("{}{}", style.apply_to(sign).bold(), style.apply_to(change));
+            }
+        }
+
         // if arguments.autoformat {
         //     if prettier::auto_format(&file) {
         //         println!("✅{}: {}", "Auto-format".cyan().bold(), &file);
