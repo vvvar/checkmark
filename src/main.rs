@@ -101,24 +101,28 @@ fn render_list_node(
             }
         }
         Node::ListItem(list_item) => {
-            for child in &list_item.children {
-                render_list_node(&child, &mut buffer, nesting_level, is_ordered, num_item, is_in_block_quote);
-            }
-        }
-        Node::Paragraph(paragraph) => {
             buffer.push_str(&"   ".repeat(nesting_level));
             if is_ordered {
                 buffer.push_str(&format!("{}. ", num_item));
             } else {
                 buffer.push_str("+ ");
             }
-            for child in &paragraph.children {
-                travel_md_ast(&child, &mut buffer, is_in_block_quote);
+            for child in &list_item.children {
+                if &child != &list_item.children.first().unwrap() {
+                    buffer.push_str("   ");
+                }
+                dbg!(&child);
+                render_list_node(&child, &mut buffer, nesting_level, is_ordered, num_item, is_in_block_quote);
+                buffer.push_str("\n");
             }
-            buffer.push_str("\n");
+        }
+        Node::Paragraph(paragraph) => {
+            for child in &paragraph.children {
+                render_list_node(&child, &mut buffer, nesting_level, is_ordered, num_item, is_in_block_quote);
+            }
         }
         Node::Text(text) => {
-            buffer.push_str(&text.value);
+            buffer.push_str(&text.value.replace("\n", &format!("\n   ")));
         }
         _ => travel_md_ast(&node, &mut buffer, is_in_block_quote)
     }
@@ -154,6 +158,7 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String, is_in_block_quote:
             buffer.push_str("\n");
         }
         Node::List(l) => {
+            dbg!(&l);
             let mut start = if l.start.is_some() {
                 l.start.unwrap()
             } else {
@@ -225,7 +230,7 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String, is_in_block_quote:
             buffer.push_str(&format!("![{}]({})", &i.alt, &i.url));
         }
         Node::BlockQuote(b) => {
-            dbg!(&b);
+            // dbg!(&b);
             // buffer.push_str("> ");
             for child in &b.children {
                 buffer.push_str("> ");

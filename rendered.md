@@ -1,24 +1,28 @@
 # Markdown: Syntax
 
 + [Overview](#overview)
-   + [Philosophy](#philosophy)
+      + [Philosophy](#philosophy)
    + [Inline HTML](#html)
    + [Automatic Escaping for Special Characters](#autoescape)
+
 + [Block Elements](#block)
-   + [Paragraphs and Line Breaks](#p)
+      + [Paragraphs and Line Breaks](#p)
    + [Headers](#header)
    + [Blockquotes](#blockquote)
    + [Lists](#list)
    + [Code Blocks](#precode)
    + [Horizontal Rules](#hr)
+
 + [Span Elements](#span)
-   + [Links](#link)
+      + [Links](#link)
    + [Emphasis](#em)
    + [Code](#code)
    + [Images](#img)
+
 + [Miscellaneous](#misc)
-   + [Backslash Escapes](#backslash)
+      + [Backslash Escapes](#backslash)
    + [Automatic Links](#autolink)
+
 
 **Note:** This document is itself written using Markdown; you
 can [see the source for it by adding '.text' to the URL](/projects/markdown/syntax.text).
@@ -171,29 +175,29 @@ But if you want to be lazy, you don't have to.
 To make lists look nice, you can wrap items with hanging indents:
 
 + Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
-Aliquam hendrerit mi posuere lectus. Vestibulum enim wisi,
-viverra nec, fringilla in, laoreet vitae, risus.
+   Aliquam hendrerit mi posuere lectus. Vestibulum enim wisi,
+   viverra nec, fringilla in, laoreet vitae, risus.
 + Donec sit amet nisl. Aliquam semper ipsum sit amet velit.
-Suspendisse id sem consectetuer libero luctus adipiscing.
+   Suspendisse id sem consectetuer libero luctus adipiscing.
 
 But if you want to be lazy, you don't have to:
 
 + Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
-Aliquam hendrerit mi posuere lectus. Vestibulum enim wisi,
-viverra nec, fringilla in, laoreet vitae, risus.
+   Aliquam hendrerit mi posuere lectus. Vestibulum enim wisi,
+   viverra nec, fringilla in, laoreet vitae, risus.
 + Donec sit amet nisl. Aliquam semper ipsum sit amet velit.
-Suspendisse id sem consectetuer libero luctus adipiscing.
+   Suspendisse id sem consectetuer libero luctus adipiscing.
 
 List items may consist of multiple paragraphs. Each subsequent
 paragraph in a list item must be indented by either 4 spaces
 or one tab:
 
 1. This is a list item with two paragraphs. Lorem ipsum dolor
-sit amet, consectetuer adipiscing elit. Aliquam hendrerit
-mi posuere lectus.
-1. Vestibulum enim wisi, viverra nec, fringilla in, laoreet
-vitae, risus. Donec sit amet nisl. Aliquam semper ipsum
-sit amet velit.
+   sit amet, consectetuer adipiscing elit. Aliquam hendrerit
+   mi posuere lectus.
+   Vestibulum enim wisi, viverra nec, fringilla in, laoreet
+   vitae, risus. Donec sit amet nisl. Aliquam semper ipsum
+   sit amet velit.
 2. Suspendisse id sem consectetuer libero luctus adipiscing.
 
 It looks nice if you indent every line of the subsequent
@@ -201,25 +205,27 @@ paragraphs, but here again, Markdown will allow you to be
 lazy:
 
 + This is a list item with two paragraphs.
-+ This is the second paragraph in the list item. You're
-only required to indent the first line. Lorem ipsum dolor
-sit amet, consectetuer adipiscing elit.
+   This is the second paragraph in the list item. You're
+   only required to indent the first line. Lorem ipsum dolor
+   sit amet, consectetuer adipiscing elit.
 + Another item in the same list.
 
 To put a blockquote within a list item, the blockquote's `>`
 delimiters need to be indented:
 
 + A list item with a blockquote:
-> This is a blockquote
+   > This is a blockquote
 > inside a list item.
+
 
 To put a code block within a list item, the code block needs
 to be indented *twice* -- 8 spaces or two tabs:
 
 + A list item with a code block:
-```
+   ```
 <code goes here>
 ```
+
 
 ### Code Blocks
 
