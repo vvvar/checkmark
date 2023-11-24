@@ -5,7 +5,7 @@ use log::warn;
 /// Path could be:
 ///     1. path to a file - will just add this file to the list
 ///     2. path to a dir - will lookup all markdown files in this ir
-pub fn list(path: &String) -> Vec<String> {
+pub fn list_markdown_files(path: &String) -> Vec<String> {
     let mut files = Vec::<String>::new();
     if let Ok(absolute_root_path) = std::path::PathBuf::from(&path).canonicalize() {
         if let Some(absolute_root_path_str) = absolute_root_path.to_str() {

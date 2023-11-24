@@ -1,0 +1,715 @@
+{
+    "runs": [
+        {
+            "results": [
+                {
+                    "analysisTarget": {
+                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                    },
+                    "fixes": [
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "*   [Overview](#overview)\n    *   [Philosophy](#philosophy)\n    *   [Inline HTML](#html)\n    *   [Automatic Escaping for Special Characters](#autoescape)\n*   [Block Elements](#block)\n    *   [Paragraphs and Line Breaks](#p)\n    *   [Headers](#header)\n    *   [Blockquotes](#blockquote)\n    *   [Lists](#list)\n    *   [Code Blocks](#precode)\n    *   [Horizontal Rules](#hr)\n*   [Span Elements](#span)\n    *   [Links](#link)\n    *   [Emphasis](#em)\n    *   [Code](#code)\n    *   [Images](#img)\n*   [Miscellaneous](#misc)\n    *   [Backslash Escapes](#backslash)\n    *   [Automatic Links](#autolink)\n"
+                                                },
+                                                "startLine": 20
+                                            },
+                                            "insertedContent": {
+                                                "text": "+ [Overview](#overview)\n      + [Philosophy](#philosophy)\n   + [Inline HTML](#html)\n   + [Automatic Escaping for Special Characters](#autoescape)\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "\n"
+                                                },
+                                                "startLine": 69
+                                            },
+                                            "insertedContent": {
+                                                "text": ""
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "consectetuer adipiscing elit. Aliquam hendrerit mi posuere lectus.\nVestibulum enim wisi, viverra nec, fringilla in, laoreet vitae, risus.\n"
+                                                },
+                                                "startLine": 90
+                                            },
+                                            "insertedContent": {
+                                                "text": "> consectetuer adipiscing elit. Aliquam hendrerit mi posuere lectus.\n> Vestibulum enim wisi, viverra nec, fringilla in, laoreet vitae, risus.\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "id sem consectetuer libero luctus adipiscing.\n"
+                                                },
+                                                "startLine": 93
+                                            },
+                                            "insertedContent": {
+                                                "text": "> id sem consectetuer libero luctus adipiscing.\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": ">\n"
+                                                },
+                                                "startLine": 99
+                                            },
+                                            "insertedContent": {
+                                                "text": "> \n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": ">\n"
+                                                },
+                                                "startLine": 101
+                                            },
+                                            "insertedContent": {
+                                                "text": "> \n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "> 1.   This is the first list item.\n> 2.   This is the second list item.\n"
+                                                },
+                                                "startLine": 110
+                                            },
+                                            "insertedContent": {
+                                                "text": "> 1. This is the first list item.\n> 2. This is the second list item.\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": ">     return shell_exec(\"echo $input | $markdown_script\");\n\n"
+                                                },
+                                                "startLine": 115
+                                            },
+                                            "insertedContent": {
+                                                "text": "> ```\n> return shell_exec(\"echo $input | $markdown_script\");\n> ```\n> \n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "\n"
+                                                },
+                                                "startLine": 120
+                                            },
+                                            "insertedContent": {
+                                                "text": ""
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "*   Red\n*   Green\n*   Blue\n"
+                                                },
+                                                "startLine": 130
+                                            },
+                                            "insertedContent": {
+                                                "text": "+ Red\n+ Green\n+ Blue\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "+   Red\n+   Green\n+   Blue\n"
+                                                },
+                                                "startLine": 136
+                                            },
+                                            "insertedContent": {
+                                                "text": "+ Red\n+ Green\n+ Blue\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "-   Red\n-   Green\n-   Blue\n"
+                                                },
+                                                "startLine": 142
+                                            },
+                                            "insertedContent": {
+                                                "text": "+ Red\n+ Green\n+ Blue\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "1.  Bird\n2.  McHale\n3.  Parish\n"
+                                                },
+                                                "startLine": 148
+                                            },
+                                            "insertedContent": {
+                                                "text": "1. Bird\n2. McHale\n3. Parish\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "1.  Bird\n1.  McHale\n1.  Parish\n"
+                                                },
+                                                "startLine": 158
+                                            },
+                                            "insertedContent": {
+                                                "text": "1. Bird\n2. McHale\n3. Parish\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "1. McHale\n8. Parish\n"
+                                                },
+                                                "startLine": 164
+                                            },
+                                            "insertedContent": {
+                                                "text": "4. McHale\n5. Parish\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "*   Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\n    Aliquam hendrerit mi posuere lectus. Vestibulum enim wisi,\n    viverra nec, fringilla in, laoreet vitae, risus.\n*   Donec sit amet nisl. Aliquam semper ipsum sit amet velit.\n    Suspendisse id sem consectetuer libero luctus adipiscing.\n"
+                                                },
+                                                "startLine": 177
+                                            },
+                                            "insertedContent": {
+                                                "text": "+ Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\n   Aliquam hendrerit mi posuere lectus. Vestibulum enim wisi,\n   viverra nec, fringilla in, laoreet vitae, risus.\n+ Donec sit amet nisl. Aliquam semper ipsum sit amet velit.\n   Suspendisse id sem consectetuer libero luctus adipiscing.\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "*   Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\nAliquam hendrerit mi posuere lectus. Vestibulum enim wisi,\nviverra nec, fringilla in, laoreet vitae, risus.\n*   Donec sit amet nisl. Aliquam semper ipsum sit amet velit.\nSuspendisse id sem consectetuer libero luctus adipiscing.\n"
+                                                },
+                                                "startLine": 185
+                                            },
+                                            "insertedContent": {
+                                                "text": "+ Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\n   Aliquam hendrerit mi posuere lectus. Vestibulum enim wisi,\n   viverra nec, fringilla in, laoreet vitae, risus.\n+ Donec sit amet nisl. Aliquam semper ipsum sit amet velit.\n   Suspendisse id sem consectetuer libero luctus adipiscing.\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "1.  This is a list item with two paragraphs. Lorem ipsum dolor\n    sit amet, consectetuer adipiscing elit. Aliquam hendrerit\n    mi posuere lectus.\n\n    Vestibulum enim wisi, viverra nec, fringilla in, laoreet\n    vitae, risus. Donec sit amet nisl. Aliquam semper ipsum\n    sit amet velit.\n\n2.  Suspendisse id sem consectetuer libero luctus adipiscing.\n"
+                                                },
+                                                "startLine": 199
+                                            },
+                                            "insertedContent": {
+                                                "text": "1. This is a list item with two paragraphs. Lorem ipsum dolor\n   sit amet, consectetuer adipiscing elit. Aliquam hendrerit\n   mi posuere lectus.\n   Vestibulum enim wisi, viverra nec, fringilla in, laoreet\n   vitae, risus. Donec sit amet nisl. Aliquam semper ipsum\n   sit amet velit.\n2. Suspendisse id sem consectetuer libero luctus adipiscing.\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "\n*   This is a list item with two paragraphs.\n"
+                                                },
+                                                "startLine": 205
+                                            },
+                                            "insertedContent": {
+                                                "text": ""
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "    This is the second paragraph in the list item. You're\nonly required to indent the first line. Lorem ipsum dolor\nsit amet, consectetuer adipiscing elit.\n\n*   Another item in the same list.\n"
+                                                },
+                                                "startLine": 211
+                                            },
+                                            "insertedContent": {
+                                                "text": "+ This is a list item with two paragraphs.\n   This is the second paragraph in the list item. You're\n   only required to indent the first line. Lorem ipsum dolor\n   sit amet, consectetuer adipiscing elit.\n+ Another item in the same list.\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "*   A list item with a blockquote:\n"
+                                                },
+                                                "startLine": 216
+                                            },
+                                            "insertedContent": {
+                                                "text": "+ A list item with a blockquote:\n   > This is a blockquote\n> inside a list item.\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "    > This is a blockquote\n    > inside a list item.\n"
+                                                },
+                                                "startLine": 219
+                                            },
+                                            "insertedContent": {
+                                                "text": ""
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "*   A list item with a code block:\n"
+                                                },
+                                                "startLine": 224
+                                            },
+                                            "insertedContent": {
+                                                "text": "+ A list item with a code block:\n   ```\n<code goes here>\n```\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "        <code goes here>\n"
+                                                },
+                                                "startLine": 226
+                                            },
+                                            "insertedContent": {
+                                                "text": ""
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "    This is a code block.\n"
+                                                },
+                                                "startLine": 240
+                                            },
+                                            "insertedContent": {
+                                                "text": "```\nThis is a code block.\n```\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "    tell application \"Foo\"\n        beep\n    end tell\n"
+                                                },
+                                                "startLine": 246
+                                            },
+                                            "insertedContent": {
+                                                "text": "```\ntell application \"Foo\"\n    beep\nend tell\n```\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "    <div class=\"footer\">\n        &copy; 2004 Foo Corporation\n    </div>\n"
+                                                },
+                                                "startLine": 259
+                                            },
+                                            "insertedContent": {
+                                                "text": "```\n<div class=\"footer\">\n    &copy; 2004 Foo Corporation\n</div>\n```\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "_single underscores_\n"
+                                                },
+                                                "startLine": 297
+                                            },
+                                            "insertedContent": {
+                                                "text": "*single underscores*\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "__double underscores__\n"
+                                                },
+                                                "startLine": 301
+                                            },
+                                            "insertedContent": {
+                                                "text": "**double underscores**\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "To indicate a span of code, wrap it with backtick quotes (`` ` ``).\n"
+                                                },
+                                                "startLine": 305
+                                            },
+                                            "insertedContent": {
+                                                "text": "To indicate a span of code, wrap it with backtick quotes (` ` `).\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "artifactChanges": [
+                                {
+                                    "artifactLocation": {
+                                        "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                    },
+                                    "replacements": [
+                                        {
+                                            "deletedRegion": {
+                                                "snippet": {
+                                                    "text": "Use the `printf()` function."
+                                                },
+                                                "startLine": 309
+                                            },
+                                            "insertedContent": {
+                                                "text": "Use the `printf()` function.\n\n"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "locations": [
+                        {
+                            "physicalLocation": {
+                                "artifactLocation": {
+                                    "uri": "/Users/vvoinov/Documents/repos/md-checker/tests/data/full_featured.md"
+                                }
+                            }
+                        }
+                    ],
+                    "message": {
+                        "text": "Formatting is incorrect"
+                    }
+                }
+            ],
+            "tool": {
+                "driver": {
+                    "name": "Markdown Checker"
+                }
+            }
+        }
+    ],
+    "version": "2.1.0"
+}

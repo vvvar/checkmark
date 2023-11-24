@@ -31,3 +31,4 @@ env_logger = "0.10.1"
 markdown = { version = "1.0.0-alpha.14", features = [ "json", "log", "serde" ] }
 similar = { version = "2.3.0", featues = "all" }
 console = "0.15.7"
+serde-sarif = { varsion = "0.4.2", featues = "all" }
