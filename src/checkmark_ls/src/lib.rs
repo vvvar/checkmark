@@ -1,11 +1,12 @@
 use glob;
 use log::warn;
+use std::fs;
 
 /// Creates a list of markdown files from provided path
 /// Path could be:
 ///     1. path to a file - will just add this file to the list
 ///     2. path to a dir - will lookup all markdown files in this ir
-pub fn list_markdown_files(path: &String) -> Vec<String> {
+pub fn ls(path: &String) -> Vec<common::MarkDownFile> {
     let mut files = Vec::<String>::new();
     if let Ok(absolute_root_path) = std::path::PathBuf::from(&path).canonicalize() {
         if let Some(absolute_root_path_str) = absolute_root_path.to_str() {
@@ -45,5 +46,17 @@ pub fn list_markdown_files(path: &String) -> Vec<String> {
     } else {
         warn!("Unable to read root/file path. Make sure you are providing either a valid path(absolute/relative), glob or filename as a first argument");
     }
-    return files;
+
+    let mut markdown_files: Vec<common::MarkDownFile> = vec![];
+    for file_path in &files {
+        match fs::read_to_string(&file_path) {
+            Ok(content) => markdown_files.push(common::MarkDownFile {
+                path: file_path.clone(),
+                content: content,
+            }),
+            Err(_) => warn!("Unable to read file content. Make sure file has correct permissions"),
+        }
+    }
+
+    return markdown_files;
 }

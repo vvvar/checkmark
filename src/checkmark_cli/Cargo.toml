@@ -1,0 +1,17 @@
+[package]
+name = "checkmark_cli"
+description = "CLI tool for checking Markdown files"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+checkmark_fmt = { path = "../checkmark_fmt" }
+checkmark_lint = { path = "../checkmark_lint" }
+checkmark_ls = { path = "../checkmark_ls" }
+
+clap = { version = "4.4.4", features = [ "derive" ] }
+tokio = { version = "1.32.0", features = ["full"] }
+serde-sarif = "0.4.2"
+serde_json = "1.0.107"
+spinners = "4.1.0"
+env_logger = "0.10.1"

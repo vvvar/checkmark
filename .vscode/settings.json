@@ -2,5 +2,8 @@
     "cSpell.words": [
         "checkmark",
         "marklint"
+    ],
+    "rust-analyzer.linkedProjects": [
+        "./Cargo.toml"
     ]
 }

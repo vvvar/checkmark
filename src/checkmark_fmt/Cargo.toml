@@ -1,0 +1,14 @@
+[package]
+name = "checkmark_fmt"
+description = "Library to work with Markdown formatting"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+common = { path = "../common" }
+
+colored = "2.0.4"
+console = "0.15.7"
+markdown = { version = "1.0.0-alpha.14", features = [ "json", "log", "serde" ] }
+similar = "2.3.0"
+serde-sarif = "0.4.2"

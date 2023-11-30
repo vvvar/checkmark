@@ -1,0 +1,8 @@
+[package]
+name = "common"
+description = "Common types, traits and helpers shared across libraries"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde-sarif = "0.4.2"

@@ -1,34 +1,36 @@
-[package]
-name = "checkmark"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+members = [
+    "src/checkmark_cli",
+    "src/checkmark_fmt",
+    "src/checkmark_lint",
+    "src/checkmark_ls",
+    "src/common",
+]
+resolver = "2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
-glob = "0.3.1"
-clap = { version = "4.4.4", features = [ "derive" ] }
-js-sandbox = "0.2.0-rc.2"
-lychee-lib = "0.13.0"
-tokio = "1.32.0"
-anyhow = "1.0.75"
-secrecy = "0.8.0"
-serde = "1.0.188"
-strum = "0.25.0"
-async-std = "1.12.0"
-colored = "2.0.4"
-spinners = "4.1.0"
-reqwest = { version = "0.11.22", features = ["json"] }
-serde_json = "1.0.107"
-markdown_to_text = "1.0.0"
-pathdiff = "0.2.1"
-symspell = { git = "https://github.com/vvvar/symspell.git", branch = "no_print_progress" }
-wildmatch = "2.1.1"
-assert_cmd = "2.0.12"
-predicates = "3.0.4"
-log = "0.4.20"
-env_logger = "0.10.1"
-markdown = { version = "1.0.0-alpha.14", features = [ "json", "log", "serde" ] }
-similar = { version = "2.3.0", featues = "all" }
-console = "0.15.7"
-serde-sarif = { varsion = "0.4.2", featues = "all" }
+# [dependencies]
+
+# js-sandbox = "0.2.0-rc.2"
+# lychee-lib = "0.13.0"
+
+# anyhow = "1.0.75"
+# secrecy = "0.8.0"
+# serde = "1.0.188"
+# strum = "0.25.0"
+# async-std = "1.12.0"
+# 
+# reqwest = { version = "0.11.22", features = ["json"] }
+# serde_json = "1.0.107"
+# markdown_to_text = "1.0.0"
+# pathdiff = "0.2.1"
+# symspell = { git = "https://github.com/vvvar/symspell.git", branch = "no_print_progress" }
+# wildmatch = "2.1.1"
+# assert_cmd = "2.0.12"
+# predicates = "3.0.4"
+# 
+# 
+# 
+# 
+

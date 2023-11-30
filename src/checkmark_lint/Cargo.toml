@@ -1,0 +1,11 @@
+[package]
+name = "checkmark_lint"
+description = "Library to lint Markdown files"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+common = { path = "../common" }
+
+markdown = { version = "1.0.0-alpha.14", features = [ "json", "log", "serde" ] }
+serde-sarif = "0.4.2"
