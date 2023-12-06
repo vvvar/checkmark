@@ -36,20 +36,6 @@ pub struct CheckIssue {
     pub fixes: Vec<String>,
 }
 
-// trait Builder {
-//     type OutputType;
-//     fn set_category(&mut self, category: IssueCategory);
-//     fn set_file_path(&mut self, file_path: String);
-//     fn set_row_num_start(&mut self, row_num_start: i32);
-//     fn set_row_num_end(&mut self, row_num_end: i32);
-//     fn set_col_num_start(&mut self, col_num_start: i32);
-//     fn set_col_num_end(&mut self, col_num_end: i32);
-//     fn set_message(&mut self, message: String);
-//     fn set_fixes(&mut self, fixes: Vec<String>);
-//     fn build(self) -> Self::OutputType;
-//     fn default() -> Self;
-// }
-
 /// Builder for CheckIssue struct
 pub struct CheckIssueBuilder {
     pub category: Option<IssueCategory>,

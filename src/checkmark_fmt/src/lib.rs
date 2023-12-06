@@ -3,100 +3,116 @@ use markdown::mdast;
 use markdown::mdast::{AlignKind, Node};
 // use similar::{ChangeTag, TextDiff};
 
-fn render_list_node(
-    node: &mdast::Node,
-    mut buffer: &mut String,
+struct ListContext {
     nesting_level: usize,
     is_ordered: bool,
     num_item: u32,
-    is_in_block_quote: bool,
-) {
-    match node {
-        Node::List(list) => {
-            let mut start = if list.start.is_some() {
-                list.start.unwrap()
-            } else {
-                0
-            };
-            for child in &list.children {
-                render_list_node(
-                    &child,
-                    &mut buffer,
-                    nesting_level + 1,
-                    is_ordered,
-                    start,
-                    is_in_block_quote,
-                );
-                start += 1;
-            }
-        }
-        Node::ListItem(list_item) => {
-            buffer.push_str(&"   ".repeat(nesting_level));
-            if is_ordered {
-                buffer.push_str(&format!("{}. ", num_item));
-            } else {
-                buffer.push_str("+ ");
-            }
-            for child in &list_item.children {
-                if &child != &list_item.children.first().unwrap() {
-                    buffer.push_str("   ");
-                }
-                render_list_node(
-                    &child,
-                    &mut buffer,
-                    nesting_level,
-                    is_ordered,
-                    num_item,
-                    is_in_block_quote,
-                );
-                buffer.push_str("\n");
-            }
-        }
-        Node::Paragraph(paragraph) => {
-            for child in &paragraph.children {
-                render_list_node(
-                    &child,
-                    &mut buffer,
-                    nesting_level,
-                    is_ordered,
-                    num_item,
-                    is_in_block_quote,
-                );
-            }
-        }
-        Node::Text(text) => {
-            buffer.push_str(&text.value.replace("\n", &format!("\n   ")));
-        }
-        _ => travel_md_ast(&node, &mut buffer, is_in_block_quote),
-    }
 }
 
-fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String, is_in_block_quote: bool) {
+struct BlockQuoteContext {
+    depth: usize,
+}
+
+/// Current rendering context
+enum Context {
+    Document,
+    List(ListContext),
+    BlockQuote(BlockQuoteContext),
+}
+
+/// It is possible to pass single "~" and it wold be interpreted
+/// as a delete which shall be interpreted as a superscript
+/// https://github.com/markdown-it/markdown-it-sup
+fn is_superscript(d: &mdast::Delete, source: &str) -> bool {
+    let mut superscript = false;
+    if let Some(position) = &d.position {
+        let line_number = position.start.line;
+        let col_start = position.start.column;
+        let col_end = position.end.column;
+
+        if let Some(line) = source.lines().nth(line_number - 1) {
+            let slice = &line[col_start - 1..col_end - 1];
+            if slice.matches("~").count() == 2 {
+                superscript = true;
+            }
+        }
+    }
+    return superscript;
+}
+
+/// There are two types of string(bold) - underscore(__) and asterisk(**)
+/// We can determine a type of it from the original file
+fn is_string_underscored(d: &mdast::Strong, source: &str) -> bool {
+    let mut underscored = false;
+    if let Some(position) = &d.position {
+        let line_number = position.start.line;
+        let col_start = position.start.column;
+        let col_end = position.end.column;
+
+        if let Some(line) = source.lines().nth(line_number - 1) {
+            let slice = &line[col_start - 1..col_end - 1];
+            if slice.matches("__").count() == 2 {
+                underscored = true;
+            }
+        }
+    }
+    return underscored;
+}
+
+/// There are two types of string(bold) - underscore(__) and asterisk(**)
+/// We can determine a type of it from the original file
+fn is_heading_atx(d: &mdast::Heading, source: &str) -> bool {
+    let mut atx = false;
+    if let Some(position) = &d.position {
+        let line_number = position.start.line;
+        let col_start = position.start.column;
+        let col_end = position.end.column;
+
+        if let Some(line) = source.lines().nth(line_number - 1) {
+            let slice = &line[col_start - 1..col_end - 1];
+            if slice.contains("#") {
+                atx = true;
+            }
+        }
+    }
+    return atx;
+}
+
+/// Render Markdown file from AST
+fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source: &str) {
     match node {
         Node::Root(r) => {
             for child in &r.children {
-                travel_md_ast(&child, &mut buffer, is_in_block_quote);
+                to_md(&child, &mut buffer, &context, &source);
                 buffer.push_str("\n");
             }
         }
         Node::Heading(heading) => {
-            buffer.push_str("#".repeat(heading.depth as usize).as_str());
-            buffer.push_str(" ");
+            if is_heading_atx(&heading, &source) {
+                buffer.push_str("#".repeat(heading.depth as usize).as_str());
+                buffer.push_str(" ");
+            }
             for child in &heading.children {
-                travel_md_ast(&child, &mut buffer, is_in_block_quote);
+                to_md(&child, &mut buffer, &context, &source);
             }
             buffer.push_str("\n");
-        }
-        Node::Text(t) => {
-            if is_in_block_quote {
-                buffer.push_str(&t.value.replace("\n", &format!("\n> ")));
-            } else {
-                buffer.push_str(&t.value);
+            if !is_heading_atx(&heading, &source) {
+                if heading.depth == 1 {
+                    buffer.push_str("=============");
+                } else {
+                    buffer.push_str("-------------");
+                }
             }
         }
+        Node::Text(t) => match context {
+            Context::BlockQuote(ctx) => {
+                buffer.push_str(&t.value.replace("\n", &format!("\n{}", "> ".repeat(ctx.depth).as_str())))
+            }
+            _ => buffer.push_str(&t.value),
+        },
         Node::Paragraph(p) => {
             for child in &p.children {
-                travel_md_ast(&child, &mut buffer, is_in_block_quote);
+                to_md(&child, &mut buffer, &context, &source);
             }
             buffer.push_str("\n");
         }
@@ -106,58 +122,115 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String, is_in_block_quote:
             } else {
                 0
             };
+            let mut nesting_level = 0;
+            match context {
+                Context::List(ctx) => nesting_level = ctx.nesting_level + 1,
+                _ => {}
+            }
             for child in &l.children {
-                if is_in_block_quote && &child != &l.children.first().unwrap() {
-                    buffer.push_str("> ");
+                match context {
+                    Context::BlockQuote(_) => {
+                        if &child != &l.children.first().unwrap() {
+                            buffer.push_str("> ");
+                        }
+                    }
+                    _ => {}
                 }
-                render_list_node(&child, &mut buffer, 0, l.ordered, start, is_in_block_quote);
+                to_md(
+                    &child,
+                    &mut buffer,
+                    &Context::List(ListContext {
+                        nesting_level: nesting_level,
+                        is_ordered: l.ordered,
+                        num_item: start,
+                    }),
+                    &source,
+                );
                 start += 1;
+                if l.spread {
+                    buffer.push_str("\n");
+                }
             }
         }
-        Node::ListItem(_) => {
-            // Not needed since we're rendering through render_list_node
-        }
-        Node::Code(c) => {
-            if is_in_block_quote {
-                buffer.push_str(
-                    &format!(
-                        "```{}\n{}\n```\n",
-                        c.lang.as_ref().unwrap_or(&String::new()),
-                        c.value
-                    )
-                    .replace("\n", &format!("\n> ")),
-                );
-            } else {
-                buffer.push_str(&format!(
+        Node::ListItem(li) => match context {
+            Context::List(ctx) => {
+                buffer.push_str(&"  ".repeat(ctx.nesting_level));
+                if ctx.is_ordered {
+                    buffer.push_str(&format!("{}. ", ctx.num_item));
+                } else {
+                    buffer.push_str("+ ");
+                }
+                for child in &li.children {
+                    match child {
+                        Node::Paragraph(_) => {
+                            if &child != &li.children.first().unwrap() {
+                                buffer.push_str("\n");
+                                buffer.push_str(&"    ");
+                                to_md(&child, &mut buffer, &context, &source);
+                            } else {
+                                to_md(&child, &mut buffer, &context, &source);
+                            }
+                        }
+                        _ => to_md(&child, &mut buffer, &context, &source),
+                    }
+                }
+            }
+            _ => {}
+        },
+        Node::Code(c) => match context {
+            Context::BlockQuote(_) => buffer.push_str(
+                &format!(
                     "```{}\n{}\n```\n",
                     c.lang.as_ref().unwrap_or(&String::new()),
                     c.value
-                ));
-            }
-        }
+                )
+                .replace("\n", &format!("\n> ")),
+            ),
+            _ => buffer.push_str(&format!(
+                "```{}\n{}\n```\n",
+                c.lang.as_ref().unwrap_or(&String::new()),
+                c.value
+            )),
+        },
         Node::InlineCode(c) => {
             buffer.push_str(&format!("`{}`", &c.value));
         }
         Node::Emphasis(e) => {
             buffer.push_str("*");
             for child in &e.children {
-                travel_md_ast(&child, &mut buffer, is_in_block_quote);
+                to_md(&child, &mut buffer, &context, &source);
             }
             buffer.push_str("*");
         }
         Node::Strong(s) => {
-            buffer.push_str("**");
-            for child in &s.children {
-                travel_md_ast(&child, &mut buffer, is_in_block_quote);
+            if is_string_underscored(&s, &source) {
+                buffer.push_str("__");
+            } else {
+                buffer.push_str("**");
             }
-            buffer.push_str("**");
+            for child in &s.children {
+                to_md(&child, &mut buffer, &context, &source);
+            }
+            if is_string_underscored(&s, &source) {
+                buffer.push_str("__");
+            } else {
+                buffer.push_str("**");
+            }
         }
         Node::Delete(d) => {
-            buffer.push_str("~~");
-            for child in &d.children {
-                travel_md_ast(&child, &mut buffer, is_in_block_quote);
+            if is_superscript(&d, &source) {
+                buffer.push_str("~");
+            } else {
+                buffer.push_str("~~");
             }
-            buffer.push_str("~~");
+            for child in &d.children {
+                to_md(&child, &mut buffer, &context, &source);
+            }
+            if is_superscript(&d, &source) {
+                buffer.push_str("~");
+            } else {
+                buffer.push_str("~~");
+            }
         }
         Node::Break(_) => {
             buffer.push_str("\n");
@@ -165,13 +238,21 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String, is_in_block_quote:
         Node::Link(l) => {
             buffer.push_str("[");
             for child in &l.children {
-                travel_md_ast(&child, &mut buffer, is_in_block_quote);
+                to_md(&child, &mut buffer, &context, &source);
             }
             buffer.push_str("]");
-            buffer.push_str(&format!("({})", &l.url.clone().as_str()));
+            buffer.push_str(&format!("({}", &l.url.clone().as_str()));
+            if let Some(title) = &l.title {
+                buffer.push_str(&format!(" \"{}\"", &title));
+            }
+            buffer.push_str(")");
         }
         Node::Image(i) => {
-            buffer.push_str(&format!("![{}]({})", &i.alt, &i.url));
+            buffer.push_str(&format!("![{}]({}", &i.alt, &i.url));
+            if let Some(title) = &i.title {
+                buffer.push_str(&format!(" \"{}\"", &title));
+            }
+            buffer.push_str(")");
         }
         Node::BlockQuote(b) => {
             for child in &b.children {
@@ -179,11 +260,26 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String, is_in_block_quote:
                 if &child != &b.children.first().unwrap() {
                     buffer.push_str("\n> ");
                 }
-                travel_md_ast(&child, &mut buffer, true);
+                match &context {
+                    Context::BlockQuote(ctx) => to_md(
+                        &child,
+                        &mut buffer,
+                        &Context::BlockQuote(BlockQuoteContext {
+                            depth: ctx.depth + 1,
+                        }),
+                        &source,
+                    ),
+                    _ => to_md(
+                        &child,
+                        &mut buffer,
+                        &Context::BlockQuote(BlockQuoteContext { depth: 1 }),
+                        &source,
+                    ),
+                }
             }
         }
         Node::ThematicBreak(_) => {
-            buffer.push_str("----\n");
+            buffer.push_str("---\n");
         }
         Node::Html(h) => {
             buffer.push_str(&h.value);
@@ -193,6 +289,9 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String, is_in_block_quote:
         }
         Node::Definition(d) => {
             buffer.push_str(&format!("[{}]: {}", d.identifier, d.url));
+            if let Some(title) = &d.title {
+                buffer.push_str(&format!(" \"{}\"", &title));
+            }
         }
         Node::LinkReference(lr) => {
             buffer.push_str(&format!("[^{}]", &lr.identifier));
@@ -204,10 +303,10 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String, is_in_block_quote:
             buffer.push_str(&format!("[^{}]: ", &f.identifier));
             for child in &f.children {
                 if &child == &f.children.first().unwrap() {
-                    travel_md_ast(&child, &mut buffer, is_in_block_quote);
+                    to_md(&child, &mut buffer, &context, &source);
                 } else {
                     let mut tmp_buffer = String::from("");
-                    travel_md_ast(&child, &mut tmp_buffer, is_in_block_quote);
+                    to_md(&child, &mut tmp_buffer, &context, &source);
                     if let Some(position) = child.position() {
                         for line in tmp_buffer.lines() {
                             buffer.push_str(&" ".repeat(position.clone().start.column));
@@ -221,7 +320,7 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String, is_in_block_quote:
         Node::Table(t) => {
             for child in &t.children {
                 if &child == &t.children.first().unwrap() {
-                    travel_md_ast(&child, &mut buffer, is_in_block_quote);
+                    to_md(&child, &mut buffer, &context, &source);
                     buffer.push_str("|");
                     for align in &t.align {
                         match align {
@@ -233,20 +332,20 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String, is_in_block_quote:
                     }
                     buffer.push_str("\n");
                 } else {
-                    travel_md_ast(&child, &mut buffer, is_in_block_quote);
+                    to_md(&child, &mut buffer, &context, &source);
                 }
             }
         }
         Node::TableCell(tc) => {
             for child in &tc.children {
-                travel_md_ast(&child, &mut buffer, is_in_block_quote);
+                to_md(&child, &mut buffer, &context, &source);
             }
             buffer.push_str(" | ");
         }
         Node::TableRow(tr) => {
             buffer.push_str("| ");
             for child in &tr.children {
-                travel_md_ast(&child, &mut buffer, is_in_block_quote);
+                to_md(&child, &mut buffer, &context, &source);
             }
             buffer.push_str("\n");
         }
@@ -258,16 +357,19 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String, is_in_block_quote:
 pub fn fmt_markdown(file: &common::MarkDownFile) -> common::MarkDownFile {
     let mut buffer: String = String::from("");
     let ast = markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
-    travel_md_ast(&ast, &mut buffer, false);
-    match buffer.strip_suffix("\n") {
-        Some(stripped) => common::MarkDownFile {
-            path: file.path.clone(),
-            content: String::from(stripped),
-        },
-        None => common::MarkDownFile {
-            path: file.path.clone(),
-            content: buffer,
-        }
+    dbg!(&ast);
+    to_md(&ast, &mut buffer, &Context::Document, &file.content);
+    if buffer.ends_with("\n\n\n") {
+        buffer = buffer.strip_suffix("\n\n").unwrap().to_string();
+    } else if buffer.ends_with("\n\n") {
+        buffer = buffer.strip_suffix("\n").unwrap().to_string();
+    }
+    if !file.content.ends_with("\n") && buffer.ends_with("\n") {
+        buffer = buffer.strip_suffix("\n").unwrap().to_string();
+    }
+    common::MarkDownFile {
+        path: file.path.clone(),
+        content: buffer,
     }
 }
 
@@ -294,101 +396,4 @@ pub fn check_md_format(file: &common::MarkDownFile) -> Vec<common::CheckIssue> {
     }
 
     return issues;
-
-    // let artifact_location = serde_sarif::sarif::ArtifactLocationBuilder::default()
-    //     .uri(String::from(&file.path))
-    //     .build()
-    //     .unwrap();
-
-    // let message = serde_sarif::sarif::MessageBuilder::default()
-    //     .text("Formatting is incorrect")
-    //     .build()
-    //     .unwrap();
-
-    // let physical_location = serde_sarif::sarif::PhysicalLocationBuilder::default()
-    //     .artifact_location(artifact_location.clone())
-    //     .build()
-    //     .unwrap();
-
-    // let location = serde_sarif::sarif::LocationBuilder::default()
-    //     .physical_location(physical_location)
-    //     .build()
-    //     .unwrap();
-
-    // let mut fixes: Vec<serde_sarif::sarif::Fix> = vec![];
-
-    // let diff = TextDiff::from_lines(&file.content, &formatted_file.content);
-    // for op in diff.ops() {
-    // let mut replacement = serde_sarif::sarif::ReplacementBuilder::default();
-
-    // let mut text_to_delete = String::from("");
-    // let mut text_to_insert = String::from("");
-
-    // let mut delete_line_number: usize = 0;
-
-    // for change in diff.iter_changes(op) {
-    // Old code from example that prints a diff
-    // let (sign, style) = match change.tag() {
-    //     ChangeTag::Delete => ("-", Style::new().red()),
-    //     ChangeTag::Insert => ("+", Style::new().green()),
-    //     ChangeTag::Equal => ("", Style::new()),
-    // };
-    // format!("{}{}", style.apply_to(sign).bold(), style.apply_to(change));
-    // print!("{}{}", style.apply_to(sign).bold(), style.apply_to(change));
-
-    // match change.tag() {
-    //     ChangeTag::Delete => {
-    //         text_to_delete += &change.value();
-    //         if let Some(num) = change.old_index() {
-    //             delete_line_number = num;
-    //         };
-    //     }
-    //     ChangeTag::Insert => text_to_insert += &change.value(),
-    //     ChangeTag::Equal => {}
-    // };
-    // }
-
-    // if !text_to_delete.is_empty() {
-    //     let artifact_content: serde_sarif::sarif::ArtifactContent =
-    //         serde_sarif::sarif::ArtifactContentBuilder::default()
-    //             .text(text_to_delete)
-    //             .build()
-    //             .unwrap();
-    //     let region = serde_sarif::sarif::RegionBuilder::default()
-    //         .snippet(artifact_content)
-    //         .start_line(delete_line_number as i64)
-    //         .build()
-    //         .unwrap();
-    //     replacement.deleted_region(region);
-
-    //     let artifact_content = serde_sarif::sarif::ArtifactContentBuilder::default()
-    //         .text(text_to_insert)
-    //         .build()
-    //         .unwrap();
-    //     replacement.inserted_content(artifact_content);
-
-    //     let replacements = vec![replacement.build().unwrap()];
-    //     let changes = vec![serde_sarif::sarif::ArtifactChangeBuilder::default()
-    //         .replacements(replacements)
-    //         .artifact_location(artifact_location.clone())
-    //         .build()
-    //         .unwrap()];
-    //     let fix = serde_sarif::sarif::FixBuilder::default()
-    //         .artifact_changes(changes)
-    //         .build()
-    //         .unwrap();
-    //     fixes.push(fix);
-    // }
-    // }
-    // }
-
-    // let result = serde_sarif::sarif::ResultBuilder::default()
-    //     .locations(vec![location.clone()])
-    //     .analysis_target(artifact_location.clone())
-    //     .message(message)
-    //     .fixes(fixes)
-    //     .build()
-    //     .unwrap();
-
-    // return vec![result];
 }
