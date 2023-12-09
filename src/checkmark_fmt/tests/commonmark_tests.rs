@@ -13,7 +13,9 @@ struct TestCase {
 /// https://spec.commonmark.org/0.30/spec.json
 #[test]
 fn common_mark_end_2_end() {
-    let ignore_test_cases = [];
+    let ignore_test_cases = [
+        2, 3, // Duplicates of other test-cases, but with formatting that is stripped
+    ];
     let ignore_sections = [
         "Tabs",
         "Backslash escapes",

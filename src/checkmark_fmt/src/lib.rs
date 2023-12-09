@@ -107,6 +107,21 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                 &t.value
                     .replace("\n", &format!("\n{}", "> ".repeat(ctx.depth).as_str())),
             ),
+            Context::List(ctx) => {
+                // Very special case - when we have list with text that has ne lines
+                // we want to align them
+                if ctx.is_ordered {
+                    buffer.push_str(&t.value.replace(
+                        "\n",
+                        &format!("\n{}", "   ".repeat(ctx.nesting_level + 1).as_str()),
+                    ));
+                } else {
+                    buffer.push_str(&t.value.replace(
+                        "\n",
+                        &format!("\n{}", "  ".repeat(ctx.nesting_level + 1).as_str()),
+                    ));
+                }
+            }
             _ => buffer.push_str(&t.value),
         },
         Node::Paragraph(p) => {
