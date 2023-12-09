@@ -69,9 +69,9 @@ fn list_with_multiple_paragraphs() {
     utils::assert_unchanged_after_formatting(
         "1. This is a list item with two paragraphs. Lorem ipsum dolor
 
-    sit amet, consectetuer adipiscing elit. Aliquam hendrerit
+   sit amet, consectetuer adipiscing elit. Aliquam hendrerit
 
-    mi posuere lectus.",
+   mi posuere lectus.",
     );
 }
 
@@ -81,4 +81,8 @@ fn list_with_two_items_and_code_like_character() {
         "+ `one
 + two`",
     );
+
+    // utils::assert_unchanged_after_formatting("* A list item with a code block:
+
+    // <code goes here>");
 }

@@ -1,8 +1,6 @@
 use markdown;
 use markdown::mdast;
 use markdown::mdast::{AlignKind, Node};
-// use similar::{ChangeTag, TextDiff};
-
 struct ListContext {
     nesting_level: usize,
     is_ordered: bool,
@@ -105,9 +103,10 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
             }
         }
         Node::Text(t) => match context {
-            Context::BlockQuote(ctx) => {
-                buffer.push_str(&t.value.replace("\n", &format!("\n{}", "> ".repeat(ctx.depth).as_str())))
-            }
+            Context::BlockQuote(ctx) => buffer.push_str(
+                &t.value
+                    .replace("\n", &format!("\n{}", "> ".repeat(ctx.depth).as_str())),
+            ),
             _ => buffer.push_str(&t.value),
         },
         Node::Paragraph(p) => {
@@ -161,37 +160,44 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                     buffer.push_str("+ ");
                 }
                 for child in &li.children {
-                    match child {
-                        Node::Paragraph(_) => {
-                            if &child != &li.children.first().unwrap() {
-                                buffer.push_str("\n");
-                                buffer.push_str(&"    ");
-                                to_md(&child, &mut buffer, &context, &source);
+                    // When there's 2+ paragraphs in a list item
+                    // then we want to align then with list
+                    if &child != &li.children.first().unwrap() {
+                        if let Node::Paragraph(_) = &child {
+                            if ctx.is_ordered {
+                                buffer.push_str(&format!(
+                                    "\n{}",
+                                    "   ".repeat(ctx.nesting_level + 1).as_str()
+                                ));
                             } else {
-                                to_md(&child, &mut buffer, &context, &source);
+                                buffer.push_str(&format!(
+                                    "\n{}",
+                                    "  ".repeat(ctx.nesting_level + 1).as_str()
+                                ));
                             }
                         }
-                        _ => to_md(&child, &mut buffer, &context, &source),
+                        to_md(&child, &mut buffer, &context, &source);
+                    } else {
+                        to_md(&child, &mut buffer, &context, &source);
                     }
                 }
             }
             _ => {}
         },
-        Node::Code(c) => match context {
-            Context::BlockQuote(_) => buffer.push_str(
-                &format!(
-                    "```{}\n{}\n```\n",
-                    c.lang.as_ref().unwrap_or(&String::new()),
-                    c.value
-                )
-                .replace("\n", &format!("\n> ")),
-            ),
-            _ => buffer.push_str(&format!(
-                "```{}\n{}\n```\n",
-                c.lang.as_ref().unwrap_or(&String::new()),
-                c.value
-            )),
-        },
+
+        Node::Code(c) => {
+            let mut syntax_highlight = "text";
+            if let Some(lang) = &c.lang {
+                syntax_highlight = &lang;
+            }
+            match context {
+                Context::BlockQuote(_) => buffer.push_str(
+                    &format!("```{}\n{}\n```\n", syntax_highlight, c.value,)
+                        .replace("\n", &format!("\n> ")),
+                ),
+                _ => buffer.push_str(&format!("```{}\n{}\n```\n", syntax_highlight, c.value)),
+            }
+        }
         Node::InlineCode(c) => {
             buffer.push_str(&format!("`{}`", &c.value));
         }

@@ -5,10 +5,11 @@ mod utils;
 fn test_valid_markdown_test_file_rendered_without_reformatting() {
     // let original = common::MarkDownFile {
     //     path: String::from("data/test_markdown_file.md"),
-    //     content: String::from(include_str!("data/test_markdown_file.md"))
+    //     content: String::from(include_str!("data/test_markdown_file.md")),
     // };
     // let formatted = checkmark_fmt::fmt_markdown(&original);
     // utils::print_diff(&original.content, &formatted.content);
+    // std::fs::write("output.md", &formatted.content).unwrap();
     // assert_eq!(&original.content, &formatted.content);
 }
 
