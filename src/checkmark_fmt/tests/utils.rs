@@ -34,6 +34,7 @@ pub fn assert_unchanged_after_formatting(markdown: &str) {
     let original = create_dummy_md_file(markdown);
     let formatted = checkmark_fmt::fmt_markdown(&original);
     print_diff(&original.content, &formatted.content);
+    // std::fs::write("output.md", &formatted.content).unwrap();
     assert_eq!(&original.content, &formatted.content);
 }
 
