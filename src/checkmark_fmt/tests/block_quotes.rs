@@ -32,4 +32,9 @@ fn block_quote() {
 > + One
 > + Two",
     );
+
+    utils::assert_unchanged_after_formatting(
+        "+ A list item with a blockquote:
+  > This is a blockquote
+  > inside a list item.");
 }

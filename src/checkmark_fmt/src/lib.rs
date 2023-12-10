@@ -11,11 +11,17 @@ struct BlockQuoteContext {
     depth: usize,
 }
 
+struct BlockQuoteInListContext {
+    list_ctx: ListContext,
+    block_quote_ctx: BlockQuoteContext,
+}
+
 /// Current rendering context
 enum Context {
     Document,
     List(ListContext),
     BlockQuote(BlockQuoteContext),
+    BlockQuoteInList(BlockQuoteInListContext)
 }
 
 /// It is possible to pass single "~" and it wold be interpreted
@@ -122,6 +128,13 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                     ));
                 }
             }
+            Context::BlockQuoteInList(ctx) => {
+                // Very special case - we have a block quote inside a list
+                // we want to align it with list so it will be rendered
+                // by engines like a quote inside a list.
+                // Otherwise - it will be rendered outside
+                buffer.push_str(&t.value.replace("\n",&format!("\n{}> ", "  ".repeat(ctx.list_ctx.nesting_level + 1).as_str())));
+            },
             _ => buffer.push_str(&t.value),
         },
         Node::Paragraph(p) => {
@@ -161,7 +174,11 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                     &source,
                 );
                 start += 1;
-                if l.spread {
+                // Spread list(also called loose in CommonMark) is when
+                // at least one element is new-line separated. We force
+                // to be consistent and add newlines everywhere except
+                // last element because it will have newline anyways
+                if l.spread && &child != &l.children.last().unwrap() {
                     buffer.push_str("\n");
                 }
             }
@@ -190,6 +207,12 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                                     "  ".repeat(ctx.nesting_level + 1).as_str()
                                 ));
                             }
+                        } else if let Node::BlockQuote(_) = &child {
+                            if ctx.is_ordered {
+                                buffer.push_str("   ");
+                            } else {
+                                buffer.push_str("  ");
+                            }
                         }
                         to_md(&child, &mut buffer, &context, &source);
                     } else {
@@ -199,7 +222,6 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
             }
             _ => {}
         },
-
         Node::Code(c) => {
             let mut syntax_highlight = "text";
             if let Some(lang) = &c.lang {
@@ -289,6 +311,36 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                             depth: ctx.depth + 1,
                         }),
                         &source,
+                    ),
+                    Context::List(ctx) => to_md(
+                        &child,
+                        &mut buffer,
+                        &Context::BlockQuoteInList(
+                            BlockQuoteInListContext{
+                                list_ctx: ListContext {
+                                    nesting_level: ctx.nesting_level,
+                                    is_ordered: ctx.is_ordered,
+                                    num_item: ctx.num_item,
+                                },
+                                block_quote_ctx: BlockQuoteContext { depth: 1 }
+                            }
+                        ),
+                        &source
+                    ),
+                    Context::BlockQuoteInList(ctx) => to_md(
+                        &child,
+                        &mut buffer,
+                        &Context::BlockQuoteInList(
+                            BlockQuoteInListContext{
+                                list_ctx: ListContext {
+                                    nesting_level: ctx.list_ctx.nesting_level,
+                                    is_ordered: ctx.list_ctx.is_ordered,
+                                    num_item: ctx.list_ctx.num_item,
+                                },
+                                block_quote_ctx: BlockQuoteContext { depth: ctx.block_quote_ctx.depth + 1 }
+                            }
+                        ),
+                        &source
                     ),
                     _ => to_md(
                         &child,
