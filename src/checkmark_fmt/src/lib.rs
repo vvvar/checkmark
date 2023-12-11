@@ -21,7 +21,7 @@ enum Context {
     Document,
     List(ListContext),
     BlockQuote(BlockQuoteContext),
-    BlockQuoteInList(BlockQuoteInListContext)
+    BlockQuoteInList(BlockQuoteInListContext),
 }
 
 /// It is possible to pass single "~" and it wold be interpreted
@@ -133,8 +133,14 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                 // we want to align it with list so it will be rendered
                 // by engines like a quote inside a list.
                 // Otherwise - it will be rendered outside
-                buffer.push_str(&t.value.replace("\n",&format!("\n{}> ", "  ".repeat(ctx.list_ctx.nesting_level + 1).as_str())));
-            },
+                buffer.push_str(&t.value.replace(
+                    "\n",
+                    &format!(
+                        "\n{}> ",
+                        "  ".repeat(ctx.list_ctx.nesting_level + 1).as_str()
+                    ),
+                ));
+            }
             _ => buffer.push_str(&t.value),
         },
         Node::Paragraph(p) => {
@@ -315,32 +321,30 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                     Context::List(ctx) => to_md(
                         &child,
                         &mut buffer,
-                        &Context::BlockQuoteInList(
-                            BlockQuoteInListContext{
-                                list_ctx: ListContext {
-                                    nesting_level: ctx.nesting_level,
-                                    is_ordered: ctx.is_ordered,
-                                    num_item: ctx.num_item,
-                                },
-                                block_quote_ctx: BlockQuoteContext { depth: 1 }
-                            }
-                        ),
-                        &source
+                        &Context::BlockQuoteInList(BlockQuoteInListContext {
+                            list_ctx: ListContext {
+                                nesting_level: ctx.nesting_level,
+                                is_ordered: ctx.is_ordered,
+                                num_item: ctx.num_item,
+                            },
+                            block_quote_ctx: BlockQuoteContext { depth: 1 },
+                        }),
+                        &source,
                     ),
                     Context::BlockQuoteInList(ctx) => to_md(
                         &child,
                         &mut buffer,
-                        &Context::BlockQuoteInList(
-                            BlockQuoteInListContext{
-                                list_ctx: ListContext {
-                                    nesting_level: ctx.list_ctx.nesting_level,
-                                    is_ordered: ctx.list_ctx.is_ordered,
-                                    num_item: ctx.list_ctx.num_item,
-                                },
-                                block_quote_ctx: BlockQuoteContext { depth: ctx.block_quote_ctx.depth + 1 }
-                            }
-                        ),
-                        &source
+                        &Context::BlockQuoteInList(BlockQuoteInListContext {
+                            list_ctx: ListContext {
+                                nesting_level: ctx.list_ctx.nesting_level,
+                                is_ordered: ctx.list_ctx.is_ordered,
+                                num_item: ctx.list_ctx.num_item,
+                            },
+                            block_quote_ctx: BlockQuoteContext {
+                                depth: ctx.block_quote_ctx.depth + 1,
+                            },
+                        }),
+                        &source,
                     ),
                     _ => to_md(
                         &child,

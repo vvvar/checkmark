@@ -56,7 +56,7 @@ fn simple_ordered_list_preserved() {
 #[test]
 fn ordered_tight_and_lose_lists_with_wrong_numbers() {
     // Here, first list is interpreted as loose
-    // since it's at lease one el is split by newline 
+    // since it's at lease one el is split by newline
     utils::assert_changed_after_formatting(
         "Ordered loose list
 
@@ -71,7 +71,8 @@ fn ordered_tight_and_lose_lists_with_wrong_numbers() {
 Ordered tight list:
 
 57. foo
-1. bar", "Ordered loose list
+1. bar",
+        "Ordered loose list
 
 1. Lorem ipsum dolor sit amet
 
@@ -86,7 +87,8 @@ Ordered tight list:
 Ordered tight list:
 
 57. foo
-58. bar");
+58. bar",
+    );
 }
 
 /// Ordered lists can be mixed with unordered

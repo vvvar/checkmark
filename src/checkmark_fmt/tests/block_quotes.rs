@@ -36,5 +36,6 @@ fn block_quote() {
     utils::assert_unchanged_after_formatting(
         "+ A list item with a blockquote:
   > This is a blockquote
-  > inside a list item.");
+  > inside a list item.",
+    );
 }

@@ -1,5 +1,3 @@
-use similar::DiffableStr;
-
 /// Used to print diff between two strings to looks pretty in test report
 /// Use "cargo test -- --nocapture" to see it
 #[allow(dead_code)]

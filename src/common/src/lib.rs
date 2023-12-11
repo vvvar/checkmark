@@ -1,10 +1,12 @@
 /// Represents single markdown file under check
+#[derive(Debug, PartialEq)]
 pub struct MarkDownFile {
     pub path: String,
     pub content: String,
 }
 
 /// Represents type of issue that occurred while check
+#[derive(Debug, PartialEq)]
 pub enum IssueCategory {
     /// Issue with how document has been formatted
     Formatting,
@@ -14,9 +16,12 @@ pub enum IssueCategory {
     LinkChecking,
     /// Issue with word spelling
     Spelling,
+    /// Grammar
+    Grammar,
 }
 
 /// Represents issue found by checking markdown file
+#[derive(Debug, PartialEq)]
 pub struct CheckIssue {
     /// Category of the issue
     pub category: IssueCategory,
