@@ -34,14 +34,14 @@ struct OpenAIReviewSuggestion {
     line_start: usize,
     line_end: usize,
     problem: String,
-    fix: String
+    fix: String,
 }
 
 /// Represents review of the Markdown document provided by OpenAI
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct OpenAIReview {
     summary: String,
-    suggestions: Vec<OpenAIReviewSuggestion>
+    suggestions: Vec<OpenAIReviewSuggestion>,
 }
 
 /// Sometimes OpenAI provides false-positives
@@ -282,7 +282,7 @@ pub fn make_a_review(file: &common::MarkDownFile) -> Vec<common::CheckIssue> {
                     .set_col_num_start(0)
                     .set_col_num_end(0)
                     .set_message(String::from(&review.summary))
-                    .build()
+                    .build(),
             );
             for suggestion in &review.suggestions {
                 issues.push(
@@ -295,7 +295,7 @@ pub fn make_a_review(file: &common::MarkDownFile) -> Vec<common::CheckIssue> {
                         .set_col_num_end(0)
                         .set_message(suggestion.problem.clone())
                         .push_fix(&suggestion.fix.clone())
-                        .build()
+                        .build(),
                 );
             }
         }

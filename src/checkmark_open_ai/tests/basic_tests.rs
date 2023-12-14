@@ -37,7 +37,7 @@ fn grammar() {
     );
 }
 
-/// Check review generation(not consistent) 
+/// Check review generation(not consistent)
 #[ignore]
 #[test]
 fn review() {
