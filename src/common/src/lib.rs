@@ -18,6 +18,8 @@ pub enum IssueCategory {
     Spelling,
     /// Grammar
     Grammar,
+    /// Documentation review suggestion
+    Review,
 }
 
 /// Represents issue found by checking markdown file
@@ -50,7 +52,7 @@ pub struct CheckIssueBuilder {
     pub col_num_start: Option<usize>,
     pub col_num_end: Option<usize>,
     pub message: Option<String>,
-    pub fixes: Option<Vec<String>>,
+    pub fixes: Vec<String>,
 }
 
 impl CheckIssueBuilder {
@@ -89,8 +91,15 @@ impl CheckIssueBuilder {
         self
     }
 
+    /// Replace fix
     pub fn set_fixes(mut self, fixes: Vec<String>) -> Self {
-        self.fixes = Some(fixes);
+        self.fixes = fixes;
+        self
+    }
+
+    /// Push fix
+    pub fn push_fix(mut self, fix: &str) -> Self {
+        self.fixes.push(fix.to_string());
         self
     }
 
@@ -103,7 +112,7 @@ impl CheckIssueBuilder {
             col_num_start: self.col_num_start.expect("Col number start has not been set, use set_col_num_start() method before building an instance"),
             col_num_end: self.col_num_end.expect("Col end start has not been set, use set_col_num_end() method before building an instance"),
             message: self.message.expect("Message has not been set, use set_message() method before building an instance"),
-            fixes: self.fixes.expect("Fixes has not been set, use set_fixes() method before building an instance")
+            fixes: self.fixes,
         }
     }
 
@@ -116,7 +125,7 @@ impl CheckIssueBuilder {
             col_num_start: None,
             col_num_end: None,
             message: None,
-            fixes: None,
+            fixes: vec![],
         }
     }
 }
