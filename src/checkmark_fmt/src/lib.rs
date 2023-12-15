@@ -434,7 +434,6 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
 pub fn fmt_markdown(file: &common::MarkDownFile) -> common::MarkDownFile {
     let mut buffer: String = String::from("");
     let ast = markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
-    dbg!(&ast);
     to_md(&ast, &mut buffer, &Context::Document, &file.content);
     if buffer.ends_with("\n\n\n") {
         buffer = buffer.strip_suffix("\n\n").unwrap().to_string();
@@ -460,10 +459,10 @@ pub fn check_md_format(file: &common::MarkDownFile) -> Vec<common::CheckIssue> {
             common::CheckIssueBuilder::default()
                 .set_category(common::IssueCategory::Formatting)
                 .set_file_path(file.path.clone())
-                .set_row_num_start(0)
+                .set_row_num_start(1)
                 .set_row_num_end(file.content.lines().count())
-                .set_col_num_start(0)
-                .set_col_num_end(0)
+                .set_col_num_start(1)
+                .set_col_num_end(1)
                 .set_message(String::from(
                     "Formatting is incorrect! Please run fmt to fix it",
                 ))

@@ -138,8 +138,17 @@ impl CheckIssue {
             .build()
             .unwrap();
 
+        let region = serde_sarif::sarif::RegionBuilder::default()
+            .start_line(self.row_num_start as i64)
+            .end_line(self.row_num_end as i64)
+            .start_column(self.col_num_start as i64)
+            .end_column(self.col_num_end as i64)
+            .build()
+            .unwrap();
+
         let physical_location = serde_sarif::sarif::PhysicalLocationBuilder::default()
             .artifact_location(artifact_location.clone())
+            .region(region)
             .build()
             .unwrap();
 
@@ -192,8 +201,9 @@ impl CheckIssue {
         }
 
         serde_sarif::sarif::ResultBuilder::default()
+            .level("error")
             .locations(vec![location])
-            .analysis_target(artifact_location)
+            // .analysis_target(artifact_location)
             .message(message)
             .fixes(fixes)
             .build()

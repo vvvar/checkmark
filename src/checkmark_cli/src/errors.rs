@@ -1,6 +1,6 @@
 #[derive(Debug)]
 pub struct AppError {
-    message: String,
+    pub message: String,
 }
 
 impl std::error::Error for AppError {}

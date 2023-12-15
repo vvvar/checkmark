@@ -191,6 +191,7 @@ dependencies = [
  "checkmark_lint",
  "checkmark_ls",
  "clap",
+ "common",
  "env_logger",
  "predicates",
  "serde-sarif",
