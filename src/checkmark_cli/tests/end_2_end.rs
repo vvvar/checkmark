@@ -27,11 +27,12 @@ fn fmt() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
+#[ignore = "Involves real HTTP req to OpenAI which costs money + unstable. Use manual invocation and verification."]
 fn cli_grammar() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = std::process::Command::cargo_bin("checkmark_cli")?;
 
     cmd.arg("grammar")
-        .arg(".")
+        .arg("./data/end_to_end.md")
         .assert()
         .success()
         .stdout(predicate::str::contains("Formatting tool"));

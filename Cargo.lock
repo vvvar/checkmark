@@ -192,6 +192,8 @@ dependencies = [
  "checkmark_ls",
  "checkmark_open_ai",
  "clap",
+ "codespan",
+ "codespan-reporting",
  "common",
  "env_logger",
  "predicates",
@@ -294,6 +296,25 @@ name = "clap_lex"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "702fc72eb24e5a1e48ce58027a675bc24edd52096d5397d4aea7c6dd9eca0bd1"
+
+[[package]]
+name = "codespan"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "51c1d25c09c2f9e0d86d834345d04c8765de69d90b9592d6f1e4ef529d92dfde"
+dependencies = [
+ "unicode-segmentation",
+]
+
+[[package]]
+name = "codespan-reporting"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3538270d33cc669650c4b093848450d380def10c331d38c768e34cac80576e6e"
+dependencies = [
+ "termcolor",
+ "unicode-width",
+]
 
 [[package]]
 name = "colorchoice"
@@ -1572,18 +1593,18 @@ checksum = "3369f5ac52d5eb6ab48c6b4ffdc8efbcad6b89c765749064ba298f2c68a16a76"
 
 [[package]]
 name = "thiserror"
-version = "1.0.50"
+version = "1.0.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9a7210f5c9a7156bb50aa36aed4c95afb51df0df00713949448cf9e97d382d2"
+checksum = "f11c217e1416d6f036b870f14e0413d480dbf28edbee1f877abaf0206af43bb7"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.50"
+version = "1.0.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "266b2e40bc00e5a6c09c3584011e08b06f123c00362c92b975ba9843aaaa14b8"
+checksum = "01742297787513b79cf8e29d1056ede1313e2420b7b3b15d0a768b4921f549df"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1725,6 +1746,12 @@ checksum = "5c5713f0fc4b5db668a2ac63cdb7bb4469d8c9fed047b1d0292cc7b0ce2ba921"
 dependencies = [
  "tinyvec",
 ]
+
+[[package]]
+name = "unicode-segmentation"
+version = "1.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1dd624098567895118886609431a7c3b8f516e41d30e0643f03d94592a147e36"
 
 [[package]]
 name = "unicode-width"

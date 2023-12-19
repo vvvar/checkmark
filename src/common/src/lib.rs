@@ -1,12 +1,13 @@
 /// Represents single markdown file under check
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct MarkDownFile {
     pub path: String,
     pub content: String,
+    pub issues: Vec<CheckIssue>
 }
 
 /// Represents type of issue that occurred while check
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum IssueCategory {
     /// Issue with how document has been formatted
     Formatting,
@@ -23,7 +24,7 @@ pub enum IssueCategory {
 }
 
 /// Represents issue found by checking markdown file
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct CheckIssue {
     /// Category of the issue
     pub category: IssueCategory,
@@ -37,6 +38,10 @@ pub struct CheckIssue {
     pub col_num_start: usize,
     /// Column number where issue ends
     pub col_num_end: usize,
+    /// Character index from where issue begins
+    pub offset_start: usize,
+    /// Character index from where issue ends
+    pub offset_end: usize,
     /// Message that describes an issue
     pub message: String,
     /// Possible fixes
@@ -51,6 +56,8 @@ pub struct CheckIssueBuilder {
     pub row_num_end: Option<usize>,
     pub col_num_start: Option<usize>,
     pub col_num_end: Option<usize>,
+    pub offset_start: Option<usize>,
+    pub offset_end: Option<usize>,
     pub message: Option<String>,
     pub fixes: Vec<String>,
 }
@@ -86,6 +93,16 @@ impl CheckIssueBuilder {
         self
     }
 
+    pub fn set_offset_start(mut self, offset_start: usize) -> Self {
+        self.offset_start = Some(offset_start);
+        self
+    }
+
+    pub fn set_offset_end(mut self, offset_end: usize) -> Self {
+        self.offset_end = Some(offset_end);
+        self
+    }
+
     pub fn set_message(mut self, message: String) -> Self {
         self.message = Some(message);
         self
@@ -111,6 +128,8 @@ impl CheckIssueBuilder {
             row_num_end: self.row_num_end.expect("Row number end has not been set, use set_row_num_end() method before building an instance"),
             col_num_start: self.col_num_start.expect("Col number start has not been set, use set_col_num_start() method before building an instance"),
             col_num_end: self.col_num_end.expect("Col end start has not been set, use set_col_num_end() method before building an instance"),
+            offset_start: self.offset_start.expect("Issue offset start has not been set, use set_offset_start() method before building an instance"),
+            offset_end: self.offset_end.expect("Issue offset end has not been set, use set_offset_end() method before building an instance"),
             message: self.message.expect("Message has not been set, use set_message() method before building an instance"),
             fixes: self.fixes,
         }
@@ -124,6 +143,8 @@ impl CheckIssueBuilder {
             row_num_end: None,
             col_num_start: None,
             col_num_end: None,
+            offset_start: None,
+            offset_end: None,
             message: None,
             fixes: vec![],
         }

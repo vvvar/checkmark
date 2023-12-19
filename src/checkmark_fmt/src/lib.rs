@@ -446,16 +446,13 @@ pub fn fmt_markdown(file: &common::MarkDownFile) -> common::MarkDownFile {
     common::MarkDownFile {
         path: file.path.clone(),
         content: buffer,
+        issues: file.issues.clone()
     }
 }
 
-pub fn check_md_format(file: &common::MarkDownFile) -> Vec<common::CheckIssue> {
-    let mut issues: Vec<common::CheckIssue> = vec![];
-
-    let formatted_file = fmt_markdown(&file);
-
-    if !file.content.eq(&formatted_file.content) {
-        issues.push(
+pub fn check_md_format(file: &mut common::MarkDownFile) {
+    if !file.content.eq(&fmt_markdown(&file).content) {
+        file.issues.push(
             common::CheckIssueBuilder::default()
                 .set_category(common::IssueCategory::Formatting)
                 .set_file_path(file.path.clone())
@@ -463,13 +460,11 @@ pub fn check_md_format(file: &common::MarkDownFile) -> Vec<common::CheckIssue> {
                 .set_row_num_end(file.content.lines().count())
                 .set_col_num_start(1)
                 .set_col_num_end(1)
-                .set_message(String::from(
-                    "Formatting is incorrect! Please run fmt to fix it",
-                ))
-                .set_fixes(vec![])
+                .set_offset_start(0)
+                .set_offset_end(file.content.len())
+                .set_message(String::from("Formatting is incorrect"))
+                .set_fixes(vec!["Run \"checkmark fmt .\" to fix it".to_string()])
                 .build(),
         );
     }
-
-    return issues;
 }
