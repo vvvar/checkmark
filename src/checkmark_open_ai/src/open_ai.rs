@@ -124,30 +124,39 @@ pub async fn open_ai_request(
     return Ok(response);
 }
 
+/// Check is grammar suggestion is false-positive
+fn is_false_positive_suggestion(suggestion: &str, original: &str) -> bool {
+    if suggestion.is_empty() {
+        // No suggestion
+        true
+    } else if original.len() < 3 {
+        // Less then 3 symbols is most likely is not a sentence/statement
+        true
+    } else if suggestion.to_lowercase().contains("unable to provide any corrections or feedback without any context or user input") {
+        true
+    } else if suggestion.to_lowercase().contains("you haven't provided any statement for me to convert to standard English") {
+        true
+    } else if suggestion.to_ascii_lowercase().contains("sounds good") {
+        true
+    } else if suggestion.to_lowercase().contains("is not a statement that can be converted to standard English") {
+        true
+    } else if suggestion.to_lowercase().trim_end_matches(".").eq(&original.to_lowercase()) {
+        true
+    } else if suggestion.ends_with(".") && !original.ends_with(".") {
+        true
+    } else if suggestion.to_lowercase().eq(&original.to_lowercase()) {
+        true
+    } else {
+        false
+    }
+}
+
 /// Get a grammar correction suggestion from the Open AI.
 pub async fn get_open_ai_grammar_suggestion(text: &str) -> Result<OpenAISuggestion, OpenAIError> {
-    let role_prompt = "You will be provided with statements, and your task is to convert them to standard English.";
+    let role_prompt = "You are a grammar checker that looks for mistakes and makes sentence’s more fluent. You take all the users input and auto correct it. Just reply to user input with the correct grammar, DO NOT reply the context of the question of the user input. If the user input is grammatically correct and fluent, just reply “sounds good”.";
     let response = open_ai_request(role_prompt, &text).await?;
     if let Some(choice) = response.choices.first() {
-        if choice
-            .message
-            .content
-            .contains("you haven't provided any statement for me to convert to standard English")
-        {
-            return Ok(OpenAISuggestion::NoSuggestion);
-        } else if choice
-            .message
-            .content
-            .contains("is not a statement that can be converted to standard English")
-        {
-            return Ok(OpenAISuggestion::NoSuggestion);
-        } else if choice.message.content.ends_with(".") && !text.ends_with(".") {
-            return Ok(OpenAISuggestion::Suggestion(String::from(
-                choice.message.content.trim_end_matches("."),
-            )));
-        } else if choice.message.content.is_empty() {
-            return Ok(OpenAISuggestion::NoSuggestion);
-        } else if choice.message.content.eq(&text) {
+        if is_false_positive_suggestion(&choice.message.content, &text) {
             return Ok(OpenAISuggestion::NoSuggestion);
         } else {
             return Ok(OpenAISuggestion::Suggestion(

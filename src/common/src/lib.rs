@@ -30,12 +30,12 @@ pub enum IssueSeverity {
     Bug,
     /// Highest level, but no necessarily a bug
     Error,
-    /// Warning, could be skipped but it is highly advisable to fix it 
+    /// Warning, could be skipped but it is highly advisable to fix it
     Warning,
     /// Just a note, completely optional, lowest level
     Note,
     /// Hint
-    Help
+    Help,
 }
 
 /// Represents issue found by checking markdown file
@@ -300,4 +300,13 @@ pub fn filter_text_nodes<'a>(ast: &'a markdown::mdast::Node) -> Vec<&'a markdown
         _ => {}
     });
     return text_nodes;
+}
+
+pub fn filter_paragraph_nodes<'a>(ast: &'a markdown::mdast::Node) -> Vec<&'a markdown::mdast::Paragraph> {
+    let mut p_nodes: Vec<&markdown::mdast::Paragraph> = vec![];
+    for_each(&ast, |node| match node {
+        markdown::mdast::Node::Paragraph(t) => p_nodes.push(t),
+        _ => {}
+    });
+    return p_nodes;
 }
