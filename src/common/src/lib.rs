@@ -189,7 +189,7 @@ impl CheckIssue {
                 .unwrap()];
 
             let description = serde_sarif::sarif::MessageBuilder::default()
-                .text(&issue_fix.clone())
+                .text(&self.message)
                 .build()
                 .unwrap();
 

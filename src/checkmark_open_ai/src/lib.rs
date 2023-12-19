@@ -8,30 +8,28 @@ pub async fn check_grammar(
     for text in common::filter_text_nodes(&ast) {
         match open_ai::get_open_ai_grammar_suggestion(&text.value).await? {
             open_ai::OpenAISuggestion::Suggestion(suggestion) => {
-                if !suggestion.eq(&text.value) {
-                    let mut row_num_start = 0;
-                    let mut row_num_end = 0;
-                    let mut col_num_start = 0;
-                    let mut col_num_end = 0;
-                    if let Some(position) = &text.position {
-                        row_num_start = position.start.line;
-                        row_num_end = position.end.line;
-                        col_num_start = position.start.column;
-                        col_num_end = position.end.column;
-                    }
-                    issues.push(
-                        common::CheckIssueBuilder::default()
-                            .set_category(common::IssueCategory::Grammar)
-                            .set_file_path(file.path.clone())
-                            .set_row_num_start(row_num_start)
-                            .set_row_num_end(row_num_end)
-                            .set_col_num_start(col_num_start)
-                            .set_col_num_end(col_num_end)
-                            .set_message(String::from("Consider provided grammar suggestions"))
-                            .set_fixes(vec![suggestion])
-                            .build(),
-                    );
+                let mut row_num_start = 0;
+                let mut row_num_end = 0;
+                let mut col_num_start = 0;
+                let mut col_num_end = 0;
+                if let Some(position) = &text.position {
+                    row_num_start = position.start.line;
+                    row_num_end = position.end.line;
+                    col_num_start = position.start.column;
+                    col_num_end = position.end.column;
                 }
+                issues.push(
+                    common::CheckIssueBuilder::default()
+                        .set_category(common::IssueCategory::Grammar)
+                        .set_file_path(file.path.clone())
+                        .set_row_num_start(row_num_start)
+                        .set_row_num_end(row_num_end)
+                        .set_col_num_start(col_num_start)
+                        .set_col_num_end(col_num_end)
+                        .set_message(String::from("Statement/sentence does not look like standard English"))
+                        .set_fixes(vec![suggestion])
+                        .build(),
+                );
             }
             open_ai::OpenAISuggestion::NoSuggestion => {}
         }

@@ -19,7 +19,7 @@ async fn open_ai_grammar() {
                 .set_row_num_end(1)
                 .set_col_num_start(3)
                 .set_col_num_end(18)
-                .set_message("Consider provided grammar suggestions".to_string())
+                .set_message("Statement/sentence does not look like standard English".to_string())
                 .set_fixes(vec!["This is a header".to_string()])
                 .build(),
             common::CheckIssueBuilder::default()
@@ -29,7 +29,7 @@ async fn open_ai_grammar() {
                 .set_row_num_end(3)
                 .set_col_num_start(1)
                 .set_col_num_end(45)
-                .set_message("Consider provided grammar suggestions".to_string())
+                .set_message("Statement/sentence does not look like standard English".to_string())
                 .set_fixes(vec![
                     "And this is a text. Here is some additional text".to_string()
                 ])

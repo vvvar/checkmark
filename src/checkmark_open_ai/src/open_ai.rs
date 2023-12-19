@@ -129,10 +129,18 @@ pub async fn get_open_ai_grammar_suggestion(text: &str) -> Result<OpenAISuggesti
     let role_prompt = "You will be provided with statements, and your task is to convert them to standard English.";
     let response = open_ai_request(role_prompt, &text).await?;
     if let Some(choice) = response.choices.first() {
-        if choice.message.content.ends_with(".") && !text.ends_with(".") {
+        if choice.message.content.contains("you haven't provided any statement for me to convert to standard English") {
+            return Ok(OpenAISuggestion::NoSuggestion);
+        } else if choice.message.content.contains("is not a statement that can be converted to standard English") {
+            return Ok(OpenAISuggestion::NoSuggestion);
+        } else if choice.message.content.ends_with(".") && !text.ends_with(".") {
             return Ok(OpenAISuggestion::Suggestion(String::from(
                 choice.message.content.trim_end_matches("."),
             )));
+        } else if choice.message.content.is_empty() {
+            return Ok(OpenAISuggestion::NoSuggestion);
+        } else if choice.message.content.eq(&text) {
+            return Ok(OpenAISuggestion::NoSuggestion);
         } else {
             return Ok(OpenAISuggestion::Suggestion(
                 choice.message.content.to_string(),
