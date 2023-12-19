@@ -22,7 +22,7 @@ pub fn create_dummy_md_file(content: &str) -> common::MarkDownFile {
     common::MarkDownFile {
         path: String::from("this/is/a/dummy/path/to/a/file.md"),
         content: String::from(content),
-        issues: vec![]
+        issues: vec![],
     }
 }
 

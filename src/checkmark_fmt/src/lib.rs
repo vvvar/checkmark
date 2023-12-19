@@ -446,7 +446,7 @@ pub fn fmt_markdown(file: &common::MarkDownFile) -> common::MarkDownFile {
     common::MarkDownFile {
         path: file.path.clone(),
         content: buffer,
-        issues: file.issues.clone()
+        issues: file.issues.clone(),
     }
 }
 
@@ -455,6 +455,7 @@ pub fn check_md_format(file: &mut common::MarkDownFile) {
         file.issues.push(
             common::CheckIssueBuilder::default()
                 .set_category(common::IssueCategory::Formatting)
+                .set_severity(common::IssueSeverity::Error)
                 .set_file_path(file.path.clone())
                 .set_row_num_start(1)
                 .set_row_num_end(file.content.lines().count())

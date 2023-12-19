@@ -53,7 +53,7 @@ pub fn ls(path: &String) -> Vec<common::MarkDownFile> {
             Ok(content) => markdown_files.push(common::MarkDownFile {
                 path: file_path.clone(),
                 content: content,
-                issues: vec![]
+                issues: vec![],
             }),
             Err(_) => warn!("Unable to read file content. Make sure file has correct permissions"),
         }

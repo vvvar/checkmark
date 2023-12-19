@@ -3,7 +3,7 @@
 pub struct MarkDownFile {
     pub path: String,
     pub content: String,
-    pub issues: Vec<CheckIssue>
+    pub issues: Vec<CheckIssue>,
 }
 
 /// Represents type of issue that occurred while check
@@ -23,11 +23,28 @@ pub enum IssueCategory {
     Review,
 }
 
+/// Represent how critical issue is
+#[derive(Debug, PartialEq, Clone)]
+pub enum IssueSeverity {
+    /// Highest level, bug
+    Bug,
+    /// Highest level, but no necessarily a bug
+    Error,
+    /// Warning, could be skipped but it is highly advisable to fix it 
+    Warning,
+    /// Just a note, completely optional, lowest level
+    Note,
+    /// Hint
+    Help
+}
+
 /// Represents issue found by checking markdown file
 #[derive(Debug, PartialEq, Clone)]
 pub struct CheckIssue {
     /// Category of the issue
     pub category: IssueCategory,
+    /// How critical the issue is
+    pub severity: IssueSeverity,
     /// Path to the file that has an issue
     pub file_path: String,
     /// Line number where issue starts
@@ -51,6 +68,7 @@ pub struct CheckIssue {
 /// Builder for CheckIssue struct
 pub struct CheckIssueBuilder {
     pub category: Option<IssueCategory>,
+    pub severity: Option<IssueSeverity>,
     pub file_path: Option<String>,
     pub row_num_start: Option<usize>,
     pub row_num_end: Option<usize>,
@@ -65,6 +83,11 @@ pub struct CheckIssueBuilder {
 impl CheckIssueBuilder {
     pub fn set_category(mut self, category: IssueCategory) -> Self {
         self.category = Some(category);
+        self
+    }
+
+    pub fn set_severity(mut self, severity: IssueSeverity) -> Self {
+        self.severity = Some(severity);
         self
     }
 
@@ -123,6 +146,7 @@ impl CheckIssueBuilder {
     pub fn build(self) -> CheckIssue {
         CheckIssue {
             category: self.category.expect("Category has not been set, use set_category() method before building an instance"),
+            severity: self.severity.expect("Issue severity was not set, use set_severity() method before building an instance"),
             file_path: self.file_path.expect("File path has not been set, use set_file_path() method before building an instance"),
             row_num_start: self.row_num_start.expect("Row number start has not been set, use set_row_num_start() method before building an instance"),
             row_num_end: self.row_num_end.expect("Row number end has not been set, use set_row_num_end() method before building an instance"),
@@ -138,6 +162,7 @@ impl CheckIssueBuilder {
     pub fn default() -> Self {
         CheckIssueBuilder {
             category: None,
+            severity: None,
             file_path: None,
             row_num_start: None,
             row_num_end: None,

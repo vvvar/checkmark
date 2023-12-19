@@ -5,16 +5,19 @@ async fn open_ai_grammar() {
     let mut markdown = common::MarkDownFile {
         path: String::from("this/is/a/dummy/path/to/a/file.md"),
         content: String::from(include_str!("data/basic.md")),
-        issues: vec![]
+        issues: vec![],
     };
 
-    checkmark_open_ai::check_grammar(&mut markdown).await.unwrap();
+    checkmark_open_ai::check_grammar(&mut markdown)
+        .await
+        .unwrap();
 
     assert_eq!(
         &markdown.issues,
         &vec![
             common::CheckIssueBuilder::default()
                 .set_category(common::IssueCategory::Grammar)
+                .set_severity(common::IssueSeverity::Warning)
                 .set_file_path("this/is/a/dummy/path/to/a/file.md".to_string())
                 .set_row_num_start(1)
                 .set_row_num_end(1)
@@ -27,6 +30,7 @@ async fn open_ai_grammar() {
                 .build(),
             common::CheckIssueBuilder::default()
                 .set_category(common::IssueCategory::Grammar)
+                .set_severity(common::IssueSeverity::Warning)
                 .set_file_path("this/is/a/dummy/path/to/a/file.md".to_string())
                 .set_row_num_start(3)
                 .set_row_num_end(3)
@@ -50,7 +54,7 @@ fn review() {
     let mut markdown = common::MarkDownFile {
         path: String::from("this/is/a/dummy/path/to/a/file.md"),
         content: String::from(include_str!("data/basic.md")),
-        issues: vec![]
+        issues: vec![],
     };
 
     checkmark_open_ai::make_a_review(&mut markdown);
@@ -60,6 +64,7 @@ fn review() {
         &vec![
             common::CheckIssueBuilder::default()
                 .set_category(common::IssueCategory::Review)
+                .set_severity(common::IssueSeverity::Note)
                 .set_file_path("this/is/a/dummy/path/to/a/file.md".to_string())
                 .set_row_num_start(0)
                 .set_row_num_end(0)
@@ -69,6 +74,7 @@ fn review() {
                 .build(),
             common::CheckIssueBuilder::default()
                 .set_category(common::IssueCategory::Review)
+                .set_severity(common::IssueSeverity::Note)
                 .set_file_path("this/is/a/dummy/path/to/a/file.md".to_string())
                 .set_row_num_start(1)
                 .set_row_num_end(1)
@@ -79,6 +85,7 @@ fn review() {
                 .build(),
             common::CheckIssueBuilder::default()
                 .set_category(common::IssueCategory::Review)
+                .set_severity(common::IssueSeverity::Note)
                 .set_file_path("this/is/a/dummy/path/to/a/file.md".to_string())
                 .set_row_num_start(3)
                 .set_row_num_end(3)

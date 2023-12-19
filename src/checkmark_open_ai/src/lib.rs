@@ -22,6 +22,7 @@ pub async fn check_grammar(file: &mut common::MarkDownFile) -> Result<(), open_a
                 file.issues.push(
                     common::CheckIssueBuilder::default()
                         .set_category(common::IssueCategory::Grammar)
+                        .set_severity(common::IssueSeverity::Warning)
                         .set_file_path(file.path.clone())
                         .set_row_num_start(row_num_start)
                         .set_row_num_end(row_num_end)
@@ -29,8 +30,10 @@ pub async fn check_grammar(file: &mut common::MarkDownFile) -> Result<(), open_a
                         .set_col_num_end(col_num_end)
                         .set_offset_start(offset_start)
                         .set_offset_end(offset_end)
-                        .set_message(String::from("Statement/sentence does not look like standard English"))
-                        .set_fixes(vec![suggestion])
+                        .set_message(String::from(
+                            "Statement/sentence does not look like standard English",
+                        ))
+                        .set_fixes(vec![format!("Consider changing to: \"{}\"", suggestion)])
                         .build(),
                 );
             }
@@ -49,6 +52,7 @@ pub fn make_a_review(file: &mut common::MarkDownFile) {
             file.issues.push(
                 common::CheckIssueBuilder::default()
                     .set_category(common::IssueCategory::Review)
+                    .set_severity(common::IssueSeverity::Note)
                     .set_file_path(file.path.clone())
                     .set_row_num_start(0)
                     .set_row_num_end(0)
@@ -63,6 +67,7 @@ pub fn make_a_review(file: &mut common::MarkDownFile) {
                 file.issues.push(
                     common::CheckIssueBuilder::default()
                         .set_category(common::IssueCategory::Review)
+                        .set_severity(common::IssueSeverity::Note)
                         .set_file_path(file.path.clone())
                         .set_row_num_start(suggestion.line_start)
                         .set_row_num_end(suggestion.line_end)

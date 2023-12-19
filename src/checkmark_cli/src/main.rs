@@ -1,10 +1,10 @@
 mod cli;
 mod errors;
 
-use env_logger;
-use codespan_reporting::diagnostic::{Diagnostic, Label};
-use codespan_reporting::files::{SimpleFiles};
+use codespan_reporting::diagnostic::{Diagnostic, Label, Severity};
+use codespan_reporting::files::SimpleFiles;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
+use env_logger;
 
 /// Perform an analysis according to the tool from subcommand
 async fn analyze(cli: &cli::Cli, files: &mut Vec<common::MarkDownFile>) -> bool {
@@ -39,7 +39,7 @@ async fn analyze(cli: &cli::Cli, files: &mut Vec<common::MarkDownFile>) -> bool 
 fn report(cli: &cli::Cli, analyzed_files: &mut Vec<common::MarkDownFile>) {
     // Always print codespan report
     let mut codespan_files = SimpleFiles::new();
-    for analyzed_file in &mut* analyzed_files {
+    for analyzed_file in &mut *analyzed_files {
         let codespan_file_id = codespan_files.add(&analyzed_file.path, &analyzed_file.content);
         for issue in &analyzed_file.issues {
             let issue_code = match &issue.category {
@@ -48,17 +48,31 @@ fn report(cli: &cli::Cli, analyzed_files: &mut Vec<common::MarkDownFile>) {
                 common::IssueCategory::LinkChecking => "LinkCheck",
                 common::IssueCategory::Spelling => "Spelling",
                 common::IssueCategory::Grammar => "Grammar",
-                common::IssueCategory::Review => "Review"
+                common::IssueCategory::Review => "Review",
             };
-            let label = Label::primary(codespan_file_id, issue.offset_start..issue.offset_end);
-            let codespan_diagnostic = Diagnostic::error()
+            let severity = match &issue.severity {
+                common::IssueSeverity::Bug => Severity::Bug,
+                common::IssueSeverity::Error => Severity::Error,
+                common::IssueSeverity::Warning => Severity::Warning,
+                common::IssueSeverity::Note => Severity::Note,
+                common::IssueSeverity::Help => Severity::Help,
+            };
+            let codespan_diagnostic = Diagnostic::new(severity)
                 .with_message(&issue.message)
                 .with_code(issue_code)
-                .with_labels(vec![label])
+                .with_labels(vec![Label::primary(
+                    codespan_file_id,
+                    issue.offset_start..issue.offset_end,
+                )])
                 .with_notes(issue.fixes.clone());
-            let writer = StandardStream::stderr(ColorChoice::Always);
             let config = codespan_reporting::term::Config::default();
-            codespan_reporting::term::emit(&mut writer.lock(), &config, &codespan_files, &codespan_diagnostic).unwrap();
+            codespan_reporting::term::emit(
+                &mut StandardStream::stderr(ColorChoice::Always).lock(),
+                &config,
+                &codespan_files,
+                &codespan_diagnostic,
+            )
+            .unwrap();
         }
     }
 
@@ -75,9 +89,15 @@ fn report(cli: &cli::Cli, analyzed_files: &mut Vec<common::MarkDownFile>) {
             .unwrap();
 
         let mut results: Vec<serde_sarif::sarif::Result> = vec![];
-        for analyzed_file in &mut* analyzed_files {
-            results.append(&mut analyzed_file.issues.iter().map(|issue| issue.to_sarif_result()).collect());
-        }   
+        for analyzed_file in &mut *analyzed_files {
+            results.append(
+                &mut analyzed_file
+                    .issues
+                    .iter()
+                    .map(|issue| issue.to_sarif_result())
+                    .collect(),
+            );
+        }
 
         let runs = serde_sarif::sarif::RunBuilder::default()
             .tool(tool)
@@ -110,7 +130,7 @@ fn report(cli: &cli::Cli, analyzed_files: &mut Vec<common::MarkDownFile>) {
 async fn main() -> Result<(), errors::AppError> {
     env_logger::init();
     let cli = cli::init();
-    let mut files = checkmark_ls::ls(&cli.project_root);    
+    let mut files = checkmark_ls::ls(&cli.project_root);
     if analyze(&cli, &mut files).await {
         report(&cli, &mut files);
         return Err(errors::AppError {
