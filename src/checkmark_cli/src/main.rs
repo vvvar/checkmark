@@ -4,7 +4,7 @@ mod errors;
 use env_logger;
 
 /// Perform an analysis according to the tool from subcommand
-fn analyze(cli: &cli::Cli, issues: &mut Vec<common::CheckIssue>) {
+async fn analyze(cli: &cli::Cli, issues: &mut Vec<common::CheckIssue>) {
     match &cli.subcommands {
         cli::Subcommands::Fmt(fmt) => {
             for file in checkmark_ls::ls(&cli.project_root) {
@@ -13,6 +13,13 @@ fn analyze(cli: &cli::Cli, issues: &mut Vec<common::CheckIssue>) {
                 } else {
                     std::fs::write(&file.path, &checkmark_fmt::fmt_markdown(&file).content)
                         .unwrap();
+                }
+            }
+        }
+        cli::Subcommands::Grammar(_) => {
+            for file in checkmark_ls::ls(&cli.project_root) {
+                if let Ok(mut grammar_issues) = checkmark_open_ai::check_grammar(&file).await {
+                    issues.append(&mut grammar_issues);
                 }
             }
         }
@@ -60,7 +67,7 @@ async fn main() -> Result<(), errors::AppError> {
     env_logger::init();
     let cli = cli::init();
     let mut issues: Vec<common::CheckIssue> = vec![];
-    analyze(&cli, &mut issues);
+    analyze(&cli, &mut issues).await;
     report(&cli, &issues);
     if issues.is_empty() {
         return Ok(());

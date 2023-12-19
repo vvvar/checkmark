@@ -190,6 +190,7 @@ dependencies = [
  "checkmark_fmt",
  "checkmark_lint",
  "checkmark_ls",
+ "checkmark_open_ai",
  "clap",
  "common",
  "env_logger",
@@ -314,6 +315,7 @@ dependencies = [
 name = "common"
 version = "0.1.0"
 dependencies = [
+ "markdown",
  "serde-sarif",
 ]
 

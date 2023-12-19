@@ -163,26 +163,22 @@ impl CheckIssue {
             .unwrap();
 
         let mut fixes: Vec<serde_sarif::sarif::Fix> = vec![];
-        #[allow(unused)]
+        // #[allow(unused)]
         for issue_fix in &self.fixes {
             let artifact_content = serde_sarif::sarif::ArtifactContentBuilder::default()
-                .text("")
-                .build()
-                .unwrap();
-            let region = serde_sarif::sarif::RegionBuilder::default()
-                .snippet(artifact_content)
-                .start_line(self.row_num_start as i64)
+                .text(&issue_fix.clone())
                 .build()
                 .unwrap();
 
-            let artifact_content = serde_sarif::sarif::ArtifactContentBuilder::default()
-                .text("")
+            let region = serde_sarif::sarif::RegionBuilder::default()
+                .snippet(artifact_content.clone())
+                .start_line(self.row_num_start as i64)
                 .build()
                 .unwrap();
 
             let replacement = serde_sarif::sarif::ReplacementBuilder::default()
                 .deleted_region(region)
-                .inserted_content(artifact_content)
+                .inserted_content(artifact_content.clone())
                 .build()
                 .unwrap();
 
@@ -192,7 +188,13 @@ impl CheckIssue {
                 .build()
                 .unwrap()];
 
+            let description = serde_sarif::sarif::MessageBuilder::default()
+                .text(&issue_fix.clone())
+                .build()
+                .unwrap();
+
             let fix = serde_sarif::sarif::FixBuilder::default()
+                .description(description)
                 .artifact_changes(changes)
                 .build()
                 .unwrap();
@@ -209,4 +211,47 @@ impl CheckIssue {
             .build()
             .unwrap()
     }
+}
+
+// Collect nodes of type from provided AST
+pub fn for_each<'a>(ast: &'a markdown::mdast::Node, mut f: impl FnMut(&'a markdown::mdast::Node)) {
+    let mut stack: Vec<&markdown::mdast::Node> = vec![];
+    stack.push(&ast);
+    loop {
+        if let Some(current) = stack.pop() {
+            f(&current);
+            match current.children() {
+                Some(children) => {
+                    for child in children.iter().rev() {
+                        stack.push(child);
+                    }
+                }
+                None => {}
+            }
+        } else {
+            break;
+        }
+    }
+}
+
+pub fn filter<'a>(
+    ast: &'a markdown::mdast::Node,
+    mut predicate: impl FnMut(&'a markdown::mdast::Node) -> bool,
+) -> Vec<&'a markdown::mdast::Node> {
+    let mut stack: Vec<&markdown::mdast::Node> = vec![];
+    for_each(&ast, |node| {
+        if predicate(node) {
+            stack.push(node);
+        }
+    });
+    return stack;
+}
+
+pub fn filter_text_nodes<'a>(ast: &'a markdown::mdast::Node) -> Vec<&'a markdown::mdast::Text> {
+    let mut text_nodes: Vec<&markdown::mdast::Text> = vec![];
+    for_each(&ast, |node| match node {
+        markdown::mdast::Node::Text(t) => text_nodes.push(t),
+        _ => {}
+    });
+    return text_nodes;
 }

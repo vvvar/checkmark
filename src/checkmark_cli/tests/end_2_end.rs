@@ -21,7 +21,20 @@ fn fmt() -> Result<(), Box<dyn std::error::Error>> {
         .arg("--help")
         .assert()
         .success()
-        .stdout(predicate::str::contains("Formatting tool."));
+        .stdout(predicate::str::contains("Formatting tool"));
+
+    Ok(())
+}
+
+#[test]
+fn cli_grammar() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = std::process::Command::cargo_bin("checkmark_cli")?;
+
+    cmd.arg("grammar")
+        .arg(".")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Formatting tool"));
 
     Ok(())
 }

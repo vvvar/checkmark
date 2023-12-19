@@ -8,6 +8,7 @@ edition = "2021"
 checkmark_fmt = { path = "../checkmark_fmt" }
 checkmark_lint = { path = "../checkmark_lint" }
 checkmark_ls = { path = "../checkmark_ls" }
+checkmark_open_ai = { path = "../checkmark_open_ai" }
 common = { path = "../common" }
 
 clap = { version = "4.4.11", features = [ "derive", "cargo" ] }

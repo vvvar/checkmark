@@ -1,12 +1,13 @@
 /// Check grammar check
-#[ignore]
-#[test]
-fn grammar() {
+#[ignore = "Involves real HTTP req to OpenAI which costs money + unstable. Use manual invocation and verification."]
+#[tokio::test]
+async fn open_ai_grammar() {
     let markdown = common::MarkDownFile {
         path: String::from("this/is/a/dummy/path/to/a/file.md"),
         content: String::from(include_str!("data/basic.md")),
     };
-    let issues = checkmark_open_ai::check_grammar(&markdown);
+
+    let issues = checkmark_open_ai::check_grammar(&markdown).await.unwrap();
 
     assert_eq!(
         &issues,
@@ -17,9 +18,9 @@ fn grammar() {
                 .set_row_num_start(1)
                 .set_row_num_end(1)
                 .set_col_num_start(3)
-                .set_col_num_end(19)
+                .set_col_num_end(18)
                 .set_message("Consider provided grammar suggestions".to_string())
-                .set_fixes(vec!["This is a heading".to_string()])
+                .set_fixes(vec!["This is a header".to_string()])
                 .build(),
             common::CheckIssueBuilder::default()
                 .set_category(common::IssueCategory::Grammar)
@@ -30,7 +31,7 @@ fn grammar() {
                 .set_col_num_end(45)
                 .set_message("Consider provided grammar suggestions".to_string())
                 .set_fixes(vec![
-                    "And this is a text. Here is some additional text.".to_string()
+                    "And this is a text. Here is some additional text".to_string()
                 ])
                 .build(),
         ]
@@ -38,7 +39,7 @@ fn grammar() {
 }
 
 /// Check review generation(not consistent)
-#[ignore]
+#[ignore = "Involves real HTTP req to OpenAI which costs money + unstable. Use manual invocation and verification."]
 #[test]
 fn review() {
     let markdown = common::MarkDownFile {

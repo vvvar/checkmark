@@ -1,16 +1,23 @@
 use clap::Parser;
 
 #[derive(clap::Parser)]
-#[command(about = "Formatting tool.", long_about = None)]
+#[command(long_about = None)]
 pub struct FmtCommand {
     /// Check fmt issues without fixing them
     #[arg(long, short, action)]
     pub check: bool,
 }
 
+#[derive(clap::Parser)]
+#[command(long_about = None)]
+pub struct GrammarCommand {}
+
 #[derive(clap::Subcommand)]
 pub enum Subcommands {
+    /// Formatting tool.
     Fmt(FmtCommand),
+    /// Grammar checker tool(requires internet and OPEN_AI_API_KEY env var set).
+    Grammar(GrammarCommand),
 }
 
 #[derive(clap::Parser)]
@@ -18,7 +25,7 @@ pub enum Subcommands {
 #[command(propagate_version = true)]
 pub struct Cli {
     /// Root of your project.
-    #[arg(value_hint=clap::ValueHint::DirPath, default_value=".")]
+    #[arg(global = true, value_hint=clap::ValueHint::DirPath, default_value=".")]
     pub project_root: String,
 
     /// Output report to a file in SARIF format
