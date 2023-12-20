@@ -1,14 +1,24 @@
 use glob;
 use log::warn;
-use std::fs;
 
 /// Creates a list of markdown files from provided path
 /// Path could be:
 ///     1. path to a file - will just add this file to the list
 ///     2. path to a dir - will lookup all markdown files in this ir
-pub fn ls(path: &String) -> Vec<common::MarkDownFile> {
+///     3. remote URL
+pub async fn ls(path: &String) -> Vec<common::MarkDownFile> {
+    let mut input_path = path.clone();
+    if is_url::is_url(&input_path) {
+        let response = reqwest::get(&input_path).await.unwrap();
+        let tmp_file_path = format!("{}/CHECKMARK_REMOTE_FILE.md", std::env::temp_dir().to_str().unwrap());
+        let mut file = std::fs::File::create(&tmp_file_path).unwrap();
+        let mut content =  std::io::Cursor::new(response.bytes().await.unwrap());
+        std::io::copy(&mut content, &mut file).unwrap();
+        input_path = tmp_file_path.clone();
+    }
+
     let mut files = Vec::<String>::new();
-    if let Ok(absolute_root_path) = std::path::PathBuf::from(&path).canonicalize() {
+    if let Ok(absolute_root_path) = std::path::PathBuf::from(&input_path).canonicalize() {
         if let Some(absolute_root_path_str) = absolute_root_path.to_str() {
             if absolute_root_path.is_file() {
                 // Someone requested just a single file
@@ -49,7 +59,7 @@ pub fn ls(path: &String) -> Vec<common::MarkDownFile> {
 
     let mut markdown_files: Vec<common::MarkDownFile> = vec![];
     for file_path in &files {
-        match fs::read_to_string(&file_path) {
+        match std::fs::read_to_string(&file_path) {
             Ok(content) => markdown_files.push(common::MarkDownFile {
                 path: file_path.clone(),
                 content: content,

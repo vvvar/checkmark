@@ -233,7 +233,10 @@ version = "0.0.1"
 dependencies = [
  "common",
  "glob",
+ "is-url",
  "log",
+ "reqwest",
+ "tempfile",
 ]
 
 [[package]]
@@ -836,6 +839,16 @@ dependencies = [
  "hermit-abi",
  "rustix",
  "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "is-url"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ecc3c11df614d56dcf271409b7a7efbcec8c07f55f685651232ddf26054d166b"
+dependencies = [
+ "lazy_static",
+ "regex",
 ]
 
 [[package]]

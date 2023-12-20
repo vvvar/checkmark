@@ -141,7 +141,7 @@ fn report(cli: &cli::Cli, analyzed_files: &mut Vec<common::MarkDownFile>) {
 async fn main() -> Result<(), errors::AppError> {
     env_logger::init();
     let cli = cli::init();
-    let mut files = checkmark_ls::ls(&cli.project_root);
+    let mut files = checkmark_ls::ls(&cli.project_root).await;
     analyze(&cli, &mut files).await;
     report(&cli, &mut files);
     if has_any_critical_issue(&files) {
