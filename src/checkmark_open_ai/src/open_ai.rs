@@ -171,6 +171,14 @@ fn auto_correct_grammar_suggestion(suggestion: &str, original: &str) -> String {
     }
 }
 
+fn is_false_positive_review_suggestion(suggestion_description: &str) -> bool {
+    if suggestion_description.contains("a space after the colon") {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 /// Get a grammar correction suggestion from the Open AI.
 pub async fn get_open_ai_grammar_suggestion(text: &str) -> Result<OpenAISuggestion, OpenAIError> {
     let role_prompt = "You are a grammar checker that.
@@ -201,7 +209,7 @@ Ensure it meets high-quality standards.
 Provide detailed feedback on grammar, punctuation, sentence structure, formatting, consistency, clarity, readability, and overall coherence.
 Additionally, assess the use of active voice, appropriate word choice, and proper citation and referencing.
 Aim to enhance the audience perspective, conciseness, and effectiveness of the content.
-Do not provide suggestions on Markdown syntax.
+DO NOT provide suggestions on Markdown syntax.
 Additionally it must contain detailed summary of the review.
 Suggestions should describe example which fix could be sufficient.
 The resulting must be JSON. It shall have two properties - summary and suggestions.
@@ -217,7 +225,13 @@ Provide your answer in JSON form. Reply with only the answer in JSON form and in
     let response = open_ai_request(role_prompt, &file.content).await?;
     if let Some(choice) = response.choices.first() {
         if let Ok(review) = serde_json::from_str::<OpenAIReview>(&choice.message.content) {
-            return Ok(review);
+            return Ok(OpenAIReview {
+                summary: review.summary,
+                suggestions: review.suggestions
+                                .into_iter()
+                                .filter(|suggestion| !is_false_positive_review_suggestion(&suggestion.description))
+                                .collect(),
+            });
         } else {
             return Ok(OpenAIReview {
                 summary: "Everything is ok".to_string(),
