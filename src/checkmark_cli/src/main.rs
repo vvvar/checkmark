@@ -6,17 +6,25 @@ use codespan_reporting::files::SimpleFiles;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
 use env_logger;
 
+fn has_any_critical_issue(files: &Vec<common::MarkDownFile>) -> bool {
+    let mut any_critical_issue = false;
+    for file in files {
+        any_critical_issue = !file.issues.is_empty()
+        && file
+            .issues
+            .iter()
+            .any(|issue| issue.severity == common::IssueSeverity::Error);
+    }
+    return any_critical_issue;
+}
+
 /// Perform an analysis according to the tool from subcommand
-async fn analyze(cli: &cli::Cli, files: &mut Vec<common::MarkDownFile>) -> bool {
-    let mut any_issue_found = false;
+async fn analyze(cli: &cli::Cli, files: &mut Vec<common::MarkDownFile>) {
     match &cli.subcommands {
         cli::Subcommands::Fmt(fmt) => {
             for file in files {
                 if fmt.check {
                     checkmark_fmt::check_md_format(file);
-                    if !file.issues.is_empty() {
-                        any_issue_found = true;
-                    }
                 } else {
                     std::fs::write(&file.path, &checkmark_fmt::fmt_markdown(&file).content)
                         .unwrap();
@@ -26,13 +34,14 @@ async fn analyze(cli: &cli::Cli, files: &mut Vec<common::MarkDownFile>) -> bool 
         cli::Subcommands::Grammar(_) => {
             for file in files {
                 checkmark_open_ai::check_grammar(file).await.unwrap();
-                if !file.issues.is_empty() {
-                    any_issue_found = true;
-                }
+            }
+        }
+        cli::Subcommands::Review(_) => {
+            for file in files {
+                checkmark_open_ai::make_a_review(file).await.unwrap();
             }
         }
     }
-    return any_issue_found;
 }
 
 /// Produce an issue report
@@ -57,14 +66,16 @@ fn report(cli: &cli::Cli, analyzed_files: &mut Vec<common::MarkDownFile>) {
                 common::IssueSeverity::Note => Severity::Note,
                 common::IssueSeverity::Help => Severity::Help,
             };
-            let codespan_diagnostic = Diagnostic::new(severity)
+            let mut codespan_diagnostic = Diagnostic::new(severity)
                 .with_message(&issue.message)
                 .with_code(issue_code)
-                .with_labels(vec![Label::primary(
+                .with_notes(issue.fixes.clone());
+            if severity != Severity::Help {
+                codespan_diagnostic = codespan_diagnostic.with_labels(vec![Label::primary(
                     codespan_file_id,
                     issue.offset_start..issue.offset_end,
-                )])
-                .with_notes(issue.fixes.clone());
+                )]);
+            }
             let config = codespan_reporting::term::Config::default();
             codespan_reporting::term::emit(
                 &mut StandardStream::stderr(ColorChoice::Always).lock(),
@@ -131,10 +142,11 @@ async fn main() -> Result<(), errors::AppError> {
     env_logger::init();
     let cli = cli::init();
     let mut files = checkmark_ls::ls(&cli.project_root);
-    if analyze(&cli, &mut files).await {
-        report(&cli, &mut files);
+    analyze(&cli, &mut files).await;
+    report(&cli, &mut files);
+    if has_any_critical_issue(&files) {
         return Err(errors::AppError {
-            message: "Issues found during analysis. Check report for details.".to_string(),
+            message: "Critical issues found during analysis. Check report for details.".to_string(),
         });
     } else {
         return Ok(());

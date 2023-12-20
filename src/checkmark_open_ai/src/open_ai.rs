@@ -36,10 +36,9 @@ pub struct OpenAIResponse {
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct OpenAIReviewSuggestion {
-    pub line_start: usize,
-    pub line_end: usize,
-    pub problem: String,
-    pub fix: String,
+    pub description: String,
+    pub original: String,
+    pub replacement: String,
 }
 
 /// Represents review of the Markdown document provided by OpenAI
@@ -132,17 +131,28 @@ fn is_false_positive_suggestion(suggestion: &str, original: &str) -> bool {
     } else if original.len() < 3 {
         // Less then 3 symbols is most likely is not a sentence/statement
         true
-    } else if suggestion.to_lowercase().contains("unable to provide any corrections or feedback without any context or user input") {
+    } else if suggestion
+        .to_lowercase()
+        .contains("unable to provide any corrections or feedback without any context or user input")
+    {
         true
-    } else if suggestion.to_lowercase().contains("you haven't provided any statement for me to convert to standard English") {
+    } else if suggestion
+        .to_lowercase()
+        .contains("you haven't provided any statement for me to convert to standard English")
+    {
         true
     } else if suggestion.to_ascii_lowercase().contains("sounds good") {
         true
-    } else if suggestion.to_lowercase().contains("is not a statement that can be converted to standard English") {
+    } else if suggestion
+        .to_lowercase()
+        .contains("is not a statement that can be converted to standard English")
+    {
         true
-    } else if suggestion.to_lowercase().trim_end_matches(".").eq(&original.to_lowercase()) {
-        true
-    } else if suggestion.ends_with(".") && !original.ends_with(".") {
+    } else if suggestion
+        .to_lowercase()
+        .trim_end_matches(".")
+        .eq(&original.to_lowercase())
+    {
         true
     } else if suggestion.to_lowercase().eq(&original.to_lowercase()) {
         true
@@ -151,16 +161,30 @@ fn is_false_positive_suggestion(suggestion: &str, original: &str) -> bool {
     }
 }
 
+/// Sometimes we want to adjust suggestion a bit, this function does that.
+/// For example, OpenAI may suggest adding period when it si not needed.
+fn auto_correct_grammar_suggestion(suggestion: &str, original: &str) -> String {
+    if suggestion.ends_with(".") && !original.ends_with(".") {
+        return suggestion.strip_suffix(".").unwrap().to_string();
+    } else {
+        return suggestion.to_string();
+    }
+}
+
 /// Get a grammar correction suggestion from the Open AI.
 pub async fn get_open_ai_grammar_suggestion(text: &str) -> Result<OpenAISuggestion, OpenAIError> {
-    let role_prompt = "You are a grammar checker that looks for mistakes and makes sentence’s more fluent. You take all the users input and auto correct it. Just reply to user input with the correct grammar, DO NOT reply the context of the question of the user input. If the user input is grammatically correct and fluent, just reply “sounds good”.";
+    let role_prompt = "You are a grammar checker that.
+You take all the users input and auto correct it.
+Just reply to user input with the correct grammar.
+DO NOT reply the context of the question of the user input.
+If the user input is grammatically correct then just reply “sounds good” and nothing else.";
     let response = open_ai_request(role_prompt, &text).await?;
     if let Some(choice) = response.choices.first() {
         if is_false_positive_suggestion(&choice.message.content, &text) {
             return Ok(OpenAISuggestion::NoSuggestion);
         } else {
             return Ok(OpenAISuggestion::Suggestion(
-                choice.message.content.to_string(),
+                auto_correct_grammar_suggestion(&choice.message.content, &text),
             ));
         }
     } else {
@@ -168,11 +192,11 @@ pub async fn get_open_ai_grammar_suggestion(text: &str) -> Result<OpenAISuggesti
     }
 }
 
-/// Makes a review of provided markdown file with OpenAI
-/// Returns string with suggestions
+/// Makes a review of provided markdown file with OpenAI.
+/// Returns string with suggestions.
 pub async fn get_open_ai_review(file: &common::MarkDownFile) -> Result<OpenAIReview, OpenAIError> {
     let role_prompt = "You will be provided with project documentation in Markdown format.
-Your task it to review it.
+Your task it to review it and provide suggestions for improvement.
 Ensure it meets high-quality standards.
 Provide detailed feedback on grammar, punctuation, sentence structure, formatting, consistency, clarity, readability, and overall coherence.
 Additionally, assess the use of active voice, appropriate word choice, and proper citation and referencing.
@@ -181,15 +205,15 @@ Do not provide suggestions on Markdown syntax.
 Additionally it must contain detailed summary of the review.
 Suggestions should describe example which fix could be sufficient.
 The resulting must be JSON. It shall have two properties - summary and suggestions.
-summary is detailed summary of the review.
-suggestions is a list of suggestions that shows what is the problem, where it appear and how to fix that. 
+Suggestions is a list of suggestions that shows what is the problem, where it appear(exact row numbers in the original document where problem appears) and how to fix that.
 Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary:
 {
     \"summary\": \"string\",
     \"suggestions\": [
-        { \"line_start\": number, \"line_end\": number, \"problem\": \"string\", \"fix\": \"string\" }
+        { \"description\": \"string\", \"original\": \"string\", \"replacement\": \"string\" }
     ]
-}";
+}
+";
     let response = open_ai_request(role_prompt, &file.content).await?;
     if let Some(choice) = response.choices.first() {
         if let Ok(review) = serde_json::from_str::<OpenAIReview>(&choice.message.content) {

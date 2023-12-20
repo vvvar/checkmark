@@ -12,12 +12,18 @@ pub struct FmtCommand {
 #[command(long_about = None)]
 pub struct GrammarCommand {}
 
+#[derive(clap::Parser)]
+#[command(long_about = None)]
+pub struct ReviewCommand {}
+
 #[derive(clap::Subcommand)]
 pub enum Subcommands {
     /// Formatting tool.
     Fmt(FmtCommand),
     /// Grammar checker tool(requires internet and OPEN_AI_API_KEY env var set).
     Grammar(GrammarCommand),
+    /// Make a review of the document(requires internet and OPEN_AI_API_KEY env var set).
+    Review(ReviewCommand),
 }
 
 #[derive(clap::Parser)]

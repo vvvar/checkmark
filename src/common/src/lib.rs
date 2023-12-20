@@ -302,7 +302,9 @@ pub fn filter_text_nodes<'a>(ast: &'a markdown::mdast::Node) -> Vec<&'a markdown
     return text_nodes;
 }
 
-pub fn filter_paragraph_nodes<'a>(ast: &'a markdown::mdast::Node) -> Vec<&'a markdown::mdast::Paragraph> {
+pub fn filter_paragraph_nodes<'a>(
+    ast: &'a markdown::mdast::Node,
+) -> Vec<&'a markdown::mdast::Paragraph> {
     let mut p_nodes: Vec<&markdown::mdast::Paragraph> = vec![];
     for_each(&ast, |node| match node {
         markdown::mdast::Node::Paragraph(t) => p_nodes.push(t),

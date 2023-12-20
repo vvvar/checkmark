@@ -33,7 +33,7 @@ pub async fn check_grammar(file: &mut common::MarkDownFile) -> Result<(), open_a
                         .set_message(String::from(
                             "Statement/sentence does not look like standard English",
                         ))
-                        .set_fixes(vec![format!("Consider changing to: \"{}\"", suggestion)])
+                        .push_fix(&format!("Consider changing to: \n{}", suggestion))
                         .build(),
                 );
             }
@@ -43,16 +43,13 @@ pub async fn check_grammar(file: &mut common::MarkDownFile) -> Result<(), open_a
     Ok(())
 }
 
-pub fn make_a_review(file: &mut common::MarkDownFile) {
-    if let Ok(review) = tokio::runtime::Runtime::new()
-        .unwrap()
-        .block_on(open_ai::get_open_ai_review(&file))
-    {
+pub async fn make_a_review(file: &mut common::MarkDownFile) -> Result<(), open_ai::OpenAIError> {
+    if let Ok(review) = open_ai::get_open_ai_review(&file).await {
         if !review.suggestions.is_empty() {
             file.issues.push(
                 common::CheckIssueBuilder::default()
                     .set_category(common::IssueCategory::Review)
-                    .set_severity(common::IssueSeverity::Note)
+                    .set_severity(common::IssueSeverity::Help)
                     .set_file_path(file.path.clone())
                     .set_row_num_start(0)
                     .set_row_num_end(0)
@@ -60,26 +57,34 @@ pub fn make_a_review(file: &mut common::MarkDownFile) {
                     .set_col_num_end(0)
                     .set_offset_start(0)
                     .set_offset_end(file.content.len())
-                    .set_message(String::from(&review.summary))
+                    .set_message("Consider review of your document".to_string())
+                    .push_fix(&review.summary)
                     .build(),
             );
             for suggestion in &review.suggestions {
+                let mut index_start = 0;
+                let mut index_end = file.content.len();
+                if let Some(index) = file.content.find(&suggestion.original) {
+                    index_start = index;
+                    index_end = index_start + &suggestion.original.len();
+                }
                 file.issues.push(
                     common::CheckIssueBuilder::default()
                         .set_category(common::IssueCategory::Review)
                         .set_severity(common::IssueSeverity::Note)
                         .set_file_path(file.path.clone())
-                        .set_row_num_start(suggestion.line_start)
-                        .set_row_num_end(suggestion.line_end)
-                        .set_col_num_start(0)
-                        .set_col_num_end(0)
-                        .set_offset_start(0)
-                        .set_offset_end(file.content.len())
-                        .set_message(suggestion.problem.clone())
-                        .push_fix(&suggestion.fix.clone())
+                        .set_row_num_start(1)
+                        .set_row_num_end(file.content.len())
+                        .set_col_num_start(1)
+                        .set_col_num_end(1)
+                        .set_offset_start(index_start)
+                        .set_offset_end(index_end)
+                        .set_message(suggestion.description.clone())
+                        .push_fix(&format!("Consider changing to: \n{}", &suggestion.replacement))
                         .build(),
                 );
             }
         }
     }
+    return Ok(());
 }
