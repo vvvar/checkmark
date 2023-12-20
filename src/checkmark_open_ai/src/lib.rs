@@ -67,6 +67,13 @@ pub async fn make_a_review(file: &mut common::MarkDownFile) -> Result<(), open_a
                 if let Some(index) = file.content.find(&suggestion.original) {
                     index_start = index;
                     index_end = index_start + &suggestion.original.len();
+                } else {
+                    for line in file.content.lines() {
+                        if strsim::sorensen_dice(&suggestion.original, &line) > 0.5 {
+                            index_start = file.content.find(&line).unwrap();
+                            index_end = file.content.len();
+                        }
+                    }
                 }
                 file.issues.push(
                     common::CheckIssueBuilder::default()

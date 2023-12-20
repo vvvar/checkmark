@@ -218,7 +218,7 @@ Aim to enhance the audience perspective, conciseness, and effectiveness of the c
 Additionally it must contain detailed summary of the review.
 Suggestions should describe example which fix could be sufficient.
 The resulting must be JSON. It shall have two properties - summary and suggestions.
-Suggestions is a list of suggestions that shows what is the problem, where it appear(exact row numbers in the original document where problem appears) and how to fix that.
+Suggestions is a list of suggestions that shows what is the problem, where it appear and how to fix that.
 Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary:
 {
     \"summary\": \"string\",
