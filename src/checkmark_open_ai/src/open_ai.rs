@@ -106,7 +106,8 @@ pub async fn open_ai_request(
         }}
     ],
     \"n\": 1,
-    \"seed\": 42,
+    \"seed\": 12345,
+    \"top_p\": 0.1,
     \"response_format\": {{
        \"type\": \"json_object\"
     }}
@@ -210,12 +211,10 @@ If the user input is grammatically correct then just reply “sounds good” and
 /// Returns string with suggestions.
 pub async fn get_open_ai_review(file: &common::MarkDownFile) -> Result<OpenAIReview, OpenAIError> {
     let role_prompt = "You will be provided with project documentation in Markdown format.
-Your task it to review it and provide suggestions for improvement.
-Ensure it meets high-quality standards.
-Provide detailed feedback on grammar, punctuation, sentence structure, formatting, consistency, clarity, readability, and overall coherence.
+Your task it to review a text in it and provide suggestions for improvement. Ensure it meets high-quality standards.
+Provide detailed feedback on grammar, punctuation, sentence structure, consistency, clarity, readability, and overall coherence.
 Additionally, assess the use of active voice, appropriate word choice, and proper citation and referencing.
 Aim to enhance the audience perspective, conciseness, and effectiveness of the content.
-DO NOT provide suggestions on Markdown syntax.
 Additionally it must contain detailed summary of the review.
 Suggestions should describe example which fix could be sufficient.
 The resulting must be JSON. It shall have two properties - summary and suggestions.
