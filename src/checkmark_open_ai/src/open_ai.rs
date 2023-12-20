@@ -83,6 +83,10 @@ fn read_open_ai_api_key() -> Result<String, OpenAIError> {
 /// Use user_input as a prompt from user, OpenAI will perform analysis of it.
 /// When all ok - returns a suggestion string.
 /// When needed to limit the output - use "max_tokens\": 64
+/// To force json use  \"response_format\": {{
+/// \"type\": \"json_object\"
+/// }},
+///     \"temperature\": 0.2
 pub async fn open_ai_request(
     ai_role: &str,
     user_input: &str,
@@ -90,7 +94,7 @@ pub async fn open_ai_request(
     let mut json: serde_json::Value = serde_json::from_str(&format!(
         "
 {{
-    \"model\": \"gpt-3.5-turbo\",
+    \"model\": \"gpt-3.5-turbo-1106\",
     \"messages\": [
         {{
             \"role\": \"system\",
@@ -101,26 +105,28 @@ pub async fn open_ai_request(
             \"content\": \"\"
         }}
     ],
-    \"temperature\": 0.7,
-    \"top_p\": 1
+    \"n\": 1,
+    \"seed\": 42,
+    \"response_format\": {{
+       \"type\": \"json_object\"
+    }}
 }}"
     ))
     .unwrap();
     json["messages"][0]["content"] = serde_json::Value::String(String::from(ai_role));
     json["messages"][1]["content"] = serde_json::Value::String(String::from(user_input));
 
-    let response: OpenAIResponse = reqwest::Client::new()
+    let response = reqwest::Client::new()
         .post("https://api.openai.com/v1/chat/completions")
         .bearer_auth(read_open_ai_api_key()?)
         .json(&json)
         .send()
         .await
-        .unwrap()
-        .json()
-        .await
         .unwrap();
-
-    return Ok(response);
+    // dbg!(&response);
+    let open_ai_response: OpenAIResponse = response.json().await.unwrap();
+    // dbg!(&open_ai_response);
+    return Ok(open_ai_response);
 }
 
 /// Check is grammar suggestion is false-positive
@@ -223,8 +229,11 @@ Provide your answer in JSON form. Reply with only the answer in JSON form and in
 }
 ";
     let response = open_ai_request(role_prompt, &file.content).await?;
+    // dbg!(&response);
     if let Some(choice) = response.choices.first() {
+        // dbg!(&choice);
         if let Ok(review) = serde_json::from_str::<OpenAIReview>(&choice.message.content) {
+            // dbg!(&review);
             return Ok(OpenAIReview {
                 summary: review.summary,
                 suggestions: review.suggestions
