@@ -79,7 +79,7 @@ struct OpenAIRequestData {
     pub model: String,
     pub n: usize,
     pub seed: usize,
-    pub top_p: f32,
+    pub temperature: f32,
     pub response_format: OpenAIRequestDataResponseFormat,
     pub messages: Vec<OpenAIRequestDataMessage>,
 }
@@ -112,7 +112,7 @@ pub async fn open_ai_request(
         model: "gpt-3.5-turbo-1106".to_string(),
         n: 1,
         seed: 12345,
-        top_p: 0.1,
+        temperature: 0.1,
         response_format: OpenAIRequestDataResponseFormat {
             response_type: "json_object".to_string(),
         },
