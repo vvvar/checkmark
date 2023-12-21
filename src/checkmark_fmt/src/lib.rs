@@ -464,7 +464,10 @@ pub fn check_md_format(file: &mut common::MarkDownFile) {
                 .set_offset_start(0)
                 .set_offset_end(file.content.len())
                 .set_message(String::from("Formatting is incorrect"))
-                .set_fixes(vec!["Run \"checkmark fmt .\" to fix it".to_string()])
+                .set_fixes(vec![format!(
+                    "Run \"checkmark fmt {}\" to fix it",
+                    file.path.clone()
+                )])
                 .build(),
         );
     }
