@@ -2,6 +2,7 @@
 members = [
     "src/checkmark_cli",
     "src/checkmark_fmt",
+    "src/checkmark_link_checker",
     "src/checkmark_lint",
     "src/checkmark_ls",
     "src/checkmark_open_ai",
