@@ -621,6 +621,7 @@ version = "0.1.0"
 dependencies = [
  "assert_cmd",
  "checkmark_fmt",
+ "checkmark_link_checker",
  "checkmark_lint",
  "checkmark_ls",
  "checkmark_open_ai",

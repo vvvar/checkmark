@@ -9,6 +9,7 @@ checkmark_fmt = { path = "../checkmark_fmt" }
 checkmark_lint = { path = "../checkmark_lint" }
 checkmark_ls = { path = "../checkmark_ls" }
 checkmark_open_ai = { path = "../checkmark_open_ai" }
+checkmark_link_checker = { path = "../checkmark_link_checker" }
 common = { path = "../common" }
 
 codespan-reporting = "0.11.1"

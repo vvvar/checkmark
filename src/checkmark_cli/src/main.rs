@@ -40,6 +40,11 @@ async fn analyze(cli: &cli::Cli, files: &mut Vec<common::MarkDownFile>) {
             for file in files {
                 checkmark_open_ai::make_a_review(file, true).await.unwrap();
             }
+        },
+        cli::Subcommands::Links(_) => {
+            for file in files {
+                checkmark_link_checker::check_links(file, &vec![]).await;
+            }
         }
     }
 }

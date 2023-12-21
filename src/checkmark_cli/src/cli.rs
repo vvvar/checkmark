@@ -16,6 +16,10 @@ pub struct GrammarCommand {}
 #[command(long_about = None)]
 pub struct ReviewCommand {}
 
+#[derive(clap::Parser)]
+#[command(long_about = None)]
+pub struct LinksCommand {}
+
 #[derive(clap::Subcommand)]
 pub enum Subcommands {
     /// Formatting tool.
@@ -24,6 +28,8 @@ pub enum Subcommands {
     Grammar(GrammarCommand),
     /// Make a review of the document(requires internet and OPEN_AI_API_KEY env var set).
     Review(ReviewCommand),
+    /// Check links in the document
+    Links(LinksCommand)
 }
 
 #[derive(clap::Parser)]
