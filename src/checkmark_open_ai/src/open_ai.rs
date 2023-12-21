@@ -62,6 +62,28 @@ impl std::fmt::Display for OpenAIError {
     }
 }
 
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+struct OpenAIRequestDataResponseFormat {
+    #[serde(rename = "type")]
+    pub response_type: String,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+struct OpenAIRequestDataMessage {
+    pub role: String,
+    pub content: String,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+struct OpenAIRequestData {
+    pub model: String,
+    pub n: usize,
+    pub seed: usize,
+    pub top_p: f32,
+    pub response_format: OpenAIRequestDataResponseFormat,
+    pub messages: Vec<OpenAIRequestDataMessage>,
+}
+
 /// Read OpenAI API key and return it
 /// NOTE: OPEN_AI_API_KEY env variable shall be set to
 ///       your API token in order to work.
@@ -91,36 +113,30 @@ pub async fn open_ai_request(
     ai_role: &str,
     user_input: &str,
 ) -> Result<OpenAIResponse, OpenAIError> {
-    let mut json: serde_json::Value = serde_json::from_str(&format!(
-        "
-{{
-    \"model\": \"gpt-3.5-turbo-1106\",
-    \"messages\": [
-        {{
-            \"role\": \"system\",
-            \"content\": \"\"
-        }},
-        {{
-            \"role\": \"user\",
-            \"content\": \"\"
-        }}
-    ],
-    \"n\": 1,
-    \"seed\": 12345,
-    \"top_p\": 0.1,
-    \"response_format\": {{
-       \"type\": \"json_object\"
-    }}
-}}"
-    ))
-    .unwrap();
-    json["messages"][0]["content"] = serde_json::Value::String(String::from(ai_role));
-    json["messages"][1]["content"] = serde_json::Value::String(String::from(user_input));
+    let request_data = OpenAIRequestData {
+        model: "gpt-3.5-turbo-1106".to_string(),
+        n: 1,
+        seed: 12345,
+        top_p: 0.1,
+        response_format: OpenAIRequestDataResponseFormat {
+            response_type: "json_object".to_string(),
+        },
+        messages: vec![
+            OpenAIRequestDataMessage {
+                role: "system".to_string(),
+                content: ai_role.to_string(),
+            },
+            OpenAIRequestDataMessage {
+                role: "user".to_string(),
+                content: user_input.to_string(),
+            },
+        ],
+    };
 
     let response = reqwest::Client::new()
         .post("https://api.openai.com/v1/chat/completions")
         .bearer_auth(read_open_ai_api_key()?)
-        .json(&json)
+        .json(&request_data)
         .send()
         .await
         .unwrap();
@@ -235,10 +251,13 @@ Provide your answer in JSON form. Reply with only the answer in JSON form and in
             // dbg!(&review);
             return Ok(OpenAIReview {
                 summary: review.summary,
-                suggestions: review.suggestions
-                                .into_iter()
-                                .filter(|suggestion| !is_false_positive_review_suggestion(&suggestion.description))
-                                .collect(),
+                suggestions: review
+                    .suggestions
+                    .into_iter()
+                    .filter(|suggestion| {
+                        !is_false_positive_review_suggestion(&suggestion.description)
+                    })
+                    .collect(),
             });
         } else {
             return Ok(OpenAIReview {

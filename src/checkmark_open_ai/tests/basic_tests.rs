@@ -39,7 +39,10 @@ async fn open_ai_grammar() {
                 .set_offset_start(19)
                 .set_offset_end(63)
                 .set_message("Statement/sentence does not look like standard English".to_string())
-                .set_fixes(vec!["Consider changing to: \nAnd this is a text. Here is some additional text".to_string()])
+                .set_fixes(vec![
+                    "Consider changing to: \nAnd this is a text. Here is some additional text"
+                        .to_string()
+                ])
                 .build(),
         ]
     );
@@ -55,7 +58,9 @@ async fn review() {
         issues: vec![],
     };
 
-    checkmark_open_ai::make_a_review(&mut markdown).await.unwrap();
+    checkmark_open_ai::make_a_review(&mut markdown)
+        .await
+        .unwrap();
 
     assert_eq!(
         &markdown.issues,
@@ -71,7 +76,9 @@ async fn review() {
                 .set_offset_start(0)
                 .set_offset_end(64)
                 .set_message("Consider review of your document".to_string())
-                .push_fix("The document has several issues with grammar, punctuation, and formatting.")
+                .push_fix(
+                    "The document has several issues with grammar, punctuation, and formatting."
+                )
                 .build(),
             common::CheckIssueBuilder::default()
                 .set_category(common::IssueCategory::Review)
@@ -97,7 +104,9 @@ async fn review() {
                 .set_offset_start(39)
                 .set_offset_end(63)
                 .set_message("Typo: 'txt' should be 'text'".to_string())
-                .set_fixes(vec!["Consider changing to: \nHere is some additional text".to_string()])
+                .set_fixes(vec![
+                    "Consider changing to: \nHere is some additional text".to_string()
+                ])
                 .build(),
         ]
     );

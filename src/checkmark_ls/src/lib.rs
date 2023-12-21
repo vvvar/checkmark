@@ -10,9 +10,12 @@ pub async fn ls(path: &String) -> Vec<common::MarkDownFile> {
     let mut input_path = path.clone();
     if is_url::is_url(&input_path) {
         let response = reqwest::get(&input_path).await.unwrap();
-        let tmp_file_path = format!("{}/CHECKMARK_REMOTE_FILE.md", std::env::temp_dir().to_str().unwrap());
+        let tmp_file_path = format!(
+            "{}/CHECKMARK_REMOTE_FILE.md",
+            std::env::temp_dir().to_str().unwrap()
+        );
         let mut file = std::fs::File::create(&tmp_file_path).unwrap();
-        let mut content =  std::io::Cursor::new(response.bytes().await.unwrap());
+        let mut content = std::io::Cursor::new(response.bytes().await.unwrap());
         std::io::copy(&mut content, &mut file).unwrap();
         input_path = tmp_file_path.clone();
     }

@@ -87,7 +87,10 @@ pub async fn make_a_review(file: &mut common::MarkDownFile) -> Result<(), open_a
                         .set_offset_start(index_start)
                         .set_offset_end(index_end)
                         .set_message(suggestion.description.clone())
-                        .push_fix(&format!("Consider changing to: \n{}", &suggestion.replacement))
+                        .push_fix(&format!(
+                            "Consider changing to: \n{}",
+                            &suggestion.replacement
+                        ))
                         .build(),
                 );
             }

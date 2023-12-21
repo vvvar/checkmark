@@ -10,10 +10,10 @@ fn has_any_critical_issue(files: &Vec<common::MarkDownFile>) -> bool {
     let mut any_critical_issue = false;
     for file in files {
         any_critical_issue = !file.issues.is_empty()
-        && file
-            .issues
-            .iter()
-            .any(|issue| issue.severity == common::IssueSeverity::Error);
+            && file
+                .issues
+                .iter()
+                .any(|issue| issue.severity == common::IssueSeverity::Error);
     }
     return any_critical_issue;
 }
