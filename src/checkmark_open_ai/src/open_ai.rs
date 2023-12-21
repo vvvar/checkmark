@@ -93,6 +93,7 @@ fn read_open_ai_api_key() -> Result<String, OpenAIError> {
     if let Ok(api_key) = std::env::var("OPEN_AI_API_KEY") {
         Ok(api_key)
     } else {
+        log::error!("OPEN_AI_API_KEY env var us not set");
         Err(OpenAIError {
             message: "OpenAI API Key is not set. Please set it via OPEN_AI_API_KEY env var"
                 .to_string(),
@@ -103,12 +104,6 @@ fn read_open_ai_api_key() -> Result<String, OpenAIError> {
 /// Make a request to the OpenAI.
 /// Use ai_role to describe the role that OpenAI assistant shall take.
 /// Use user_input as a prompt from user, OpenAI will perform analysis of it.
-/// When all ok - returns a suggestion string.
-/// When needed to limit the output - use "max_tokens\": 64
-/// To force json use  \"response_format\": {{
-/// \"type\": \"json_object\"
-/// }},
-///     \"temperature\": 0.2
 pub async fn open_ai_request(
     ai_role: &str,
     user_input: &str,
@@ -132,18 +127,27 @@ pub async fn open_ai_request(
             },
         ],
     };
-
-    let response = reqwest::Client::new()
+    log::debug!("Sending OpenAI request with data:\n{:#?}", &request_data);
+    match reqwest::Client::new()
         .post("https://api.openai.com/v1/chat/completions")
         .bearer_auth(read_open_ai_api_key()?)
         .json(&request_data)
         .send()
         .await
-        .unwrap();
-    // dbg!(&response);
-    let open_ai_response: OpenAIResponse = response.json().await.unwrap();
-    // dbg!(&open_ai_response);
-    return Ok(open_ai_response);
+    {
+        Ok(response) => {
+            log::debug!("HTTP response from OpenAI:\n{:#?}", &response);
+            let open_ai_response: OpenAIResponse = response.json().await.unwrap();
+            log::debug!("Response body from OpenAI:\n{:#?}", &open_ai_response);
+            return Ok(open_ai_response);
+        }
+        Err(err) => {
+            log::error!("Error from OpenAI:\n{:#?}", &err);
+            return Err(OpenAIError {
+                message: "Error sending request to the OpenAI".to_string(),
+            });
+        }
+    }
 }
 
 /// Check is grammar suggestion is false-positive
@@ -243,32 +247,36 @@ Provide your answer in JSON form. Reply with only the answer in JSON form and in
     ]
 }
 ";
-    let response = open_ai_request(role_prompt, &file.content).await?;
-    // dbg!(&response);
-    if let Some(choice) = response.choices.first() {
-        // dbg!(&choice);
-        if let Ok(review) = serde_json::from_str::<OpenAIReview>(&choice.message.content) {
-            // dbg!(&review);
-            return Ok(OpenAIReview {
-                summary: review.summary,
-                suggestions: review
-                    .suggestions
-                    .into_iter()
-                    .filter(|suggestion| {
-                        !is_false_positive_review_suggestion(&suggestion.description)
-                    })
-                    .collect(),
-            });
-        } else {
-            return Ok(OpenAIReview {
-                summary: "Everything is ok".to_string(),
-                suggestions: vec![],
-            });
-        }
-    } else {
-        return Ok(OpenAIReview {
-            summary: "Everything is ok".to_string(),
-            suggestions: vec![],
-        });
-    }
+    return match open_ai_request(role_prompt, &file.content).await {
+        Ok(response) => match response.choices.first() {
+            Some(choice) => match serde_json::from_str::<OpenAIReview>(&choice.message.content) {
+                Ok(review) => {
+                    log::debug!("Got a review from OpenAI:\n{:#?}", &review);
+                    return Ok(OpenAIReview {
+                        summary: review.summary,
+                        suggestions: review
+                            .suggestions
+                            .into_iter()
+                            .filter(|suggestion| {
+                                !is_false_positive_review_suggestion(&suggestion.description)
+                            })
+                            .collect(),
+                    });
+                }
+                Err(err) => {
+                    log::error!("Error parsing response from OpenAI:{:#?}", &err);
+                    return Err(OpenAIError {
+                        message: "Error parsing response from OpenAI".to_string(),
+                    });
+                }
+            },
+            None => {
+                log::error!("OpenAI replied without suggestions:\n{:#?}", &response);
+                return Err(OpenAIError {
+                    message: "OpenAI replied without suggestions".to_string(),
+                });
+            }
+        },
+        Err(err) => Err(err),
+    };
 }

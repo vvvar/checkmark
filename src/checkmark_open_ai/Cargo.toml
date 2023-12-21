@@ -23,3 +23,5 @@ markdown_to_text = "1.0.0"
 reqwest = { version = "0.11.22", features = ["blocking", "json"] }
 boyer-moore-magiclen = { version = "0.2.20", features = [ "character" ] }
 strsim = "0.10.0"
+log = "0.4.2"
+env_logger = "0.10.1"

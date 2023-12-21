@@ -44,8 +44,14 @@ pub async fn check_grammar(file: &mut common::MarkDownFile) -> Result<(), open_a
 }
 
 pub async fn make_a_review(file: &mut common::MarkDownFile) -> Result<(), open_ai::OpenAIError> {
-    if let Ok(review) = open_ai::get_open_ai_review(&file).await {
-        if !review.suggestions.is_empty() {
+    match open_ai::get_open_ai_review(&file).await {
+        Ok(review) => {
+            if review.suggestions.is_empty() {
+                log::warn!("OpenAI haven't provided any suggestions:\n{:#?}", &review);
+                return Ok(());
+            } else {
+                log::debug!("Got OpenAI review:\n{:#?}", &review);
+            }
             file.issues.push(
                 common::CheckIssueBuilder::default()
                     .set_category(common::IssueCategory::Review)
@@ -64,12 +70,16 @@ pub async fn make_a_review(file: &mut common::MarkDownFile) -> Result<(), open_a
             for suggestion in &review.suggestions {
                 let mut index_start = 0;
                 let mut index_end = file.content.len();
+                log::debug!("Searching {:#?} in the original text to highlight it", &suggestion.original);
                 if let Some(index) = file.content.find(&suggestion.original) {
+                    log::debug!("Found exact index of problematic area: {:#?}", &index);
                     index_start = index;
                     index_end = index_start + &suggestion.original.len();
                 } else {
+                    log::debug!("Unable to find exact index of problematic area, trying to guess");
                     for line in file.content.lines() {
                         if strsim::sorensen_dice(&suggestion.original, &line) > 0.5 {
+                            log::debug!("Found a line that is most likely shall be fixed: {:#?}", &line);
                             index_start = file.content.find(&line).unwrap();
                             index_end = file.content.len();
                         }
@@ -94,7 +104,11 @@ pub async fn make_a_review(file: &mut common::MarkDownFile) -> Result<(), open_a
                         .build(),
                 );
             }
+            return Ok(());
+        }
+        Err(err) => {
+            log::error!("Error getting review from OpenAI:\n{:#?}", &err);
+            return Err(err);
         }
     }
-    return Ok(());
 }
