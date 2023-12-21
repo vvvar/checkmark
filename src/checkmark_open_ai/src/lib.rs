@@ -1,5 +1,34 @@
 pub mod open_ai;
 
+/// Find index of substring in source string
+fn find_index(source: &str, sub_str: &str) -> std::ops::Range<usize> {
+    let mut index_start = 0;
+    let mut index_end = source.len();
+    log::debug!("Searching {:#?}", &sub_str);
+    if let Some(index) = source.find(&sub_str) {
+        log::debug!("Found exact index: {:#?}", &index);
+        index_start = index;
+        index_end = index_start + &sub_str.len();
+    } else {
+        log::debug!("Unable to find exact index, trying to guess");
+        for line in source.lines() {
+            if strsim::sorensen_dice(&sub_str, &line) > 0.5 {
+                index_start = source.find(&line).unwrap();
+                index_end = source.len();
+                log::debug!(
+                    "Found the best guess line on index {:#?}:\n{:#?}",
+                    &index_start,
+                    &line
+                );
+            }
+        }
+    }
+    return std::ops::Range {
+        start: index_start,
+        end: index_end,
+    };
+}
+
 pub async fn check_grammar(file: &mut common::MarkDownFile) -> Result<(), open_ai::OpenAIError> {
     let ast = markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
     for text in common::filter_text_nodes(&ast) {
@@ -43,7 +72,10 @@ pub async fn check_grammar(file: &mut common::MarkDownFile) -> Result<(), open_a
     Ok(())
 }
 
-pub async fn make_a_review(file: &mut common::MarkDownFile) -> Result<(), open_ai::OpenAIError> {
+pub async fn make_a_review(
+    file: &mut common::MarkDownFile,
+    include_suggestions: bool,
+) -> Result<(), open_ai::OpenAIError> {
     match open_ai::get_open_ai_review(&file).await {
         Ok(review) => {
             if review.suggestions.is_empty() {
@@ -68,41 +100,25 @@ pub async fn make_a_review(file: &mut common::MarkDownFile) -> Result<(), open_a
                     .build(),
             );
             for suggestion in &review.suggestions {
-                let mut index_start = 0;
-                let mut index_end = file.content.len();
-                log::debug!("Searching {:#?} in the original text to highlight it", &suggestion.original);
-                if let Some(index) = file.content.find(&suggestion.original) {
-                    log::debug!("Found exact index of problematic area: {:#?}", &index);
-                    index_start = index;
-                    index_end = index_start + &suggestion.original.len();
-                } else {
-                    log::debug!("Unable to find exact index of problematic area, trying to guess");
-                    for line in file.content.lines() {
-                        if strsim::sorensen_dice(&suggestion.original, &line) > 0.5 {
-                            log::debug!("Found a line that is most likely shall be fixed: {:#?}", &line);
-                            index_start = file.content.find(&line).unwrap();
-                            index_end = file.content.len();
-                        }
-                    }
+                let offset = find_index(&file.content, &suggestion.original);
+                let mut issue = common::CheckIssueBuilder::default()
+                    .set_category(common::IssueCategory::Review)
+                    .set_severity(common::IssueSeverity::Note)
+                    .set_file_path(file.path.clone())
+                    .set_row_num_start(1)
+                    .set_row_num_end(file.content.len())
+                    .set_col_num_start(1)
+                    .set_col_num_end(1)
+                    .set_offset_start(offset.start)
+                    .set_offset_end(offset.end)
+                    .set_message(suggestion.description.clone());
+                if include_suggestions {
+                    issue = issue.push_fix(&format!(
+                        "Consider following change: \n{}",
+                        &suggestion.replacement
+                    ));
                 }
-                file.issues.push(
-                    common::CheckIssueBuilder::default()
-                        .set_category(common::IssueCategory::Review)
-                        .set_severity(common::IssueSeverity::Note)
-                        .set_file_path(file.path.clone())
-                        .set_row_num_start(1)
-                        .set_row_num_end(file.content.len())
-                        .set_col_num_start(1)
-                        .set_col_num_end(1)
-                        .set_offset_start(index_start)
-                        .set_offset_end(index_end)
-                        .set_message(suggestion.description.clone())
-                        .push_fix(&format!(
-                            "Consider changing to: \n{}",
-                            &suggestion.replacement
-                        ))
-                        .build(),
-                );
+                file.issues.push(issue.build());
             }
             return Ok(());
         }

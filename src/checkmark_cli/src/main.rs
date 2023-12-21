@@ -21,9 +21,9 @@ fn has_any_critical_issue(files: &Vec<common::MarkDownFile>) -> bool {
 /// Perform an analysis according to the tool from subcommand
 async fn analyze(cli: &cli::Cli, files: &mut Vec<common::MarkDownFile>) {
     match &cli.subcommands {
-        cli::Subcommands::Fmt(fmt) => {
+        cli::Subcommands::Fmt(fmt_cli) => {
             for file in files {
-                if fmt.check {
+                if fmt_cli.check {
                     checkmark_fmt::check_md_format(file);
                 } else {
                     std::fs::write(&file.path, &checkmark_fmt::fmt_markdown(&file).content)
@@ -36,9 +36,11 @@ async fn analyze(cli: &cli::Cli, files: &mut Vec<common::MarkDownFile>) {
                 checkmark_open_ai::check_grammar(file).await.unwrap();
             }
         }
-        cli::Subcommands::Review(_) => {
+        cli::Subcommands::Review(review_cli) => {
             for file in files {
-                checkmark_open_ai::make_a_review(file).await.unwrap();
+                checkmark_open_ai::make_a_review(file, review_cli.suggest)
+                    .await
+                    .unwrap();
             }
         }
     }

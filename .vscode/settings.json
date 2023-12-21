@@ -2,7 +2,9 @@
     "cSpell.words": [
         "checkmark",
         "marklint",
-        "reqwest"
+        "reqwest",
+        "sorensen",
+        "strsim"
     ],
     "rust-analyzer.linkedProjects": [
         "./Cargo.toml"
