@@ -14,11 +14,7 @@ pub struct GrammarCommand {}
 
 #[derive(clap::Parser)]
 #[command(long_about = None)]
-pub struct ReviewCommand {
-    /// Include replacement suggestions into diagnostic
-    #[arg(long, action)]
-    pub suggest: bool,
-}
+pub struct ReviewCommand {}
 
 #[derive(clap::Subcommand)]
 pub enum Subcommands {

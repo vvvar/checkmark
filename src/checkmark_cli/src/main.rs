@@ -36,11 +36,9 @@ async fn analyze(cli: &cli::Cli, files: &mut Vec<common::MarkDownFile>) {
                 checkmark_open_ai::check_grammar(file).await.unwrap();
             }
         }
-        cli::Subcommands::Review(review_cli) => {
+        cli::Subcommands::Review(_) => {
             for file in files {
-                checkmark_open_ai::make_a_review(file, review_cli.suggest)
-                    .await
-                    .unwrap();
+                checkmark_open_ai::make_a_review(file, true).await.unwrap();
             }
         }
     }
