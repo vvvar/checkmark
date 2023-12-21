@@ -708,7 +708,6 @@ dependencies = [
  "serde_json",
  "similar",
  "snailquote",
- "strsim 0.10.0",
  "tokio",
 ]
 
@@ -804,8 +803,10 @@ dependencies = [
 name = "common"
 version = "0.1.0"
 dependencies = [
+ "log",
  "markdown",
  "serde-sarif",
+ "strsim 0.10.0",
 ]
 
 [[package]]

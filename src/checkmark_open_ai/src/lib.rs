@@ -1,34 +1,5 @@
 pub mod open_ai;
 
-/// Find index of substring in source string
-fn find_index(source: &str, sub_str: &str) -> std::ops::Range<usize> {
-    let mut index_start = 0;
-    let mut index_end = source.len();
-    log::debug!("Searching {:#?}", &sub_str);
-    if let Some(index) = source.find(&sub_str) {
-        log::debug!("Found exact index: {:#?}", &index);
-        index_start = index;
-        index_end = index_start + &sub_str.len();
-    } else {
-        log::debug!("Unable to find exact index, trying to guess");
-        for line in source.lines() {
-            if strsim::sorensen_dice(&sub_str, &line) > 0.5 {
-                index_start = source.find(&line).unwrap();
-                index_end = source.len();
-                log::debug!(
-                    "Found the best guess line on index {:#?}:\n{:#?}",
-                    &index_start,
-                    &line
-                );
-            }
-        }
-    }
-    return std::ops::Range {
-        start: index_start,
-        end: index_end,
-    };
-}
-
 pub async fn check_grammar(file: &mut common::MarkDownFile) -> Result<(), open_ai::OpenAIError> {
     let ast = markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
     for text in common::filter_text_nodes(&ast) {
@@ -100,7 +71,7 @@ pub async fn make_a_review(
                     .build(),
             );
             for suggestion in &review.suggestions {
-                let offset = find_index(&file.content, &suggestion.original);
+                let offset = common::find_index(&file.content, &suggestion.original);
                 let mut issue = common::CheckIssueBuilder::default()
                     .set_category(common::IssueCategory::Review)
                     .set_severity(common::IssueSeverity::Note)

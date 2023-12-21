@@ -312,3 +312,32 @@ pub fn filter_paragraph_nodes<'a>(
     });
     return p_nodes;
 }
+
+/// Find index of substring in source string
+pub fn find_index(source: &str, sub_str: &str) -> std::ops::Range<usize> {
+    let mut index_start = 0;
+    let mut index_end = source.len();
+    log::debug!("Searching {:#?}", &sub_str);
+    if let Some(index) = source.find(&sub_str) {
+        log::debug!("Found exact index: {:#?}", &index);
+        index_start = index;
+        index_end = index_start + &sub_str.len();
+    } else {
+        log::debug!("Unable to find exact index, trying to guess");
+        for line in source.lines() {
+            if strsim::sorensen_dice(&sub_str, &line) > 0.5 {
+                index_start = source.find(&line).unwrap();
+                index_end = source.len();
+                log::debug!(
+                    "Found the best guess line on index {:#?}:\n{:#?}",
+                    &index_start,
+                    &line
+                );
+            }
+        }
+    }
+    return std::ops::Range {
+        start: index_start,
+        end: index_end,
+    };
+}

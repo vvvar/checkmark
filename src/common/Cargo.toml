@@ -7,3 +7,6 @@ edition = "2021"
 [dependencies]
 serde-sarif = "0.4.2"
 markdown = { version = "1.0.0-alpha.14", features = [ "json", "log", "serde" ] }
+strsim = "0.10.0"
+
+log = "0.4.2"
