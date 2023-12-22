@@ -29,7 +29,7 @@ pub enum Subcommands {
     /// Make a review of the document(requires internet and OPEN_AI_API_KEY env var set).
     Review(ReviewCommand),
     /// Check links in the document
-    Links(LinksCommand)
+    Links(LinksCommand),
 }
 
 #[derive(clap::Parser)]

@@ -6,6 +6,7 @@ members = [
     "src/checkmark_lint",
     "src/checkmark_ls",
     "src/checkmark_open_ai",
+    "src/checkmark_spelling",
     "src/common",
 ]
 resolver = "2"

@@ -1,7 +1,12 @@
 fn get_test_file_path() -> String {
     let mut test_file_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     test_file_path.push("tests/data/basic.md");
-    return test_file_path.canonicalize().unwrap().to_str().unwrap().to_string();
+    return test_file_path
+        .canonicalize()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
 }
 
 /// Check links
