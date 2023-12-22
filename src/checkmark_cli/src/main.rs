@@ -46,6 +46,11 @@ async fn analyze(cli: &cli::Cli, files: &mut Vec<common::MarkDownFile>) {
                 checkmark_link_checker::check_links(file, &vec![]).await;
             }
         }
+        cli::Subcommands::Spelling(_) => {
+            for file in files {
+                checkmark_spelling::spell_check(file);
+            }
+        }
     }
 }
 

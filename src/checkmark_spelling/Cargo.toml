@@ -8,6 +8,7 @@ edition = "2021"
 common = { path = "../common" }
 
 symspell = { git = "https://github.com/vvvar/symspell.git", branch = "no_print_progress" }
+markdown = { version = "1.0.0-alpha.14", features = [ "json", "log", "serde" ] }
 markdown_to_text = "1.0.0"
 
 log = "0.4.2"

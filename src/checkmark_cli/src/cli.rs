@@ -20,6 +20,10 @@ pub struct ReviewCommand {}
 #[command(long_about = None)]
 pub struct LinksCommand {}
 
+#[derive(clap::Parser)]
+#[command(long_about = None)]
+pub struct SpellingCommand {}
+
 #[derive(clap::Subcommand)]
 pub enum Subcommands {
     /// Formatting tool.
@@ -30,6 +34,8 @@ pub enum Subcommands {
     Review(ReviewCommand),
     /// Check links in the document
     Links(LinksCommand),
+    /// Spell check document
+    Spelling(SpellingCommand)
 }
 
 #[derive(clap::Parser)]

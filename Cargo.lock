@@ -625,6 +625,7 @@ dependencies = [
  "checkmark_lint",
  "checkmark_ls",
  "checkmark_open_ai",
+ "checkmark_spelling",
  "clap",
  "codespan",
  "codespan-reporting",
@@ -718,6 +719,7 @@ dependencies = [
  "common",
  "env_logger",
  "log",
+ "markdown",
  "markdown_to_text",
  "symspell",
 ]
