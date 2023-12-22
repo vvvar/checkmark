@@ -1,24 +1,63 @@
 use symspell::{AsciiStringStrategy, SymSpell, Verbosity};
 
+/// We want to ignore spell-checking for certain exceptions
+fn is_ignored_word(word: &str) -> bool {
+    return word.chars().all(|c| c.is_numeric());
+}
+
 /// To check spelling we need to provide pure word
 /// without any special or punctuation characters
 fn remove_all_special_characters(word: &str, lowercase: bool) -> String {
-    let escaped = word
+    // These chars are generally considered unwanted
+    let mut escaped = word
         .replace("?", "")
         .replace("!", "")
-        .replace(".", "")
         .replace(",", "")
-        .replace("'", "")
         .replace("`", "")
         .replace("\"", "")
+        .replace("{", "")
+        .replace("}", "")
         .replace("[", "")
         .replace("]", "")
         .replace("(", "")
         .replace(")", "")
+        .replace("#", "")
+        .replace("%", "")
+        .replace("|", "")
+        .replace("/", "")
         .replace(";", "")
         .replace(":", "")
-        .replace("-", "")
         .replace(|c: char| !c.is_ascii(), "");
+
+    // Because we want to remove only prefix/suffix
+    // and preserve words such as "don't", "isn't", etc. 
+    if let Some(stripped) = escaped.strip_prefix("'") {
+        escaped = stripped.to_string();
+    }
+    if let Some(stripped) = escaped.strip_suffix("'") {
+        escaped = stripped.to_string();
+    }
+
+    // Because we want to preserve words such as
+    // un-intended and so on
+    if let Some(stripped) = escaped.strip_prefix("-") {
+        escaped = stripped.to_string();
+    }
+    if let Some(stripped) = escaped.strip_suffix("-") {
+        escaped = stripped.to_string();
+    }
+
+    // Preserve period for abbreviations
+    let abbreviations_with_period = [
+        "a.k.a.", "e.g.", "etc.", "ex.", "al.", "i.e.", "p.s.", "u.s.", "vs.",
+        "dr.", "mr.", "mrs.",
+        "sun.", "mon.", "tues.", "wed.", "thurs.", "fri.", "sat.", "sun.",
+        "jan.", "feb.", "aug.", "sept.", "oct.", "nov.", "dec."
+    ];
+    if !abbreviations_with_period.contains(&escaped.to_lowercase().as_str()) {
+        escaped = escaped.replace(".", "");
+    }
+
     if lowercase {
         return escaped.to_lowercase();
     } else {
@@ -27,14 +66,21 @@ fn remove_all_special_characters(word: &str, lowercase: bool) -> String {
 }
 
 /// Perform spell check of the file
-/// and fill it with issues(if any)
+/// and fill it with issues(if any).
+/// For the details of library & algo see:
+/// https://github.com/reneklacan/symspell
+/// https://github.com/wolfgarbe/SymSpell
 pub fn spell_check(file: &mut common::MarkDownFile) {
     // Initialize SymSpell
     let mut symspell: SymSpell<AsciiStringStrategy> = SymSpell::default();
-    for line in String::from(include_str!("dictionary/frequency_dictionary_en_82_765.txt")).lines() {
+    for line in String::from(include_str!("dictionaries/frequency_dictionary_en_82_765.txt")).lines() {
         symspell.load_dictionary_line(line, 0, 1, " ");
     }
-    for line in String::from(include_str!("dictionary/frequency_bigramdictionary_en_243_342.txt")).lines() {
+    for line in String::from(include_str!("dictionaries/frequency_bigramdictionary_en_243_342.txt")).lines() {
+        symspell.load_bigram_dictionary_line(line, 0, 2, " ");
+    }
+    for line in String::from(include_str!("dictionaries/extended_frequency_dictionary.txt")).lines() {
+        symspell.load_dictionary_line(line, 0, 1, " ");
         symspell.load_bigram_dictionary_line(line, 0, 2, " ");
     }
     // Parse MD to AST
@@ -46,7 +92,7 @@ pub fn spell_check(file: &mut common::MarkDownFile) {
             // Remove special characters
             let escaped_word = remove_all_special_characters(word, true);
             // Do not proceed when this is not an actual word
-            if !escaped_word.is_empty() {
+            if !escaped_word.is_empty() && !is_ignored_word(&escaped_word) {
                 // Get suggestions
                 let suggestions = symspell.lookup(&escaped_word, Verbosity::Top, 2);
                 // Only when there are suggestions to change something
@@ -79,7 +125,7 @@ pub fn spell_check(file: &mut common::MarkDownFile) {
                         .set_offset_end(offset_end)
                         .set_message(format!("Word {:#?} is unknown or miss-spelled", &remove_all_special_characters(word, false)));
                     for suggestion in suggestions {
-                        issue = issue.push_fix(&format!("Consider changing {:#?} to {:#?}", &word, suggestion.term));
+                        issue = issue.push_fix(&format!("Consider changing {:#?} to {:#?}", &remove_all_special_characters(word, false), suggestion.term));
                     }
                     issue = issue.push_fix("If you're sure that this word is correct - add it to the spellcheck dictionary(TBD)");
                     file.issues.push(issue.build());

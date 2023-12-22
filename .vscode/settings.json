@@ -8,5 +8,6 @@
     ],
     "rust-analyzer.linkedProjects": [
         "./Cargo.toml"
-    ]
+    ],
+    "terminal.integrated.scrollback": 9999999
 }
