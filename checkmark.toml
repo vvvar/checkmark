@@ -1,13 +1,16 @@
 [link_checker]
+# List of glob patterns to ignore when checking links
 ignore_wildcards = [
     "**gffffffffffoooooogel**",
     "/**.rs"
 ]
 
 [review]
+# When true, the review will be printed without fix suggestions
 no_suggestions=false
 
 [spelling]
+# List of words to ignore while spell checking
 words_whitelist=[
     "additnal",
     "GoogleTest"
