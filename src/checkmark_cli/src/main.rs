@@ -1,4 +1,5 @@
 mod cli;
+mod config;
 mod errors;
 
 use codespan_reporting::diagnostic::{Diagnostic, Label, Severity};
@@ -19,7 +20,7 @@ fn has_any_critical_issue(files: &Vec<common::MarkDownFile>) -> bool {
 }
 
 /// Perform an analysis according to the tool from subcommand
-async fn analyze(cli: &cli::Cli, files: &mut Vec<common::MarkDownFile>) {
+async fn analyze(cli: &cli::Cli, files: &mut Vec<common::MarkDownFile>, config: &config::Config) {
     match &cli.subcommands {
         cli::Subcommands::Fmt(fmt_cli) => {
             for file in files {
@@ -38,17 +39,20 @@ async fn analyze(cli: &cli::Cli, files: &mut Vec<common::MarkDownFile>) {
         }
         cli::Subcommands::Review(_) => {
             for file in files {
-                checkmark_open_ai::make_a_review(file, true).await.unwrap();
+                checkmark_open_ai::make_a_review(file, !config.review.no_suggestions)
+                    .await
+                    .unwrap();
             }
         }
         cli::Subcommands::Links(_) => {
             for file in files {
-                checkmark_link_checker::check_links(file, &vec![]).await;
+                checkmark_link_checker::check_links(file, &config.link_checker.ignore_wildcards)
+                    .await;
             }
         }
         cli::Subcommands::Spelling(_) => {
             for file in files {
-                checkmark_spelling::spell_check(file);
+                checkmark_spelling::spell_check(file, &config.spelling.words_whitelist);
             }
         }
     }
@@ -149,11 +153,19 @@ fn report(cli: &cli::Cli, analyzed_files: &mut Vec<common::MarkDownFile>) {
 
 #[tokio::main]
 async fn main() -> Result<(), errors::AppError> {
-    env_logger::init();
     let cli = cli::init();
+
+    if cli.verbose {
+        std::env::set_var("RUST_LOG", "debug")
+    }
+    env_logger::init();
+
+    let config = config::read_config(&cli);
+
     let mut files = checkmark_ls::ls(&cli.project_root).await;
-    analyze(&cli, &mut files).await;
+    analyze(&cli, &mut files, &config).await;
     report(&cli, &mut files);
+
     if has_any_critical_issue(&files) {
         return Err(errors::AppError {
             message: "Critical issues found during analysis. Check report for details.".to_string(),

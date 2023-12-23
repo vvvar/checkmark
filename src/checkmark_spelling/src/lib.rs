@@ -30,7 +30,7 @@ fn remove_all_special_characters(word: &str, lowercase: bool) -> String {
         .replace(|c: char| !c.is_ascii(), "");
 
     // Because we want to remove only prefix/suffix
-    // and preserve words such as "don't", "isn't", etc. 
+    // and preserve words such as "don't", "isn't", etc.
     if let Some(stripped) = escaped.strip_prefix("'") {
         escaped = stripped.to_string();
     }
@@ -49,10 +49,9 @@ fn remove_all_special_characters(word: &str, lowercase: bool) -> String {
 
     // Preserve period for abbreviations
     let abbreviations_with_period = [
-        "a.k.a.", "e.g.", "etc.", "ex.", "al.", "i.e.", "p.s.", "u.s.", "vs.",
-        "dr.", "mr.", "mrs.",
-        "sun.", "mon.", "tues.", "wed.", "thurs.", "fri.", "sat.", "sun.",
-        "jan.", "feb.", "aug.", "sept.", "oct.", "nov.", "dec."
+        "a.k.a.", "e.g.", "etc.", "ex.", "al.", "i.e.", "p.s.", "u.s.", "vs.", "dr.", "mr.",
+        "mrs.", "sun.", "mon.", "tues.", "wed.", "thurs.", "fri.", "sat.", "sun.", "jan.", "feb.",
+        "aug.", "sept.", "oct.", "nov.", "dec.",
     ];
     if !abbreviations_with_period.contains(&escaped.to_lowercase().as_str()) {
         escaped = escaped.replace(".", "");
@@ -70,19 +69,45 @@ fn remove_all_special_characters(word: &str, lowercase: bool) -> String {
 /// For the details of library & algo see:
 /// https://github.com/reneklacan/symspell
 /// https://github.com/wolfgarbe/SymSpell
-pub fn spell_check(file: &mut common::MarkDownFile) {
+pub fn spell_check(file: &mut common::MarkDownFile, whitelist: &Vec<String>) {
     // Initialize SymSpell
+
+    log::debug!("Initializing SymSpell...");
     let mut symspell: SymSpell<AsciiStringStrategy> = SymSpell::default();
-    for line in String::from(include_str!("dictionaries/frequency_dictionary_en_82_765.txt")).lines() {
+
+    log::debug!("Loading default dictionary...");
+    for line in String::from(include_str!(
+        "dictionaries/frequency_dictionary_en_82_765.txt"
+    ))
+    .lines()
+    {
         symspell.load_dictionary_line(line, 0, 1, " ");
     }
-    for line in String::from(include_str!("dictionaries/frequency_bigramdictionary_en_243_342.txt")).lines() {
+    for line in String::from(include_str!(
+        "dictionaries/frequency_bigramdictionary_en_243_342.txt"
+    ))
+    .lines()
+    {
         symspell.load_bigram_dictionary_line(line, 0, 2, " ");
     }
-    for line in String::from(include_str!("dictionaries/extended_frequency_dictionary.txt")).lines() {
+
+    log::debug!("Loading extended dictionary...");
+    for line in String::from(include_str!(
+        "dictionaries/extended_frequency_dictionary.txt"
+    ))
+    .lines()
+    {
         symspell.load_dictionary_line(line, 0, 1, " ");
         symspell.load_bigram_dictionary_line(line, 0, 2, " ");
     }
+
+    log::debug!("Loading words from the whitelist to the dictionary: {:#?}", &whitelist);
+    for word in whitelist
+    {
+        symspell.load_dictionary_line(&format!("{} 10956800", &word), 0, 1, " ");
+        symspell.load_bigram_dictionary_line(&format!("{} 10956800", &word), 0, 2, " ");
+    }
+    
     // Parse MD to AST
     let ast = markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
     // Filter only Text nodes
@@ -96,7 +121,7 @@ pub fn spell_check(file: &mut common::MarkDownFile) {
                 // Get suggestions
                 let suggestions = symspell.lookup(&escaped_word, Verbosity::Top, 2);
                 // Only when there are suggestions to change something
-                // (SymSpell return same word when all fine) 
+                // (SymSpell return same word when all fine)
                 if !suggestions.is_empty() && !suggestions.first().unwrap().term.eq(&escaped_word) {
                     let mut row_num_start = 0;
                     let mut row_num_end = 0;
@@ -110,7 +135,8 @@ pub fn spell_check(file: &mut common::MarkDownFile) {
                         col_num_start = position.start.column;
                         col_num_end = position.end.column;
                         // Calculate offset based on offset of text node + index of word
-                        offset_start = position.start.offset + common::find_index(&text_node.value, word).start;
+                        offset_start = position.start.offset
+                            + common::find_index(&text_node.value, word).start;
                         offset_end = offset_start + word.len();
                     }
                     let mut issue = common::CheckIssueBuilder::default()
@@ -123,14 +149,21 @@ pub fn spell_check(file: &mut common::MarkDownFile) {
                         .set_col_num_end(col_num_end)
                         .set_offset_start(offset_start)
                         .set_offset_end(offset_end)
-                        .set_message(format!("Word {:#?} is unknown or miss-spelled", &remove_all_special_characters(word, false)));
+                        .set_message(format!(
+                            "Word {:#?} is unknown or miss-spelled",
+                            &remove_all_special_characters(word, false)
+                        ));
                     for suggestion in suggestions {
-                        issue = issue.push_fix(&format!("Consider changing {:#?} to {:#?}", &remove_all_special_characters(word, false), suggestion.term));
+                        issue = issue.push_fix(&format!(
+                            "Consider changing {:#?} to {:#?}",
+                            &remove_all_special_characters(word, false),
+                            suggestion.term
+                        ));
                     }
                     issue = issue.push_fix("If you're sure that this word is correct - add it to the spellcheck dictionary(TBD)");
                     file.issues.push(issue.build());
                 }
             }
-        }  
+        }
     }
 }

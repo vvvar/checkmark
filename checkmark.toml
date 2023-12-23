@@ -1,0 +1,14 @@
+[link_checker]
+ignore_wildcards = [
+    "**gffffffffffoooooogel**",
+    "/**.rs"
+]
+
+[review]
+no_suggestions=false
+
+[spelling]
+words_whitelist=[
+    "additnal",
+    "GoogleTest"
+]
