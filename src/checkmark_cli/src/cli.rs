@@ -38,15 +38,15 @@ pub struct SpellingCommand {
 
 #[derive(Debug, clap::Subcommand)]
 pub enum Subcommands {
-    /// Formatting tool.
+    /// A tool for checking and correcting Markdown file formatting
     Fmt(FmtCommand),
-    /// Grammar checker tool(requires internet and OPEN_AI_API_KEY env var set).
+    /// Checks the document for grammatical errors. Requires internet connection and OPEN_AI_API_KEY environment variable(.dotenv file is supported)
     Grammar(GrammarCommand),
-    /// Make a review of the document(requires internet and OPEN_AI_API_KEY env var set).
+    /// Reviews the document using OpenAI's API. Requires internet connection and OPEN_AI_API_KEY environment variable(.dotenv file is supported)
     Review(ReviewCommand),
-    /// Check links in the document
+    /// Checks the document for broken links(both web and local)
     Links(LinksCommand),
-    /// Spell check document
+    /// Checks the document for spelling errors
     Spelling(SpellingCommand),
 }
 
@@ -54,23 +54,23 @@ pub enum Subcommands {
 #[command(author, version, about, long_about = None)]
 #[command(propagate_version = true)]
 pub struct Cli {
-    /// Root of your project
+    /// Specifies the root directory of your project, a single file, or a web URL. This is where the tool will start scanning for Markdown files. If a single file or a web URL is specified, only that will be scanned. Defaults to the current directory
     #[arg(global = true, value_hint=clap::ValueHint::DirPath, default_value=".")]
     pub project_root: String,
 
-    /// Output report to a file in SARIF format
+    /// Outputs the report to a specified file in SARIF format. If no file is specified, the report will be saved to './report.sarif'.
     #[arg(global = true, long, short, action, required = false, value_name = "FILE_PATH", value_hint=clap::ValueHint::FilePath, default_missing_value="./report.sarif", num_args=0..=1)]
     pub sarif: Option<String>,
 
-    /// Path to config file(files in default locations will be ignored when this is set)
+    /// Specifies the path to the configuration file. If this is set, files in default locations will be ignored
     #[arg(global = true, long, short, action, required = false, value_name = "FILE_PATH", value_hint=clap::ValueHint::FilePath)]
     pub config: Option<String>,
 
-    /// Enable verbose logging
+    /// Enable verbose logging. This will output more detailed information about what the tool is doing, which can be helpful for debugging
     #[arg(global = true, long, short, required = false, action)]
     pub verbose: bool,
 
-    /// Individual tools
+    /// Specifies the individual tools or commands to run. This is required and allows you to run specific checks or operations
     #[command(subcommand)]
     pub subcommands: Subcommands,
 }

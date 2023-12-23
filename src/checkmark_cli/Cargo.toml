@@ -1,8 +1,12 @@
 [package]
 name = "checkmark_cli"
-description = "CLI tool that help keep your Markdown documentation at hight quality."
+description = "A CLI tool that helps maintain high-quality Markdown documentation by checking for formatting, grammatical, and spelling errors, as well as broken links"
 version = "0.1.0"
 edition = "2021"
+
+[[bin]]
+name = "checkmark"
+path = "src/main.rs"
 
 [dependencies]
 checkmark_fmt = { path = "../checkmark_fmt" }
