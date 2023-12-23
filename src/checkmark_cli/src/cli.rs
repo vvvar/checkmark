@@ -4,7 +4,7 @@ use clap::Parser;
 #[command(long_about = None)]
 pub struct FmtCommand {
     /// Check fmt issues without fixing them
-    #[arg(long, short, action)]
+    #[arg(long, action)]
     pub check: bool,
 }
 
