@@ -1,67 +1,58 @@
-# checkmark - Markdown Checker
+# Checkmark
 
-CLI tool for checking Markdown files.
+Checkmark is a Command Line Interface (CLI) tool that helps maintain high-quality Markdown documentation. It checks for formatting, grammatical, and spelling errors, as well as broken links.
 
-## Motivation
+## Features
 
-Often I write project documentation in Markdown.
-To keep it acceptable and avoid manual verification I use various quality tools such as link checker, spell checker, linter and formatting tool.
-There are a lot of awesome tools available to accomplish that already.
-However, I want to have a single tool that does everything so that I don't have to spend time configuring and managing all these tools for every project.
-
-## Overview
-
-This tool combines:
-
-- link checker(provided by [lychee](https://github.com/lycheeverse/lychee/))
-- code formatting(provided by [prettier](https://github.com/prettier/prettier))
-- linter(provided by [markdownlint](https://github.com/DavidAnson/markdownlint))
-- spell checker(provided by [SymSpell](https://github.com/wolfgarbe/SymSpell))
-- grammar checker(provided by [Sapling AI](https://sapling.ai))
-
-within a single CLI tool that you can use locally to ensure the quality of Markdown documentation and hook up on your CI to ensure consistency within a team.
+- **Formatting**: Checks and corrects Markdown file formatting.
+- **Grammar**: Checks the document for grammatical errors. Requires internet connection and OPEN_AI_API_KEY environment variable (.dotenv file is supported).
+- **Review**: Reviews the document using OpenAI's API. Requires internet connection and OPEN_AI_API_KEY environment variable (.dotenv file is supported).
+- **Links**: Checks the document for broken links (both web and local).
+- **Spelling**: Checks the document for spelling errors.
 
 ## Installation
 
-TBD
+Provide instructions on how to install your tool here.
 
 ## Usage
 
-Recursively check all Markdown files inside the current directory:
-
-```sh
-checkmark .
+```bash
+checkmark [OPTIONS] [PROJECT_ROOT] <COMMAND>
 ```
 
-If all files have passed checks then status code `0` will be returned.
-Otherwise, issues will be printed to `stderr` and status code `1` returned.
+## Commands
 
-Recursively auto-format all Markdown files inside the current directory:
+- `fmt`: The `fmt` command is a tool for checking and correcting Markdown file formatting. It ensures that your Markdown files adhere to a consistent style, making them easier to read and maintain. This command can automatically fix many common formatting issues, such as inconsistent indentation, incorrect header levels, and improperly formatted lists.
+- `grammar`: The `grammar` command checks the document for grammatical errors. It uses OpenAI's API to provide advanced grammar checking, helping to ensure that your documentation is clear and professional. This command requires an internet connection and the OPEN_AI_API_KEY environment variable (.dotenv file is supported). Note that this command may not catch all grammatical errors, especially in complex sentences.
+- `review`: The `review` command reviews the document using OpenAI's API. It provides a high-level review of your documentation, helping to catch issues that other checks might miss. This command requires an internet connection and the OPEN_AI_API_KEY environment variable (.dotenv file is supported). The review command can provide suggestions for improving the clarity, conciseness, and tone of your documentation.
+  - `-l, --language <LANGUAGE>`: Specifies the language to use for the review. Defaults to 'en' (English). This option is available with the `review` command.
+- `links`: The `links` command checks the document for broken links. It checks both web and local links, ensuring that your documentation is reliable and accurate. This command can catch both 404 errors from web links and broken relative links in your local project. Note that checking web links requires an internet connection.
+- `spelling`: The `spelling` command checks the document for spelling errors. It helps to catch and correct spelling mistakes, improving the quality of your documentation. This command uses a built-in dictionary to check words, and it can suggest corrections for misspelled words.
+  - `-d, --dictionary <FILE_PATH>`: Specifies the path to a custom dictionary file. This allows you to add your own words that are not in the built-in dictionary. This option is available with the `spelling` command.
 
-```sh
-checkmark . --autoformat
+## Arguments
+
+- `[PROJECT_ROOT]`: Specifies the root directory of your project, a single file, or a web URL. This is where the tool will start scanning for Markdown files. If a single file or a web URL is specified, only that will be scanned. Defaults to the current directory.
+
+## Options
+
+- `-s, --sarif [<FILE_PATH>]`: Outputs the report to a specified file in SARIF format. This is useful for integrating with other tools that can process SARIF. If no file is specified, the report will be saved to './report.sarif'. This option is available with all commands.
+- `-c, --config <FILE_PATH>`: Specifies the path to the configuration file. This allows you to customize the behavior of the tool. If this is set, configuration files in default locations will be ignored. This option is available with all commands.
+- `-v, --verbose`: Enable verbose logging. This will output more detailed information about what the tool is doing, which can be helpful for debugging. This option is available with all commands.
+- `-h, --help`: Print help. This option is available with all commands.
+- `-V, --version`: Print version. This option is available with all commands.
+
+## Examples
+
+```bash
+checkmark -v . fmt
+checkmark --config myconfig.toml . review
 ```
 
-## Configuration
+## Contributing
 
-See all CLI options:
+Provide instructions on how to contribute to your project here.
 
-```sh
-$ checkmark --help
+## License
 
-Check MarkDown files for validity, formatting, grammar and links availability(web URLs as well as file links)
-Usage: checkmark [OPTIONS] [ROOT_PATH]
-Arguments:
-  [ROOT_PATH]
-          Root of your project. Recursively search for Markdown files in this folder
-          [default: .]
-Options:
-  -i, --ignore-url <URI>...
-          Comma-separated list of URI globs(web links or files) that will be ignored by link checker. You can also provide this arguments multiple times
-  -a, --autoformat
-          Perform auto-formatting of files. Note: All checker flags will be ignored in this mode. Note: This will modify your files!
-  -h, --help
-          Print help (see a summary with '-h')
-  -V, --version
-          Print version
-```
+Provide information about your project's license here.
