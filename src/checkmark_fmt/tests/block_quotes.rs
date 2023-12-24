@@ -13,7 +13,7 @@ fn block_quote() {
 
     utils::assert_unchanged_after_formatting(
         "> This is a main quote
-> 
+>
 > > And this is a nested one
 > > and this is a continuation of the nested one
 ",
@@ -22,7 +22,7 @@ fn block_quote() {
     utils::assert_unchanged_after_formatting(
         "> This is a main quote
 > And this is a list in it:
-> 
+>
 > + One
 > + Two
 ",
@@ -31,7 +31,7 @@ fn block_quote() {
     utils::assert_unchanged_after_formatting(
         "> This is a main quote
 > And this is a list in it:
-> 
+>
 > + One
 > + Two
 ",
@@ -50,7 +50,7 @@ fn block_quote() {
 fn block_quote_multiple_paragraphs() {
     utils::assert_unchanged_after_formatting(
         "> This is the first paragraph in the block quote.
-> 
+>
 > This is the second paragraph in the block quote.
 ",
     );
@@ -61,7 +61,7 @@ fn block_quote_multiple_paragraphs() {
 fn block_quote_with_code_block() {
     utils::assert_unchanged_after_formatting(
         "> This is a block quote with a code block:
-> 
+>
 > ```rust
 > fn main() {
 >     println!(\"Hello, world!\");
@@ -76,7 +76,7 @@ fn block_quote_with_code_block() {
 fn block_quote_with_nested_block_quote() {
     utils::assert_unchanged_after_formatting(
         "> This is a block quote.
-> 
+>
 > > This is a nested block quote.
 ",
     );
@@ -87,10 +87,10 @@ fn block_quote_with_nested_block_quote() {
 fn block_quote_with_list_and_nested_block_quote() {
     utils::assert_unchanged_after_formatting(
         "> This is a block quote with a list:
-> 
+>
 > + List item 1
 > + List item 2
-> 
+>
 > > And this is a nested block quote.
 ",
     );

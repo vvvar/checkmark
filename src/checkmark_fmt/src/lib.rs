@@ -321,9 +321,11 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
         }
         Node::BlockQuote(b) => {
             for child in &b.children {
-                buffer.push_str("> ");
+                buffer.push_str(">");
                 if &child != &b.children.first().unwrap() {
                     buffer.push_str("\n> ");
+                } else {
+                    buffer.push_str(" ");
                 }
                 match &context {
                     Context::BlockQuote(ctx) => to_md(
