@@ -37,15 +37,9 @@ enum Context {
 fn is_superscript(d: &mdast::Delete, source: &str) -> bool {
     let mut superscript = false;
     if let Some(position) = &d.position {
-        let line_number = position.start.line;
-        let col_start = position.start.column;
-        let col_end = position.end.column;
-
-        if let Some(line) = source.lines().nth(line_number - 1) {
-            let slice = &line[col_start - 1..col_end - 1];
-            if slice.matches('~').count() == 2 {
-                superscript = true;
-            }
+        let slice = &source[position.start.offset..position.end.offset];
+        if slice.matches('~').count() == 2 {
+            superscript = true;
         }
     }
     superscript

@@ -5,6 +5,7 @@ mod utils;
 #[test]
 fn subscript() {
     utils::assert_unchanged_after_formatting("19^th^\n");
+    utils::assert_unchanged_after_formatting("19^\nth^\n");
 }
 
 /// Superscript
@@ -12,4 +13,5 @@ fn subscript() {
 #[test]
 fn superscript() {
     utils::assert_unchanged_after_formatting("H~2~O\n");
+    utils::assert_unchanged_after_formatting("H~2\n~newline-O\n");
 }
