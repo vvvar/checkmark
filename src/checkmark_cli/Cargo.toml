@@ -23,6 +23,8 @@ tokio = { version = "1.32.0", features = ["full"] }
 serde = "1.0.193"
 serde-sarif = "0.4.2"
 serde_json = "1.0.107"
+spinners = "4.1.1"
+colored = "2.1.0"
 
 log = "0.4.2"
 env_logger = "0.10.1"

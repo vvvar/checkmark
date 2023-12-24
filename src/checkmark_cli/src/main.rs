@@ -5,6 +5,7 @@ mod errors;
 use codespan_reporting::diagnostic::{Diagnostic, Label, Severity};
 use codespan_reporting::files::SimpleFiles;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
+use colored::Colorize;
 
 fn has_any_critical_issue(files: &Vec<common::MarkDownFile>) -> bool {
     let mut any_critical_issue = false;
@@ -18,11 +19,30 @@ fn has_any_critical_issue(files: &Vec<common::MarkDownFile>) -> bool {
     any_critical_issue
 }
 
+struct FileSpinner {
+    sp: spinners::Spinner,
+}
+
+impl Drop for FileSpinner {
+    fn drop(&mut self) {
+        self.sp.stop_with_symbol("✅");
+    }
+}
+
+impl FileSpinner {
+    fn new(file_name: &str) -> Self {
+        Self {
+            sp: spinners::Spinner::new(spinners::Spinners::Runner, format!("{}: {}", "Check".cyan().bold(), &file_name)),
+        }
+    }
+}
+
 /// Perform an analysis according to the tool from subcommand
 async fn analyze(cli: &cli::Cli, files: &mut Vec<common::MarkDownFile>, config: &config::Config) {
     match &cli.subcommands {
         cli::Subcommands::Fmt(fmt_cli) => {
             for file in files {
+                let _spinner = FileSpinner::new(&file.path);
                 if fmt_cli.check {
                     checkmark_fmt::check_md_format(file);
                 } else {
@@ -32,11 +52,13 @@ async fn analyze(cli: &cli::Cli, files: &mut Vec<common::MarkDownFile>, config: 
         }
         cli::Subcommands::Grammar(_) => {
             for file in files {
+                let _spinner = FileSpinner::new(&file.path);
                 checkmark_open_ai::check_grammar(file).await.unwrap();
             }
         }
         cli::Subcommands::Review(_) => {
             for file in files {
+                let _spinner = FileSpinner::new(&file.path);
                 checkmark_open_ai::make_a_review(file, !config.review.no_suggestions)
                     .await
                     .unwrap();
@@ -44,12 +66,14 @@ async fn analyze(cli: &cli::Cli, files: &mut Vec<common::MarkDownFile>, config: 
         }
         cli::Subcommands::Links(_) => {
             for file in files {
+                let _spinner = FileSpinner::new(&file.path);
                 checkmark_link_checker::check_links(file, &config.link_checker.ignore_wildcards)
                     .await;
             }
         }
         cli::Subcommands::Spelling(_) => {
             for file in files {
+                let _spinner = FileSpinner::new(&file.path);
                 checkmark_spelling::spell_check(file, &config.spelling.words_whitelist);
             }
         }

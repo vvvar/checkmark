@@ -208,7 +208,7 @@ Provide your answer in JSON form. Reply with only the answer in JSON form and in
         { \"description\": \"string\", \"original\": \"string\", \"replacement\": \"string\" }
     ]
 }";
-    return match open_ai_request(role_prompt, &text).await {
+    return match open_ai_request(role_prompt, text).await {
         Ok(response) => match response.choices.first() {
             Some(choice) => match serde_json::from_str::<OpenAIReview>(&choice.message.content) {
                 Ok(review) => {
