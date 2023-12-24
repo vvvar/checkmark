@@ -194,7 +194,6 @@ impl CheckIssue {
             .unwrap();
 
         let mut fixes: Vec<serde_sarif::sarif::Fix> = vec![];
-        // #[allow(unused)]
         for issue_fix in &self.fixes {
             let artifact_content = serde_sarif::sarif::ArtifactContentBuilder::default()
                 .text(&issue_fix.clone())
@@ -233,10 +232,25 @@ impl CheckIssue {
             fixes.push(fix);
         }
 
+        let severity = match self.severity {
+            IssueSeverity::Bug => "error",
+            IssueSeverity::Error => "error",
+            IssueSeverity::Warning => "warning",
+            IssueSeverity::Note => "note",
+            IssueSeverity::Help => "help",
+        };
+        let kind = match self.category {
+            IssueCategory::Formatting => "formatting",
+            IssueCategory::Linting => "linting",
+            IssueCategory::LinkChecking => "links",
+            IssueCategory::Spelling => "spelling",
+            IssueCategory::Grammar => "grammar",
+            IssueCategory::Review => "review",
+        };
         serde_sarif::sarif::ResultBuilder::default()
-            .level("error")
+            .level(severity)
+            .kind(kind)
             .locations(vec![location])
-            // .analysis_target(artifact_location)
             .message(message)
             .fixes(fixes)
             .build()
