@@ -95,3 +95,17 @@ fn block_quote_with_list_and_nested_block_quote() {
 ",
     );
 }
+
+/// Block quote with a list and a nested block quote
+#[test]
+fn three_level_block_quote() {
+    utils::assert_unchanged_after_formatting(
+        "> Blockquotes can also be nested...
+>
+> > ...by using additional greater-than signs right next to each other...
+> >
+> > > ...or with spaces between arrows.
+",
+    );
+}
+

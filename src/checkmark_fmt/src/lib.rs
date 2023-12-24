@@ -1,22 +1,27 @@
 use markdown;
 use markdown::mdast;
 use markdown::mdast::{AlignKind, Node};
+
+#[derive(Debug)]
 struct ListContext {
     nesting_level: usize,
     is_ordered: bool,
     num_item: u32,
 }
 
+#[derive(Debug)]
 struct BlockQuoteContext {
     depth: usize,
 }
 
+#[derive(Debug)]
 struct BlockQuoteInListContext {
     list_ctx: ListContext,
     block_quote_ctx: BlockQuoteContext,
 }
 
 /// Current rendering context
+#[derive(Debug)]
 enum Context {
     Document,
     List(ListContext),
@@ -124,7 +129,8 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                 }
             }
         }
-        Node::Text(t) => match context {
+        Node::Text(t) => {
+            match context {
             Context::BlockQuote(ctx) => buffer.push_str(
                 &t.value
                     .replace("\n", &format!("\n{}", "> ".repeat(ctx.depth).as_str())),
@@ -158,7 +164,7 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                 ));
             }
             _ => buffer.push_str(&t.value),
-        },
+        }},
         Node::Paragraph(p) => {
             for child in &p.children {
                 to_md(&child, &mut buffer, &context, &source);
@@ -320,13 +326,13 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
             buffer.push_str(")");
         }
         Node::BlockQuote(b) => {
+            dbg!(&b);
             for child in &b.children {
-                buffer.push_str(">");
-                if &child != &b.children.first().unwrap() {
-                    buffer.push_str("\n> ");
-                } else {
-                    buffer.push_str(" ");
-                }
+                buffer.push_str(&match &context {
+                    Context::BlockQuote(ctx) => "> ".repeat(ctx.depth),
+                    Context::BlockQuoteInList(ctx) => "> ".repeat(ctx.block_quote_ctx.depth),
+                    _ => "> ".to_string(),
+                });
                 match &context {
                     Context::BlockQuote(ctx) => to_md(
                         &child,
@@ -371,7 +377,17 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                         &source,
                     ),
                 }
+                // Add new trailing blank block quote if there's more than one child
+                if &child != &b.children.last().unwrap() {
+                    match &context {
+                        Context::Document => buffer.push_str(">\n"),
+                        Context::BlockQuote(ctx) => buffer.push_str(&format!("{}\n", "> ".repeat(ctx.depth + 1).strip_suffix(" ").unwrap())),
+                        Context::List(_) => {},
+                        Context::BlockQuoteInList(_) => {},
+                    }
+                }
             }
+            // Remove trailing block quote if any    
             if buffer.ends_with("\n> ") {
                 buffer.truncate(buffer.len() - "\n> ".len());
             }
