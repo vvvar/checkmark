@@ -1,4 +1,3 @@
-use markdown;
 use markdown::mdast;
 use markdown::mdast::Node;
 
@@ -8,11 +7,8 @@ use markdown::mdast::Node;
 fn starts_with_header(node: &mdast::Node) -> bool {
     match node {
         Node::Root(r) => {
-            if let Some(first_el) = r.children.first() {
-                match first_el {
-                    Node::Heading(h) => h.depth == 1,
-                    _ => false,
-                }
+            if let Some(Node::Heading(h)) = r.children.first() {
+                h.depth == 1
             } else {
                 false
             }
@@ -21,17 +17,17 @@ fn starts_with_header(node: &mdast::Node) -> bool {
     }
 }
 
-fn extract_headings(node: &mdast::Node, mut headings: &mut Vec<mdast::Heading>) {
+fn extract_headings(node: &mdast::Node, headings: &mut Vec<mdast::Heading>) {
     match node {
         Node::Root(r) => {
             for child in &r.children {
-                extract_headings(&child, &mut headings);
+                extract_headings(child, headings);
             }
         }
         Node::Heading(heading) => {
             headings.push(heading.clone());
             for child in &heading.children {
-                extract_headings(&child, &mut headings);
+                extract_headings(child, headings);
             }
         }
         Node::Text(_) => {
@@ -39,17 +35,17 @@ fn extract_headings(node: &mdast::Node, mut headings: &mut Vec<mdast::Heading>) 
         }
         Node::Paragraph(p) => {
             for child in &p.children {
-                extract_headings(&child, &mut headings);
+                extract_headings(child, headings);
             }
         }
         Node::List(l) => {
             for child in &l.children {
-                extract_headings(&child, &mut headings);
+                extract_headings(child, headings);
             }
         }
         Node::ListItem(li) => {
             for child in &li.children {
-                extract_headings(&child, &mut headings);
+                extract_headings(child, headings);
             }
         }
         Node::Code(_) => {
@@ -60,17 +56,17 @@ fn extract_headings(node: &mdast::Node, mut headings: &mut Vec<mdast::Heading>) 
         }
         Node::Emphasis(e) => {
             for child in &e.children {
-                extract_headings(&child, &mut headings);
+                extract_headings(child, headings);
             }
         }
         Node::Strong(s) => {
             for child in &s.children {
-                extract_headings(&child, &mut headings);
+                extract_headings(child, headings);
             }
         }
         Node::Delete(d) => {
             for child in &d.children {
-                extract_headings(&child, &mut headings);
+                extract_headings(child, headings);
             }
         }
         Node::Break(_) => {
@@ -78,7 +74,7 @@ fn extract_headings(node: &mdast::Node, mut headings: &mut Vec<mdast::Heading>) 
         }
         Node::Link(l) => {
             for child in &l.children {
-                extract_headings(&child, &mut headings);
+                extract_headings(child, headings);
             }
         }
         Node::Image(_) => {
@@ -86,7 +82,7 @@ fn extract_headings(node: &mdast::Node, mut headings: &mut Vec<mdast::Heading>) 
         }
         Node::BlockQuote(b) => {
             for child in &b.children {
-                extract_headings(&child, &mut headings);
+                extract_headings(child, headings);
             }
         }
         Node::ThematicBreak(_) => {
@@ -109,28 +105,22 @@ fn extract_headings(node: &mdast::Node, mut headings: &mut Vec<mdast::Heading>) 
         }
         Node::FootnoteDefinition(f) => {
             for child in &f.children {
-                extract_headings(&child, &mut headings);
+                extract_headings(child, headings);
             }
         }
         Node::Table(t) => {
             for child in &t.children {
-                if &child == &t.children.first().unwrap() {
-                    // Header
-                    extract_headings(&child, &mut headings);
-                } else {
-                    // Content
-                    extract_headings(&child, &mut headings);
-                }
+                extract_headings(child, headings);
             }
         }
         Node::TableCell(tc) => {
             for child in &tc.children {
-                extract_headings(&child, &mut headings);
+                extract_headings(child, headings);
             }
         }
         Node::TableRow(tr) => {
             for child in &tr.children {
-                extract_headings(&child, &mut headings);
+                extract_headings(child, headings);
             }
         }
         _ => panic!("Unexpected node type {node:#?}"),
@@ -139,7 +129,7 @@ fn extract_headings(node: &mdast::Node, mut headings: &mut Vec<mdast::Heading>) 
 
 fn has_consequent_headers(node: &mdast::Node) -> bool {
     let mut headings: Vec<mdast::Heading> = vec![];
-    extract_headings(&node, &mut headings);
+    extract_headings(node, &mut headings);
     let mut last_heading_level = 0;
     for heading in headings {
         if heading.depth >= last_heading_level {
@@ -148,19 +138,19 @@ fn has_consequent_headers(node: &mdast::Node) -> bool {
             return false;
         }
     }
-    return true;
+    true
 }
 
-fn lint_md_ast(node: &mdast::Node, is_in_block_quote: bool) {
+fn lint_md_ast(node: &mdast::Node, _is_in_block_quote: bool) {
     match node {
         Node::Root(r) => {
             for child in &r.children {
-                lint_md_ast(&child, is_in_block_quote);
+                lint_md_ast(child, _is_in_block_quote);
             }
         }
         Node::Heading(heading) => {
             for child in &heading.children {
-                lint_md_ast(&child, is_in_block_quote);
+                lint_md_ast(child, _is_in_block_quote);
             }
         }
         Node::Text(_) => {
@@ -168,17 +158,17 @@ fn lint_md_ast(node: &mdast::Node, is_in_block_quote: bool) {
         }
         Node::Paragraph(p) => {
             for child in &p.children {
-                lint_md_ast(&child, is_in_block_quote);
+                lint_md_ast(child, _is_in_block_quote);
             }
         }
         Node::List(l) => {
             for child in &l.children {
-                lint_md_ast(&child, is_in_block_quote);
+                lint_md_ast(child, _is_in_block_quote);
             }
         }
         Node::ListItem(li) => {
             for child in &li.children {
-                lint_md_ast(&child, is_in_block_quote);
+                lint_md_ast(child, _is_in_block_quote);
             }
         }
         Node::Code(_) => {
@@ -189,17 +179,17 @@ fn lint_md_ast(node: &mdast::Node, is_in_block_quote: bool) {
         }
         Node::Emphasis(e) => {
             for child in &e.children {
-                lint_md_ast(&child, is_in_block_quote);
+                lint_md_ast(child, _is_in_block_quote);
             }
         }
         Node::Strong(s) => {
             for child in &s.children {
-                lint_md_ast(&child, is_in_block_quote);
+                lint_md_ast(child, _is_in_block_quote);
             }
         }
         Node::Delete(d) => {
             for child in &d.children {
-                lint_md_ast(&child, is_in_block_quote);
+                lint_md_ast(child, _is_in_block_quote);
             }
         }
         Node::Break(_) => {
@@ -207,7 +197,7 @@ fn lint_md_ast(node: &mdast::Node, is_in_block_quote: bool) {
         }
         Node::Link(l) => {
             for child in &l.children {
-                lint_md_ast(&child, is_in_block_quote);
+                lint_md_ast(child, _is_in_block_quote);
             }
         }
         Node::Image(_) => {
@@ -215,7 +205,7 @@ fn lint_md_ast(node: &mdast::Node, is_in_block_quote: bool) {
         }
         Node::BlockQuote(b) => {
             for child in &b.children {
-                lint_md_ast(&child, true);
+                lint_md_ast(child, true);
             }
         }
         Node::ThematicBreak(_) => {
@@ -238,28 +228,22 @@ fn lint_md_ast(node: &mdast::Node, is_in_block_quote: bool) {
         }
         Node::FootnoteDefinition(f) => {
             for child in &f.children {
-                lint_md_ast(&child, is_in_block_quote);
+                lint_md_ast(child, _is_in_block_quote);
             }
         }
         Node::Table(t) => {
             for child in &t.children {
-                if &child == &t.children.first().unwrap() {
-                    // Header
-                    lint_md_ast(&child, is_in_block_quote);
-                } else {
-                    // Content
-                    lint_md_ast(&child, is_in_block_quote);
-                }
+                lint_md_ast(child, _is_in_block_quote);
             }
         }
         Node::TableCell(tc) => {
             for child in &tc.children {
-                lint_md_ast(&child, is_in_block_quote);
+                lint_md_ast(child, _is_in_block_quote);
             }
         }
         Node::TableRow(tr) => {
             for child in &tr.children {
-                lint_md_ast(&child, is_in_block_quote);
+                lint_md_ast(child, _is_in_block_quote);
             }
         }
         _ => panic!("Unexpected node type {node:#?}"),
@@ -272,5 +256,5 @@ pub fn lint(file: &common::MarkDownFile) -> Vec<common::CheckIssue> {
     lint_md_ast(&ast, false);
     starts_with_header(&ast);
     has_consequent_headers(&ast);
-    return vec![];
+    vec![]
 }

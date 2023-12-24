@@ -1,4 +1,4 @@
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, Default, serde::Deserialize)]
 pub struct Config {
     #[serde(default)]
     pub review: ReviewConfig,
@@ -10,16 +10,6 @@ pub struct Config {
     pub spelling: SpellingConfig,
 }
 
-impl std::default::Default for Config {
-    fn default() -> Self {
-        Self {
-            review: ReviewConfig::default(),
-            link_checker: LinkCheckerConfig::default(),
-            spelling: SpellingConfig::default(),
-        }
-    }
-}
-
 impl Config {
     /// Try to build config from TOML file
     pub fn from_file(path: &str) -> Option<Self> {
@@ -28,59 +18,35 @@ impl Config {
             match toml::from_str(&file) {
                 Ok(cfg) => {
                     log::debug!("Config file found in {}: {:#?}", &path, &cfg);
-                    return Some(cfg);
+                    Some(cfg)
                 }
                 Err(err) => {
                     log::error!("Error while parsing config file: {}", err);
-                    return None;
+                    None
                 }
             }
         } else {
-            return None;
+            None
         }
     }
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, Default, serde::Deserialize)]
 pub struct ReviewConfig {
     #[serde(default)]
     pub no_suggestions: bool,
 }
 
-impl std::default::Default for ReviewConfig {
-    fn default() -> Self {
-        Self {
-            no_suggestions: false,
-        }
-    }
-}
-
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, Default, serde::Deserialize)]
 pub struct LinkCheckerConfig {
     #[serde(default)]
     pub ignore_wildcards: Vec<String>,
 }
 
-impl std::default::Default for LinkCheckerConfig {
-    fn default() -> Self {
-        Self {
-            ignore_wildcards: vec![],
-        }
-    }
-}
-
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, Default, serde::Deserialize)]
 pub struct SpellingConfig {
     #[serde(default)]
     pub words_whitelist: Vec<String>,
-}
-
-impl std::default::Default for SpellingConfig {
-    fn default() -> Self {
-        Self {
-            words_whitelist: vec![],
-        }
-    }
 }
 
 /// First, create one with default values
@@ -144,5 +110,5 @@ pub fn read_config(cli: &crate::cli::Cli) -> Config {
     }
     log::debug!("Config after merging with CLI: {:#?}", &config);
 
-    return config;
+    config
 }

@@ -139,49 +139,38 @@ pub async fn open_ai_request(
             log::debug!("HTTP response from OpenAI:\n{:#?}", &response);
             let open_ai_response: OpenAIResponse = response.json().await.unwrap();
             log::debug!("Response body from OpenAI:\n{:#?}", &open_ai_response);
-            return Ok(open_ai_response);
+            Ok(open_ai_response)
         }
         Err(err) => {
             log::error!("Error from OpenAI:\n{:#?}", &err);
-            return Err(OpenAIError {
+            Err(OpenAIError {
                 message: "Error sending request to the OpenAI".to_string(),
-            });
+            })
         }
     }
 }
 
 /// Check is grammar suggestion is false-positive
 fn is_false_positive_suggestion(suggestion: &str, original: &str) -> bool {
-    if suggestion.is_empty() {
+    if suggestion.is_empty()
+        || original.len() < 3
+        || suggestion.to_lowercase().contains(
+            "unable to provide any corrections or feedback without any context or user input",
+        )
+        || suggestion
+            .to_lowercase()
+            .contains("you haven't provided any statement for me to convert to standard English")
+        || suggestion.to_ascii_lowercase().contains("sounds good")
+        || suggestion
+            .to_lowercase()
+            .contains("is not a statement that can be converted to standard English")
+        || suggestion
+            .to_lowercase()
+            .trim_end_matches('.')
+            .eq(&original.to_lowercase())
+        || suggestion.to_lowercase().eq(&original.to_lowercase())
+    {
         // No suggestion
-        true
-    } else if original.len() < 3 {
-        // Less then 3 symbols is most likely is not a sentence/statement
-        true
-    } else if suggestion
-        .to_lowercase()
-        .contains("unable to provide any corrections or feedback without any context or user input")
-    {
-        true
-    } else if suggestion
-        .to_lowercase()
-        .contains("you haven't provided any statement for me to convert to standard English")
-    {
-        true
-    } else if suggestion.to_ascii_lowercase().contains("sounds good") {
-        true
-    } else if suggestion
-        .to_lowercase()
-        .contains("is not a statement that can be converted to standard English")
-    {
-        true
-    } else if suggestion
-        .to_lowercase()
-        .trim_end_matches(".")
-        .eq(&original.to_lowercase())
-    {
-        true
-    } else if suggestion.to_lowercase().eq(&original.to_lowercase()) {
         true
     } else {
         false
@@ -191,19 +180,15 @@ fn is_false_positive_suggestion(suggestion: &str, original: &str) -> bool {
 /// Sometimes we want to adjust suggestion a bit, this function does that.
 /// For example, OpenAI may suggest adding period when it si not needed.
 fn auto_correct_grammar_suggestion(suggestion: &str, original: &str) -> String {
-    if suggestion.ends_with(".") && !original.ends_with(".") {
-        return suggestion.strip_suffix(".").unwrap().to_string();
+    if suggestion.ends_with('.') && !original.ends_with('.') {
+        suggestion.strip_suffix('.').unwrap().to_string()
     } else {
-        return suggestion.to_string();
+        suggestion.to_string()
     }
 }
 
 fn is_false_positive_review_suggestion(suggestion_description: &str) -> bool {
-    if suggestion_description.contains("a space after the colon") {
-        return true;
-    } else {
-        return false;
-    }
+    suggestion_description.contains("a space after the colon")
 }
 
 /// Get a grammar correction suggestion from the Open AI.
@@ -213,17 +198,17 @@ You take all the users input and auto correct it.
 Just reply to user input with the correct grammar.
 DO NOT reply the context of the question of the user input.
 If the user input is grammatically correct then just reply “sounds good” and nothing else.";
-    let response = open_ai_request(role_prompt, &text).await?;
+    let response = open_ai_request(role_prompt, text).await?;
     if let Some(choice) = response.choices.first() {
-        if is_false_positive_suggestion(&choice.message.content, &text) {
-            return Ok(OpenAISuggestion::NoSuggestion);
+        if is_false_positive_suggestion(&choice.message.content, text) {
+            Ok(OpenAISuggestion::NoSuggestion)
         } else {
-            return Ok(OpenAISuggestion::Suggestion(
-                auto_correct_grammar_suggestion(&choice.message.content, &text),
-            ));
+            Ok(OpenAISuggestion::Suggestion(
+                auto_correct_grammar_suggestion(&choice.message.content, text),
+            ))
         }
     } else {
-        return Ok(OpenAISuggestion::NoSuggestion);
+        Ok(OpenAISuggestion::NoSuggestion)
     }
 }
 
@@ -253,7 +238,7 @@ Provide your answer in JSON form. Reply with only the answer in JSON form and in
             Some(choice) => match serde_json::from_str::<OpenAIReview>(&choice.message.content) {
                 Ok(review) => {
                     log::debug!("Got a review from OpenAI:\n{:#?}", &review);
-                    return Ok(OpenAIReview {
+                    Ok(OpenAIReview {
                         summary: review.summary,
                         suggestions: review
                             .suggestions
@@ -262,20 +247,20 @@ Provide your answer in JSON form. Reply with only the answer in JSON form and in
                                 !is_false_positive_review_suggestion(&suggestion.description)
                             })
                             .collect(),
-                    });
+                    })
                 }
                 Err(err) => {
                     log::error!("Error parsing response from OpenAI:{:#?}", &err);
-                    return Err(OpenAIError {
+                    Err(OpenAIError {
                         message: "Error parsing response from OpenAI".to_string(),
-                    });
+                    })
                 }
             },
             None => {
                 log::error!("OpenAI replied without suggestions:\n{:#?}", &response);
-                return Err(OpenAIError {
+                Err(OpenAIError {
                     message: "OpenAI replied without suggestions".to_string(),
-                });
+                })
             }
         },
         Err(err) => Err(err),

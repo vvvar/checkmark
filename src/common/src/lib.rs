@@ -66,6 +66,7 @@ pub struct CheckIssue {
 }
 
 /// Builder for CheckIssue struct
+#[derive(Default)]
 pub struct CheckIssueBuilder {
     pub category: Option<IssueCategory>,
     pub severity: Option<IssueSeverity>,
@@ -158,22 +159,6 @@ impl CheckIssueBuilder {
             fixes: self.fixes,
         }
     }
-
-    pub fn default() -> Self {
-        CheckIssueBuilder {
-            category: None,
-            severity: None,
-            file_path: None,
-            row_num_start: None,
-            row_num_end: None,
-            col_num_start: None,
-            col_num_end: None,
-            offset_start: None,
-            offset_end: None,
-            message: None,
-            fixes: vec![],
-        }
-    }
 }
 
 impl CheckIssue {
@@ -262,20 +247,13 @@ impl CheckIssue {
 // Collect nodes of type from provided AST
 pub fn for_each<'a>(ast: &'a markdown::mdast::Node, mut f: impl FnMut(&'a markdown::mdast::Node)) {
     let mut stack: Vec<&markdown::mdast::Node> = vec![];
-    stack.push(&ast);
-    loop {
-        if let Some(current) = stack.pop() {
-            f(&current);
-            match current.children() {
-                Some(children) => {
-                    for child in children.iter().rev() {
-                        stack.push(child);
-                    }
-                }
-                None => {}
+    stack.push(ast);
+    while let Some(current) = stack.pop() {
+        f(current);
+        if let Some(children) = current.children() {
+            for child in children.iter().rev() {
+                stack.push(child);
             }
-        } else {
-            break;
         }
     }
 }
@@ -285,32 +263,32 @@ pub fn filter<'a>(
     mut predicate: impl FnMut(&'a markdown::mdast::Node) -> bool,
 ) -> Vec<&'a markdown::mdast::Node> {
     let mut stack: Vec<&markdown::mdast::Node> = vec![];
-    for_each(&ast, |node| {
+    for_each(ast, |node| {
         if predicate(node) {
             stack.push(node);
         }
     });
-    return stack;
+    stack
 }
 
-pub fn filter_text_nodes<'a>(ast: &'a markdown::mdast::Node) -> Vec<&'a markdown::mdast::Text> {
+pub fn filter_text_nodes(ast: &markdown::mdast::Node) -> Vec<&markdown::mdast::Text> {
     let mut text_nodes: Vec<&markdown::mdast::Text> = vec![];
-    for_each(&ast, |node| match node {
-        markdown::mdast::Node::Text(t) => text_nodes.push(t),
-        _ => {}
+    for_each(ast, |node| {
+        if let markdown::mdast::Node::Text(t) = node {
+            text_nodes.push(t)
+        }
     });
-    return text_nodes;
+    text_nodes
 }
 
-pub fn filter_paragraph_nodes<'a>(
-    ast: &'a markdown::mdast::Node,
-) -> Vec<&'a markdown::mdast::Paragraph> {
+pub fn filter_paragraph_nodes(ast: &markdown::mdast::Node) -> Vec<&markdown::mdast::Paragraph> {
     let mut p_nodes: Vec<&markdown::mdast::Paragraph> = vec![];
-    for_each(&ast, |node| match node {
-        markdown::mdast::Node::Paragraph(t) => p_nodes.push(t),
-        _ => {}
+    for_each(ast, |node| {
+        if let markdown::mdast::Node::Paragraph(t) = node {
+            p_nodes.push(t)
+        }
     });
-    return p_nodes;
+    p_nodes
 }
 
 /// Find index of substring in source string
@@ -318,15 +296,15 @@ pub fn find_index(source: &str, sub_str: &str) -> std::ops::Range<usize> {
     let mut index_start = 0;
     let mut index_end = source.len();
     log::debug!("Searching {:#?}", &sub_str);
-    if let Some(index) = source.find(&sub_str) {
+    if let Some(index) = source.find(sub_str) {
         log::debug!("Found exact index: {:#?}", &index);
         index_start = index;
-        index_end = index_start + &sub_str.len();
+        index_end = sub_str.len() + index_start;
     } else {
         log::debug!("Unable to find exact index, trying to guess");
         for line in source.lines() {
-            if strsim::sorensen_dice(&sub_str, &line) > 0.5 {
-                index_start = source.find(&line).unwrap();
+            if strsim::sorensen_dice(sub_str, line) > 0.5 {
+                index_start = source.find(line).unwrap();
                 index_end = source.len();
                 log::debug!(
                     "Found the best guess line on index {:#?}:\n{:#?}",
@@ -336,8 +314,8 @@ pub fn find_index(source: &str, sub_str: &str) -> std::ops::Range<usize> {
             }
         }
     }
-    return std::ops::Range {
+    std::ops::Range {
         start: index_start,
         end: index_end,
-    };
+    }
 }

@@ -1,4 +1,3 @@
-use markdown;
 use markdown::mdast;
 use markdown::mdast::{AlignKind, Node};
 
@@ -44,12 +43,12 @@ fn is_superscript(d: &mdast::Delete, source: &str) -> bool {
 
         if let Some(line) = source.lines().nth(line_number - 1) {
             let slice = &line[col_start - 1..col_end - 1];
-            if slice.matches("~").count() == 2 {
+            if slice.matches('~').count() == 2 {
                 superscript = true;
             }
         }
     }
-    return superscript;
+    superscript
 }
 
 /// There are two types of string(bold) - underscore(__) and asterisk(**)
@@ -68,7 +67,7 @@ fn is_string_underscored(d: &mdast::Strong, source: &str) -> bool {
             }
         }
     }
-    return underscored;
+    underscored
 }
 
 /// There are two types of string(bold) - underscore(__) and asterisk(**)
@@ -82,49 +81,47 @@ fn is_heading_atx(d: &mdast::Heading, source: &str) -> bool {
 
         if let Some(line) = source.lines().nth(line_number - 1) {
             let slice = &line[col_start - 1..col_end - 1];
-            if slice.contains("#") {
+            if slice.contains('#') {
                 atx = true;
             }
         }
     }
-    return atx;
+    atx
 }
 
 /// Removes trailing new-line and spaces from the end of the string
 fn remove_trailing_newline_and_space(s: &str) -> String {
     let mut result = String::from(s);
-    while result.ends_with("\n") || result.ends_with(" ") {
-        match result.strip_suffix("\n") {
-            Some(s) => result = s.to_string(),
-            None => {}
+    while result.ends_with('\n') || result.ends_with(' ') {
+        if let Some(s) = result.strip_suffix('\n') {
+            result = s.to_string()
         }
-        match result.strip_suffix(" ") {
-            Some(s) => result = s.to_string(),
-            None => {}
+        if let Some(s) = result.strip_suffix(' ') {
+            result = s.to_string()
         }
     }
-    return result;
+    result
 }
 
 /// Render Markdown file from AST
-fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source: &str) {
+fn to_md(node: &mdast::Node, buffer: &mut String, context: &Context, source: &str) {
     match node {
         Node::Root(r) => {
             for child in &r.children {
-                to_md(&child, &mut buffer, &context, &source);
-                buffer.push_str("\n");
+                to_md(child, buffer, context, source);
+                buffer.push('\n');
             }
         }
         Node::Heading(heading) => {
-            if is_heading_atx(&heading, &source) {
+            if is_heading_atx(heading, source) {
                 buffer.push_str("#".repeat(heading.depth as usize).as_str());
-                buffer.push_str(" ");
+                buffer.push(' ');
             }
             for child in &heading.children {
-                to_md(&child, &mut buffer, &context, &source);
+                to_md(child, buffer, context, source);
             }
-            buffer.push_str("\n");
-            if !is_heading_atx(&heading, &source) {
+            buffer.push('\n');
+            if !is_heading_atx(heading, source) {
                 if heading.depth == 1 {
                     buffer.push_str("=============");
                 } else {
@@ -136,19 +133,19 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
             match context {
                 Context::BlockQuote(ctx) => buffer.push_str(
                     &t.value
-                        .replace("\n", &format!("\n{}", "> ".repeat(ctx.depth).as_str())),
+                        .replace('\n', &format!("\n{}", "> ".repeat(ctx.depth).as_str())),
                 ),
                 Context::List(ctx) => {
                     // Very special case - when we have list with text that has ne lines
                     // we want to align them
                     if ctx.is_ordered {
                         buffer.push_str(&t.value.replace(
-                            "\n",
+                            '\n',
                             &format!("\n{}", "   ".repeat(ctx.nesting_level + 1).as_str()),
                         ));
                     } else {
                         buffer.push_str(&t.value.replace(
-                            "\n",
+                            '\n',
                             &format!("\n{}", "  ".repeat(ctx.nesting_level + 1).as_str()),
                         ));
                     }
@@ -159,7 +156,7 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                     // by engines like a quote inside a list.
                     // Otherwise - it will be rendered outside
                     buffer.push_str(&t.value.replace(
-                        "\n",
+                        '\n',
                         &format!(
                             "\n{}> ",
                             "  ".repeat(ctx.list_ctx.nesting_level + 1).as_str()
@@ -171,9 +168,9 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
         }
         Node::Paragraph(p) => {
             for child in &p.children {
-                to_md(&child, &mut buffer, &context, &source);
+                to_md(child, buffer, context, source);
             }
-            buffer.push_str("\n");
+            buffer.push('\n');
         }
         Node::List(l) => {
             let mut start = if l.start.is_some() {
@@ -182,41 +179,37 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                 0
             };
             let mut nesting_level = 0;
-            match context {
-                Context::List(ctx) => nesting_level = ctx.nesting_level + 1,
-                _ => {}
+            if let Context::List(ctx) = context {
+                nesting_level = ctx.nesting_level + 1
             }
             for child in &l.children {
-                match context {
-                    Context::BlockQuote(_) => {
-                        if &child != &l.children.first().unwrap() {
-                            buffer.push_str("> ");
-                        }
+                if let Context::BlockQuote(_) = context {
+                    if child != l.children.first().unwrap() {
+                        buffer.push_str("> ");
                     }
-                    _ => {}
                 }
                 to_md(
-                    &child,
-                    &mut buffer,
+                    child,
+                    buffer,
                     &Context::List(ListContext {
-                        nesting_level: nesting_level,
+                        nesting_level,
                         is_ordered: l.ordered,
                         num_item: start,
                     }),
-                    &source,
+                    source,
                 );
                 start += 1;
                 // Spread list(also called loose in CommonMark) is when
                 // at least one element is new-line separated. We force
                 // to be consistent and add newlines everywhere except
                 // last element because it will have newline anyways
-                if l.spread && &child != &l.children.last().unwrap() {
-                    buffer.push_str("\n");
+                if l.spread && child != l.children.last().unwrap() {
+                    buffer.push('\n');
                 }
             }
         }
-        Node::ListItem(li) => match context {
-            Context::List(ctx) => {
+        Node::ListItem(li) => {
+            if let Context::List(ctx) = context {
                 buffer.push_str(&"  ".repeat(ctx.nesting_level));
                 if ctx.is_ordered {
                     buffer.push_str(&format!("{}. ", ctx.num_item));
@@ -226,7 +219,7 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                 for child in &li.children {
                     // When there's 2+ paragraphs in a list item
                     // then we want to align then with list
-                    if &child != &li.children.first().unwrap() {
+                    if child != li.children.first().unwrap() {
                         if let Node::Paragraph(_) = &child {
                             if ctx.is_ordered {
                                 buffer.push_str(&format!(
@@ -246,14 +239,13 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                                 buffer.push_str("  ");
                             }
                         }
-                        to_md(&child, &mut buffer, &context, &source);
+                        to_md(child, buffer, context, source);
                     } else {
-                        to_md(&child, &mut buffer, &context, &source);
+                        to_md(child, buffer, context, source);
                     }
                 }
             }
-            _ => {}
-        },
+        }
         Node::Code(c) => {
             let mut syntax_highlight = "text";
             if let Some(lang) = &c.lang {
@@ -261,8 +253,7 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
             }
             match context {
                 Context::BlockQuote(_) => buffer.push_str(
-                    &format!("```{}\n{}\n```\n", syntax_highlight, c.value,)
-                        .replace("\n", &format!("\n> ")),
+                    &format!("```{}\n{}\n```\n", syntax_highlight, c.value,).replace('\n', "\n> "),
                 ),
                 _ => buffer.push_str(&format!("```{}\n{}\n```\n", syntax_highlight, c.value)),
             }
@@ -271,63 +262,63 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
             buffer.push_str(&format!("`{}`", &c.value));
         }
         Node::Emphasis(e) => {
-            buffer.push_str("*");
+            buffer.push('*');
             for child in &e.children {
-                to_md(&child, &mut buffer, &context, &source);
+                to_md(child, buffer, context, source);
             }
-            buffer.push_str("*");
+            buffer.push('*');
         }
         Node::Strong(s) => {
-            if is_string_underscored(&s, &source) {
+            if is_string_underscored(s, source) {
                 buffer.push_str("__");
             } else {
                 buffer.push_str("**");
             }
             for child in &s.children {
-                to_md(&child, &mut buffer, &context, &source);
+                to_md(child, buffer, context, source);
             }
-            if is_string_underscored(&s, &source) {
+            if is_string_underscored(s, source) {
                 buffer.push_str("__");
             } else {
                 buffer.push_str("**");
             }
         }
         Node::Delete(d) => {
-            if is_superscript(&d, &source) {
-                buffer.push_str("~");
+            if is_superscript(d, source) {
+                buffer.push('~');
             } else {
                 buffer.push_str("~~");
             }
             for child in &d.children {
-                to_md(&child, &mut buffer, &context, &source);
+                to_md(child, buffer, context, source);
             }
-            if is_superscript(&d, &source) {
-                buffer.push_str("~");
+            if is_superscript(d, source) {
+                buffer.push('~');
             } else {
                 buffer.push_str("~~");
             }
         }
         Node::Break(_) => {
-            buffer.push_str("\n");
+            buffer.push('\n');
         }
         Node::Link(l) => {
-            buffer.push_str("[");
+            buffer.push('[');
             for child in &l.children {
-                to_md(&child, &mut buffer, &context, &source);
+                to_md(child, buffer, context, source);
             }
-            buffer.push_str("]");
+            buffer.push(']');
             buffer.push_str(&format!("({}", &l.url.clone().as_str()));
             if let Some(title) = &l.title {
                 buffer.push_str(&format!(" \"{}\"", &title));
             }
-            buffer.push_str(")");
+            buffer.push(')');
         }
         Node::Image(i) => {
             buffer.push_str(&format!("![{}]({}", &i.alt, &i.url));
             if let Some(title) = &i.title {
                 buffer.push_str(&format!(" \"{}\"", &title));
             }
-            buffer.push_str(")");
+            buffer.push(')');
         }
         Node::BlockQuote(b) => {
             for child in &b.children {
@@ -338,16 +329,16 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                 });
                 match &context {
                     Context::BlockQuote(ctx) => to_md(
-                        &child,
-                        &mut buffer,
+                        child,
+                        buffer,
                         &Context::BlockQuote(BlockQuoteContext {
                             depth: ctx.depth + 1,
                         }),
-                        &source,
+                        source,
                     ),
                     Context::List(ctx) => to_md(
-                        &child,
-                        &mut buffer,
+                        child,
+                        buffer,
                         &Context::BlockQuoteInList(BlockQuoteInListContext {
                             list_ctx: ListContext {
                                 nesting_level: ctx.nesting_level,
@@ -356,11 +347,11 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                             },
                             block_quote_ctx: BlockQuoteContext { depth: 1 },
                         }),
-                        &source,
+                        source,
                     ),
                     Context::BlockQuoteInList(ctx) => to_md(
-                        &child,
-                        &mut buffer,
+                        child,
+                        buffer,
                         &Context::BlockQuoteInList(BlockQuoteInListContext {
                             list_ctx: ListContext {
                                 nesting_level: ctx.list_ctx.nesting_level,
@@ -371,22 +362,22 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                                 depth: ctx.block_quote_ctx.depth + 1,
                             },
                         }),
-                        &source,
+                        source,
                     ),
                     _ => to_md(
-                        &child,
-                        &mut buffer,
+                        child,
+                        buffer,
                         &Context::BlockQuote(BlockQuoteContext { depth: 1 }),
-                        &source,
+                        source,
                     ),
                 }
                 // Add new trailing blank block quote if there's more than one child
-                if &child != &b.children.last().unwrap() {
+                if child != b.children.last().unwrap() {
                     match &context {
                         Context::Document => buffer.push_str(">\n"),
                         Context::BlockQuote(ctx) => buffer.push_str(&format!(
                             "{}\n",
-                            "> ".repeat(ctx.depth + 1).strip_suffix(" ").unwrap()
+                            "> ".repeat(ctx.depth + 1).strip_suffix(' ').unwrap()
                         )),
                         Context::List(_) => {}
                         Context::BlockQuoteInList(_) => {}
@@ -422,16 +413,16 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
         Node::FootnoteDefinition(f) => {
             buffer.push_str(&format!("[^{}]: ", &f.identifier));
             for child in &f.children {
-                if &child == &f.children.first().unwrap() {
-                    to_md(&child, &mut buffer, &context, &source);
+                if child == f.children.first().unwrap() {
+                    to_md(child, buffer, context, source);
                 } else {
                     let mut tmp_buffer = String::from("");
-                    to_md(&child, &mut tmp_buffer, &context, &source);
+                    to_md(child, &mut tmp_buffer, context, source);
                     if let Some(position) = child.position() {
                         for line in tmp_buffer.lines() {
                             buffer.push_str(&" ".repeat(position.clone().start.column));
-                            buffer.push_str(&line);
-                            buffer.push_str("\n");
+                            buffer.push_str(line);
+                            buffer.push('\n');
                         }
                     }
                 }
@@ -439,9 +430,9 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
         }
         Node::Table(t) => {
             for child in &t.children {
-                if &child == &t.children.first().unwrap() {
-                    to_md(&child, &mut buffer, &context, &source);
-                    buffer.push_str("|");
+                if child == t.children.first().unwrap() {
+                    to_md(child, buffer, context, source);
+                    buffer.push('|');
                     for align in &t.align {
                         match align {
                             AlignKind::Left => buffer.push_str(" :-- |"),
@@ -450,24 +441,24 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                             AlignKind::None => buffer.push_str(" --- |"),
                         }
                     }
-                    buffer.push_str("\n");
+                    buffer.push('\n');
                 } else {
-                    to_md(&child, &mut buffer, &context, &source);
+                    to_md(child, buffer, context, source);
                 }
             }
         }
         Node::TableCell(tc) => {
             for child in &tc.children {
-                to_md(&child, &mut buffer, &context, &source);
+                to_md(child, buffer, context, source);
             }
             buffer.push_str(" | ");
         }
         Node::TableRow(tr) => {
             buffer.push_str("| ");
             for child in &tr.children {
-                to_md(&child, &mut buffer, &context, &source);
+                to_md(child, buffer, context, source);
             }
-            buffer.push_str("\n");
+            buffer.push('\n');
         }
         _ => panic!("Unexpected node type {node:#?}"),
     }
@@ -479,16 +470,16 @@ pub fn fmt_markdown(file: &common::MarkDownFile) -> common::MarkDownFile {
     let ast = markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
     to_md(&ast, &mut buffer, &Context::Document, &file.content);
     buffer = remove_trailing_newline_and_space(&buffer);
-    buffer.push_str("\n");
-    return common::MarkDownFile {
+    buffer.push('\n');
+    common::MarkDownFile {
         path: file.path.clone(),
         content: buffer,
         issues: vec![],
-    };
+    }
 }
 
 pub fn check_md_format(file: &mut common::MarkDownFile) {
-    if !file.content.eq(&fmt_markdown(&file).content) {
+    if !file.content.eq(&fmt_markdown(file).content) {
         file.issues.push(
             common::CheckIssueBuilder::default()
                 .set_category(common::IssueCategory::Formatting)

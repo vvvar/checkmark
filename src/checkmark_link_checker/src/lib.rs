@@ -5,7 +5,7 @@ use lychee_lib::Result;
 fn network_error_to_issues(file: &mut common::MarkDownFile, error: &reqwest::Error) {
     log::debug!("Handling network error:\n{:#?}", &error);
     let url = match error.url() {
-        Some(url) => match url.as_str().strip_suffix("/") {
+        Some(url) => match url.as_str().strip_suffix('/') {
             Some(stripped_url) => stripped_url,
             None => url.as_str(),
         },
@@ -48,7 +48,7 @@ fn invalid_file_error_to_issues(file: &mut common::MarkDownFile, unreachable_fil
     log::debug!("Problematic document path: {:#?}", &document_folder_path);
     let file_path_in_document = match unreachable_file_path
         .replace(&document_folder_path, "")
-        .strip_prefix("/")
+        .strip_prefix('/')
     {
         Some(stripped) => stripped.to_string(),
         None => unreachable_file_path.replace(&document_folder_path, ""),
@@ -112,10 +112,10 @@ async fn collect_links(
         let uri = link.uri.as_str();
         let matches_any_ignored_uri_wildcard =
             ignored_uri_wildcards.iter().any(|ignored_wildcard| {
-                if let Some(stripped_uri) = uri.strip_suffix("/") {
-                    wildmatch::WildMatch::new(&ignored_wildcard).matches(&stripped_uri)
+                if let Some(stripped_uri) = uri.strip_suffix('/') {
+                    wildmatch::WildMatch::new(ignored_wildcard).matches(stripped_uri)
                 } else {
-                    wildmatch::WildMatch::new(&ignored_wildcard).matches(&uri)
+                    wildmatch::WildMatch::new(ignored_wildcard).matches(uri)
                 }
             });
         if !matches_any_ignored_uri_wildcard {
@@ -123,11 +123,11 @@ async fn collect_links(
         }
     }
     log::debug!("De-duplicated links:\n{:#?}", &links_map);
-    return Ok(links_map);
+    Ok(links_map)
 }
 
 pub async fn check_links(file: &mut common::MarkDownFile, ignored_uri_wildcards: &Vec<String>) {
-    for (uri, request) in collect_links(&file.path, &ignored_uri_wildcards)
+    for (uri, request) in collect_links(&file.path, ignored_uri_wildcards)
         .await
         .unwrap()
     {
@@ -142,7 +142,7 @@ pub async fn check_links(file: &mut common::MarkDownFile, ignored_uri_wildcards:
                     // Network error while handling request
                     lychee_lib::ErrorKind::NetworkRequest(error) => {
                         log::debug!("{:#?} request network error:\n{:#?}", &uri, &error);
-                        network_error_to_issues(file, &error);
+                        network_error_to_issues(file, error);
                     }
                     // Cannot read the body of the received response
                     lychee_lib::ErrorKind::ReadResponseBody(error) => {
@@ -223,7 +223,7 @@ pub async fn check_links(file: &mut common::MarkDownFile, ignored_uri_wildcards:
                     // The given URI cannot be converted to a file path
                     lychee_lib::ErrorKind::InvalidFilePath(uri) => {
                         log::debug!("{:#?} request error invalid file path", &uri);
-                        invalid_file_error_to_issues(file, &uri.path());
+                        invalid_file_error_to_issues(file, uri.path());
                     }
                     // The given path cannot be converted to a URI
                     lychee_lib::ErrorKind::InvalidUrlFromPath(uri_path) => {

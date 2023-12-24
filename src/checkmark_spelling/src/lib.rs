@@ -10,40 +10,30 @@ fn is_ignored_word(word: &str) -> bool {
 fn remove_all_special_characters(word: &str, lowercase: bool) -> String {
     // These chars are generally considered unwanted
     let mut escaped = word
-        .replace("?", "")
-        .replace("!", "")
-        .replace(",", "")
-        .replace("`", "")
-        .replace("\"", "")
-        .replace("{", "")
-        .replace("}", "")
-        .replace("[", "")
-        .replace("]", "")
-        .replace("(", "")
-        .replace(")", "")
-        .replace("#", "")
-        .replace("%", "")
-        .replace("|", "")
-        .replace("/", "")
-        .replace(";", "")
-        .replace(":", "")
+        .replace(
+            [
+                '?', '!', ',', '`', '\"', '{', '}', '[', ']', '(', ')', '#', '%', '|', '/', ';',
+                ':',
+            ],
+            "",
+        )
         .replace(|c: char| !c.is_ascii(), "");
 
     // Because we want to remove only prefix/suffix
     // and preserve words such as "don't", "isn't", etc.
-    if let Some(stripped) = escaped.strip_prefix("'") {
+    if let Some(stripped) = escaped.strip_prefix('\'') {
         escaped = stripped.to_string();
     }
-    if let Some(stripped) = escaped.strip_suffix("'") {
+    if let Some(stripped) = escaped.strip_suffix('\'') {
         escaped = stripped.to_string();
     }
 
     // Because we want to preserve words such as
     // un-intended and so on
-    if let Some(stripped) = escaped.strip_prefix("-") {
+    if let Some(stripped) = escaped.strip_prefix('-') {
         escaped = stripped.to_string();
     }
-    if let Some(stripped) = escaped.strip_suffix("-") {
+    if let Some(stripped) = escaped.strip_suffix('-') {
         escaped = stripped.to_string();
     }
 
@@ -54,13 +44,13 @@ fn remove_all_special_characters(word: &str, lowercase: bool) -> String {
         "aug.", "sept.", "oct.", "nov.", "dec.",
     ];
     if !abbreviations_with_period.contains(&escaped.to_lowercase().as_str()) {
-        escaped = escaped.replace(".", "");
+        escaped = escaped.replace('.', "");
     }
 
     if lowercase {
-        return escaped.to_lowercase();
+        escaped.to_lowercase()
     } else {
-        return escaped;
+        escaped
     }
 }
 

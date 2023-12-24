@@ -76,5 +76,5 @@ pub struct Cli {
 }
 
 pub fn init() -> Cli {
-    return Cli::parse();
+    Cli::parse()
 }

@@ -1,4 +1,3 @@
-use glob;
 use log::warn;
 
 /// Creates a list of markdown files from provided path
@@ -6,8 +5,8 @@ use log::warn;
 ///     1. path to a file - will just add this file to the list
 ///     2. path to a dir - will lookup all markdown files in this ir
 ///     3. remote URL
-pub async fn ls(path: &String) -> Vec<common::MarkDownFile> {
-    let mut input_path = path.clone();
+pub async fn ls(path: &str) -> Vec<common::MarkDownFile> {
+    let mut input_path = path.to_owned();
     if is_url::is_url(&input_path) {
         let response = reqwest::get(&input_path).await.unwrap();
         let tmp_file_path = format!(
@@ -62,15 +61,15 @@ pub async fn ls(path: &String) -> Vec<common::MarkDownFile> {
 
     let mut markdown_files: Vec<common::MarkDownFile> = vec![];
     for file_path in &files {
-        match std::fs::read_to_string(&file_path) {
+        match std::fs::read_to_string(file_path) {
             Ok(content) => markdown_files.push(common::MarkDownFile {
                 path: file_path.clone(),
-                content: content,
+                content,
                 issues: vec![],
             }),
             Err(_) => warn!("Unable to read file content. Make sure file has correct permissions"),
         }
     }
 
-    return markdown_files;
+    markdown_files
 }

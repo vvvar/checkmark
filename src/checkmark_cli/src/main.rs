@@ -5,7 +5,6 @@ mod errors;
 use codespan_reporting::diagnostic::{Diagnostic, Label, Severity};
 use codespan_reporting::files::SimpleFiles;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
-use env_logger;
 
 fn has_any_critical_issue(files: &Vec<common::MarkDownFile>) -> bool {
     let mut any_critical_issue = false;
@@ -16,7 +15,7 @@ fn has_any_critical_issue(files: &Vec<common::MarkDownFile>) -> bool {
                 .iter()
                 .any(|issue| issue.severity == common::IssueSeverity::Error);
     }
-    return any_critical_issue;
+    any_critical_issue
 }
 
 /// Perform an analysis according to the tool from subcommand
@@ -27,8 +26,7 @@ async fn analyze(cli: &cli::Cli, files: &mut Vec<common::MarkDownFile>, config: 
                 if fmt_cli.check {
                     checkmark_fmt::check_md_format(file);
                 } else {
-                    std::fs::write(&file.path, &checkmark_fmt::fmt_markdown(&file).content)
-                        .unwrap();
+                    std::fs::write(&file.path, &checkmark_fmt::fmt_markdown(file).content).unwrap();
                 }
             }
         }
@@ -137,17 +135,9 @@ fn report(cli: &cli::Cli, analyzed_files: &mut Vec<common::MarkDownFile>) {
             .unwrap();
 
         if let Some(file_path) = &cli.sarif {
-            std::fs::write(
-                &file_path,
-                format!("{}", serde_json::to_string(&sarif).unwrap()),
-            )
-            .unwrap();
+            std::fs::write(file_path, serde_json::to_string(&sarif).unwrap()).unwrap();
         }
-        std::fs::write(
-            &file_path,
-            format!("{}", serde_json::to_string(&sarif).unwrap()),
-        )
-        .unwrap();
+        std::fs::write(file_path, serde_json::to_string(&sarif).unwrap()).unwrap();
     }
 }
 

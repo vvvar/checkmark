@@ -47,7 +47,7 @@ pub async fn make_a_review(
     file: &mut common::MarkDownFile,
     include_suggestions: bool,
 ) -> Result<(), open_ai::OpenAIError> {
-    match open_ai::get_open_ai_review(&file).await {
+    match open_ai::get_open_ai_review(file).await {
         Ok(review) => {
             if review.suggestions.is_empty() {
                 log::warn!("OpenAI haven't provided any suggestions:\n{:#?}", &review);
@@ -91,11 +91,11 @@ pub async fn make_a_review(
                 }
                 file.issues.push(issue.build());
             }
-            return Ok(());
+            Ok(())
         }
         Err(err) => {
             log::error!("Error getting review from OpenAI:\n{:#?}", &err);
-            return Err(err);
+            Err(err)
         }
     }
 }
