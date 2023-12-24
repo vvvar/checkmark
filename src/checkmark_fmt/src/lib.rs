@@ -480,41 +480,11 @@ pub fn fmt_markdown(file: &common::MarkDownFile) -> common::MarkDownFile {
     to_md(&ast, &mut buffer, &Context::Document, &file.content);
     buffer = remove_trailing_newline_and_space(&buffer);
     buffer.push_str("\n");
-    common::MarkDownFile {
+    return common::MarkDownFile {
         path: file.path.clone(),
-        content: buffer,use markdown::{self, mdast, mdast::{AlignKind, Node}};
-
-/// Represents the context of a list in a markdown document.
-#[derive(Debug)]
-struct ListContext {
-    nesting_level: usize,
-    is_ordered: bool,
-    num_item: usize,  // Changed from u32 to usize
-}
-
-/// Represents the context of a block quote in a markdown document.
-#[derive(Debug)]
-struct BlockQuoteContext {
-    depth: usize,
-}
-
-/// Represents the context of a block quote within a list in a markdown document.
-#[derive(Debug)]
-struct BlockQuoteInListContext {
-    list_ctx: ListContext,
-    block_quote_ctx: BlockQuoteContext,
-}
-
-/// Represents the current rendering context of a markdown document.
-#[derive(Debug)]
-enum Context {
-    Document,
-    List(ListContext),
-    BlockQuote(BlockQuoteContext),
-    BlockQuoteInList(BlockQuoteInListContext),
-}
-        issues: file.issues.clone(),
-    }
+        content: buffer,
+        issues: vec![],
+    };
 }
 
 pub fn check_md_format(file: &mut common::MarkDownFile) {
