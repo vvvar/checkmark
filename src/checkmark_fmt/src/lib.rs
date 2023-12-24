@@ -38,9 +38,7 @@ fn is_superscript(d: &mdast::Delete, source: &str) -> bool {
     let mut superscript = false;
     if let Some(position) = &d.position {
         let slice = &source[position.start.offset..position.end.offset];
-        if slice.matches('~').count() == 2 {
-            superscript = true;
-        }
+        superscript = slice.matches('~').count() == 2;
     }
     superscript
 }
@@ -51,9 +49,7 @@ fn is_string_underscored(d: &mdast::Strong, source: &str) -> bool {
     let mut underscored = false;
     if let Some(position) = &d.position {
         let slice = &source[position.start.offset..position.end.offset];
-        if slice.matches("__").count() == 2 {
-            underscored = true;
-        }
+        underscored = slice.matches("__").count() == 2;
     }
     underscored
 }
@@ -63,16 +59,8 @@ fn is_string_underscored(d: &mdast::Strong, source: &str) -> bool {
 fn is_heading_atx(d: &mdast::Heading, source: &str) -> bool {
     let mut atx = false;
     if let Some(position) = &d.position {
-        let line_number = position.start.line;
-        let col_start = position.start.column;
-        let col_end = position.end.column;
-
-        if let Some(line) = source.lines().nth(line_number - 1) {
-            let slice = &line[col_start - 1..col_end - 1];
-            if slice.contains('#') {
-                atx = true;
-            }
-        }
+        let slice = &source[position.start.offset..position.end.offset];
+        atx = slice.contains('#');
     }
     atx
 }
