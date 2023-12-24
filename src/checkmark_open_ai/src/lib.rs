@@ -3,8 +3,8 @@ pub mod open_ai;
 pub async fn check_grammar(file: &mut common::MarkDownFile) -> Result<(), open_ai::OpenAIError> {
     let ast = markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
     for text in common::filter_text_nodes(&ast) {
-        match open_ai::get_open_ai_grammar_suggestion(&text.value).await? {
-            open_ai::OpenAISuggestion::Suggestion(suggestion) => {
+        if let Ok(suggestions) = open_ai::get_open_ai_grammar_suggestion(&text.value).await {
+            for suggestion in suggestions {
                 let mut row_num_start = 0;
                 let mut row_num_end = 0;
                 let mut col_num_start = 0;
@@ -30,14 +30,14 @@ pub async fn check_grammar(file: &mut common::MarkDownFile) -> Result<(), open_a
                         .set_col_num_end(col_num_end)
                         .set_offset_start(offset_start)
                         .set_offset_end(offset_end)
-                        .set_message(String::from(
-                            "Statement/sentence does not look like standard English",
+                        .set_message(suggestion.description)
+                        .push_fix(&format!(
+                            "Consider changing {:?} to: \n{:?}",
+                            suggestion.original, suggestion.replacement
                         ))
-                        .push_fix(&format!("Consider changing to: \n{}", suggestion))
                         .build(),
                 );
             }
-            open_ai::OpenAISuggestion::NoSuggestion => {}
         }
     }
     Ok(())

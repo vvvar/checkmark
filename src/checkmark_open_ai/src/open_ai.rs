@@ -192,24 +192,60 @@ fn is_false_positive_review_suggestion(suggestion_description: &str) -> bool {
 }
 
 /// Get a grammar correction suggestion from the Open AI.
-pub async fn get_open_ai_grammar_suggestion(text: &str) -> Result<OpenAISuggestion, OpenAIError> {
-    let role_prompt = "You are a grammar checker that.
-You take all the users input and auto correct it.
-Just reply to user input with the correct grammar.
-DO NOT reply the context of the question of the user input.
-If the user input is grammatically correct then just reply “sounds good” and nothing else.";
-    let response = open_ai_request(role_prompt, text).await?;
-    if let Some(choice) = response.choices.first() {
-        if is_false_positive_suggestion(&choice.message.content, text) {
-            Ok(OpenAISuggestion::NoSuggestion)
-        } else {
-            Ok(OpenAISuggestion::Suggestion(
-                auto_correct_grammar_suggestion(&choice.message.content, text),
-            ))
-        }
-    } else {
-        Ok(OpenAISuggestion::NoSuggestion)
-    }
+pub async fn get_open_ai_grammar_suggestion(
+    text: &str,
+) -> Result<Vec<OpenAIReviewSuggestion>, OpenAIError> {
+    let role_prompt = "You are a grammar checker that. You take all the users input and auto correct it.
+Additionally it must contain detailed summary of the review.
+Suggestions should describe example which fix could be sufficient.
+Replacement should provide example how this can be fixed.
+The result must be in JSON. It shall have two properties - summary and suggestions.
+Suggestions is a list of suggestions that shows what is the problem, where it appear and how to fix that.
+Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary:
+{
+    \"summary\": \"string\",
+    \"suggestions\": [
+        { \"description\": \"string\", \"original\": \"string\", \"replacement\": \"string\" }
+    ]
+}";
+    return match open_ai_request(role_prompt, &text).await {
+        Ok(response) => match response.choices.first() {
+            Some(choice) => match serde_json::from_str::<OpenAIReview>(&choice.message.content) {
+                Ok(review) => {
+                    log::debug!("Got a grammar review from OpenAI:\n{:#?}", &review);
+                    let suggestions: Vec<OpenAIReviewSuggestion> = review
+                        .suggestions
+                        .into_iter()
+                        .filter(|suggestion| {
+                            !is_false_positive_suggestion(&suggestion.description, text)
+                        })
+                        .map(|suggestion| OpenAIReviewSuggestion {
+                            description: suggestion.description,
+                            original: suggestion.original,
+                            replacement: auto_correct_grammar_suggestion(
+                                &suggestion.replacement,
+                                text,
+                            ),
+                        })
+                        .collect();
+                    Ok(suggestions)
+                }
+                Err(err) => {
+                    log::error!("Error parsing response from OpenAI:{:#?}", &err);
+                    Err(OpenAIError {
+                        message: "Error parsing response from OpenAI".to_string(),
+                    })
+                }
+            },
+            None => {
+                log::error!("OpenAI replied without suggestions:\n{:#?}", &response);
+                Err(OpenAIError {
+                    message: "OpenAI replied without suggestions".to_string(),
+                })
+            }
+        },
+        Err(err) => Err(err),
+    };
 }
 
 /// Makes a review of provided markdown file with OpenAI.
