@@ -70,6 +70,10 @@ pub struct Cli {
     #[arg(global = true, long, short, required = false, action)]
     pub verbose: bool,
 
+    /// Enable CI Mode - disables all interactive prompts and outputs the report in a machine-readable format. This is useful for running the tool in a CI/CD pipeline
+    #[arg(global = true, long, required = false, action)]
+    pub ci: bool,
+
     /// Specifies the individual tools or commands to run. This is required and allows you to run specific checks or operations
     #[command(subcommand)]
     pub subcommands: Subcommands,
