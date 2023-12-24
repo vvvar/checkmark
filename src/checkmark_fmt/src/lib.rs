@@ -477,14 +477,6 @@ pub fn fmt_markdown(file: &common::MarkDownFile) -> common::MarkDownFile {
     to_md(&ast, &mut buffer, &Context::Document, &file.content);
     buffer = remove_trailing_newline_and_space(&buffer);
     buffer.push_str("\n");
-    // if buffer.ends_with("\n\n\n") {
-    //     buffer = buffer.strip_suffix("\n\n").unwrap().to_string();
-    // } else if buffer.ends_with("\n\n") {
-    //     buffer = buffer.strip_suffix("\n").unwrap().to_string();
-    // }
-    // if !file.content.ends_with("\n") && buffer.ends_with("\n") {
-    //     buffer = buffer.strip_suffix("\n").unwrap().to_string();
-    // }
     common::MarkDownFile {
         path: file.path.clone(),
         content: buffer,
