@@ -101,13 +101,15 @@ pub fn spell_check(file: &mut common::MarkDownFile, whitelist: &Vec<String>) {
         symspell.load_bigram_dictionary_line(line, 0, 2, " ");
     }
 
-    log::debug!("Loading words from the whitelist to the dictionary: {:#?}", &whitelist);
-    for word in whitelist
-    {
+    log::debug!(
+        "Loading words from the whitelist to the dictionary: {:#?}",
+        &whitelist
+    );
+    for word in whitelist {
         symspell.load_dictionary_line(&format!("{} 10956800", &word), 0, 1, " ");
         symspell.load_bigram_dictionary_line(&format!("{} 10956800", &word), 0, 2, " ");
     }
-    
+
     // Parse MD to AST
     let ast = markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
     // Filter only Text nodes

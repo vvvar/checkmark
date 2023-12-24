@@ -82,6 +82,22 @@ fn is_heading_atx(d: &mdast::Heading, source: &str) -> bool {
     return atx;
 }
 
+/// Removes trailing new-line and spaces from the end of the string
+fn remove_trailing_newline_and_space(s: &str) -> String {
+    let mut result = String::from(s);
+    while result.ends_with("\n") || result.ends_with(" ") {
+        match result.strip_suffix("\n") {
+            Some(s) => result = s.to_string(),
+            None => {}
+        }
+        match result.strip_suffix(" ") {
+            Some(s) => result = s.to_string(),
+            None => {}
+        }
+    }
+    return result;
+}
+
 /// Render Markdown file from AST
 fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source: &str) {
     match node {
@@ -354,6 +370,9 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                     ),
                 }
             }
+            if buffer.ends_with("\n> ") {
+                buffer.truncate(buffer.len() - "\n> ".len());
+            }
         }
         Node::ThematicBreak(_) => {
             buffer.push_str("---\n");
@@ -435,14 +454,16 @@ pub fn fmt_markdown(file: &common::MarkDownFile) -> common::MarkDownFile {
     let mut buffer: String = String::from("");
     let ast = markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
     to_md(&ast, &mut buffer, &Context::Document, &file.content);
-    if buffer.ends_with("\n\n\n") {
-        buffer = buffer.strip_suffix("\n\n").unwrap().to_string();
-    } else if buffer.ends_with("\n\n") {
-        buffer = buffer.strip_suffix("\n").unwrap().to_string();
-    }
-    if !file.content.ends_with("\n") && buffer.ends_with("\n") {
-        buffer = buffer.strip_suffix("\n").unwrap().to_string();
-    }
+    buffer = remove_trailing_newline_and_space(&buffer);
+    buffer.push_str("\n");
+    // if buffer.ends_with("\n\n\n") {
+    //     buffer = buffer.strip_suffix("\n\n").unwrap().to_string();
+    // } else if buffer.ends_with("\n\n") {
+    //     buffer = buffer.strip_suffix("\n").unwrap().to_string();
+    // }
+    // if !file.content.ends_with("\n") && buffer.ends_with("\n") {
+    //     buffer = buffer.strip_suffix("\n").unwrap().to_string();
+    // }
     common::MarkDownFile {
         path: file.path.clone(),
         content: buffer,

@@ -38,7 +38,8 @@ fn consequent_spread_nested_lists_preserved() {
   + SecondThree
 
 + Third
-  + ThirdOne",
+  + ThirdOne
+",
     );
 }
 
@@ -48,7 +49,8 @@ fn simple_ordered_list_preserved() {
     utils::assert_unchanged_after_formatting(
         "1. One
 2. Two
-3. Three",
+3. Three
+",
     );
 }
 
@@ -87,7 +89,8 @@ Ordered tight list:
 Ordered tight list:
 
 57. foo
-58. bar",
+58. bar
+",
     );
 }
 
@@ -99,7 +102,8 @@ fn mix_ordered_list_with_unordered() {
 2. Two
 
 + Three
-+ Four",
++ Four
+",
     );
 }
 
@@ -110,7 +114,8 @@ fn list_with_multiple_paragraphs() {
 
    sit amet, consectetuer adipiscing elit. Aliquam hendrerit
 
-   mi posuere lectus.",
+   mi posuere lectus.
+",
     );
 }
 
@@ -120,7 +125,8 @@ fn list_with_multiple_text_lines() {
         "+ __[pica](https://nodeca.github.io/pica/demo/)__ - high quality and fast image
   resize in browser.
 + __[babelfish](https://github.com/nodeca/babelfish/)__ - developer friendly
-  i18n with plurals support and easy syntax.",
+  i18n with plurals support and easy syntax.
+",
     );
 }
 
@@ -128,6 +134,7 @@ fn list_with_multiple_text_lines() {
 fn list_with_two_items_and_code_like_character() {
     utils::assert_unchanged_after_formatting(
         "+ `one
-+ two`",
++ two`
+",
     );
 }

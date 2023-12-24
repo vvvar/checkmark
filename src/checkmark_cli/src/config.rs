@@ -7,7 +7,7 @@ pub struct Config {
     pub link_checker: LinkCheckerConfig,
 
     #[serde(default)]
-    pub spelling: SpellingConfig
+    pub spelling: SpellingConfig,
 }
 
 impl std::default::Default for Config {
@@ -95,7 +95,10 @@ pub fn read_config(cli: &crate::cli::Cli) -> Config {
 
     log::debug!("Trying to read config from file...");
     if let Some(cfg_path_from_cli) = &cli.config {
-        log::debug!("Trying to read config from CLI arg {}...", &cfg_path_from_cli);
+        log::debug!(
+            "Trying to read config from CLI arg {}...",
+            &cfg_path_from_cli
+        );
         if let Some(cfg) = Config::from_file(cfg_path_from_cli) {
             config = cfg; // Replace default config with config from file
         } else {
@@ -112,7 +115,10 @@ pub fn read_config(cli: &crate::cli::Cli) -> Config {
             "conf/checkmark.toml",
             "conf/.checkmark.toml",
         ];
-        log::debug!("Trying to read config from default locations {:#?}...", &default_locations);
+        log::debug!(
+            "Trying to read config from default locations {:#?}...",
+            &default_locations
+        );
         for file_path in default_locations.iter() {
             if let Some(cfg) = Config::from_file(file_path) {
                 config = cfg; // Replace default config with config from file

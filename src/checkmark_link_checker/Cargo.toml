@@ -14,3 +14,6 @@ wildmatch = "2.1.1"
 lychee-lib = { version = "0.13.0", features = [ "vendored-openssl" ] }
 
 log = "0.4.2"
+
+[dev-dependencies]
+pretty_assertions = "1.4.0"

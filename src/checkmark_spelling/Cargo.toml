@@ -11,3 +11,6 @@ symspell = { git = "https://github.com/vvvar/symspell.git", branch = "no_print_p
 markdown = { version = "1.0.0-alpha.14", features = [ "json", "log", "serde" ] }
 
 log = "0.4.2"
+
+[dev-dependencies]
+pretty_assertions = "1.4.0"
