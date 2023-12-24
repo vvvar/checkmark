@@ -2,6 +2,7 @@ use markdown;
 use markdown::mdast;
 use markdown::mdast::{AlignKind, Node};
 
+/// Represents the context of a list in a markdown document.
 #[derive(Debug)]
 struct ListContext {
     nesting_level: usize,
@@ -9,18 +10,20 @@ struct ListContext {
     num_item: u32,
 }
 
+/// Represents the context of a block quote in a markdown document.
 #[derive(Debug)]
 struct BlockQuoteContext {
     depth: usize,
 }
 
+/// Represents the context of a block quote within a list in a markdown document.
 #[derive(Debug)]
 struct BlockQuoteInListContext {
     list_ctx: ListContext,
     block_quote_ctx: BlockQuoteContext,
 }
 
-/// Current rendering context
+/// Represents the current rendering context of a markdown document.
 #[derive(Debug)]
 enum Context {
     Document,
@@ -479,7 +482,37 @@ pub fn fmt_markdown(file: &common::MarkDownFile) -> common::MarkDownFile {
     buffer.push_str("\n");
     common::MarkDownFile {
         path: file.path.clone(),
-        content: buffer,
+        content: buffer,use markdown::{self, mdast, mdast::{AlignKind, Node}};
+
+/// Represents the context of a list in a markdown document.
+#[derive(Debug)]
+struct ListContext {
+    nesting_level: usize,
+    is_ordered: bool,
+    num_item: usize,  // Changed from u32 to usize
+}
+
+/// Represents the context of a block quote in a markdown document.
+#[derive(Debug)]
+struct BlockQuoteContext {
+    depth: usize,
+}
+
+/// Represents the context of a block quote within a list in a markdown document.
+#[derive(Debug)]
+struct BlockQuoteInListContext {
+    list_ctx: ListContext,
+    block_quote_ctx: BlockQuoteContext,
+}
+
+/// Represents the current rendering context of a markdown document.
+#[derive(Debug)]
+enum Context {
+    Document,
+    List(ListContext),
+    BlockQuote(BlockQuoteContext),
+    BlockQuoteInList(BlockQuoteInListContext),
+}
         issues: file.issues.clone(),
     }
 }
