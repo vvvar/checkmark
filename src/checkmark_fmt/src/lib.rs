@@ -131,40 +131,41 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
         }
         Node::Text(t) => {
             match context {
-            Context::BlockQuote(ctx) => buffer.push_str(
-                &t.value
-                    .replace("\n", &format!("\n{}", "> ".repeat(ctx.depth).as_str())),
-            ),
-            Context::List(ctx) => {
-                // Very special case - when we have list with text that has ne lines
-                // we want to align them
-                if ctx.is_ordered {
+                Context::BlockQuote(ctx) => buffer.push_str(
+                    &t.value
+                        .replace("\n", &format!("\n{}", "> ".repeat(ctx.depth).as_str())),
+                ),
+                Context::List(ctx) => {
+                    // Very special case - when we have list with text that has ne lines
+                    // we want to align them
+                    if ctx.is_ordered {
+                        buffer.push_str(&t.value.replace(
+                            "\n",
+                            &format!("\n{}", "   ".repeat(ctx.nesting_level + 1).as_str()),
+                        ));
+                    } else {
+                        buffer.push_str(&t.value.replace(
+                            "\n",
+                            &format!("\n{}", "  ".repeat(ctx.nesting_level + 1).as_str()),
+                        ));
+                    }
+                }
+                Context::BlockQuoteInList(ctx) => {
+                    // Very special case - we have a block quote inside a list
+                    // we want to align it with list so it will be rendered
+                    // by engines like a quote inside a list.
+                    // Otherwise - it will be rendered outside
                     buffer.push_str(&t.value.replace(
                         "\n",
-                        &format!("\n{}", "   ".repeat(ctx.nesting_level + 1).as_str()),
-                    ));
-                } else {
-                    buffer.push_str(&t.value.replace(
-                        "\n",
-                        &format!("\n{}", "  ".repeat(ctx.nesting_level + 1).as_str()),
+                        &format!(
+                            "\n{}> ",
+                            "  ".repeat(ctx.list_ctx.nesting_level + 1).as_str()
+                        ),
                     ));
                 }
+                _ => buffer.push_str(&t.value),
             }
-            Context::BlockQuoteInList(ctx) => {
-                // Very special case - we have a block quote inside a list
-                // we want to align it with list so it will be rendered
-                // by engines like a quote inside a list.
-                // Otherwise - it will be rendered outside
-                buffer.push_str(&t.value.replace(
-                    "\n",
-                    &format!(
-                        "\n{}> ",
-                        "  ".repeat(ctx.list_ctx.nesting_level + 1).as_str()
-                    ),
-                ));
-            }
-            _ => buffer.push_str(&t.value),
-        }},
+        }
         Node::Paragraph(p) => {
             for child in &p.children {
                 to_md(&child, &mut buffer, &context, &source);
@@ -326,7 +327,6 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
             buffer.push_str(")");
         }
         Node::BlockQuote(b) => {
-            dbg!(&b);
             for child in &b.children {
                 buffer.push_str(&match &context {
                     Context::BlockQuote(ctx) => "> ".repeat(ctx.depth),
@@ -381,13 +381,16 @@ fn to_md(node: &mdast::Node, mut buffer: &mut String, context: &Context, source:
                 if &child != &b.children.last().unwrap() {
                     match &context {
                         Context::Document => buffer.push_str(">\n"),
-                        Context::BlockQuote(ctx) => buffer.push_str(&format!("{}\n", "> ".repeat(ctx.depth + 1).strip_suffix(" ").unwrap())),
-                        Context::List(_) => {},
-                        Context::BlockQuoteInList(_) => {},
+                        Context::BlockQuote(ctx) => buffer.push_str(&format!(
+                            "{}\n",
+                            "> ".repeat(ctx.depth + 1).strip_suffix(" ").unwrap()
+                        )),
+                        Context::List(_) => {}
+                        Context::BlockQuoteInList(_) => {}
                     }
                 }
             }
-            // Remove trailing block quote if any    
+            // Remove trailing block quote if any
             if buffer.ends_with("\n> ") {
                 buffer.truncate(buffer.len() - "\n> ".len());
             }

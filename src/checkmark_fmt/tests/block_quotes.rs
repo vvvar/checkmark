@@ -108,4 +108,3 @@ fn three_level_block_quote() {
 ",
     );
 }
-
