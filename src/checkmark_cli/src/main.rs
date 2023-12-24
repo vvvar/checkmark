@@ -125,8 +125,13 @@ fn report(cli: &cli::Cli, analyzed_files: &mut Vec<common::MarkDownFile>) {
                 )]);
             }
             let config = codespan_reporting::term::Config::default();
+            let writer = if cli.ci {
+                StandardStream::stderr(ColorChoice::Never)
+            } else {
+                StandardStream::stderr(ColorChoice::Auto)
+            };
             codespan_reporting::term::emit(
-                &mut StandardStream::stderr(ColorChoice::Always).lock(),
+                &mut writer.lock(),
                 &config,
                 &codespan_files,
                 &codespan_diagnostic,
