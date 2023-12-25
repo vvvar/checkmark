@@ -150,55 +150,15 @@ pub async fn open_ai_request(
     }
 }
 
-/// Check is grammar suggestion is false-positive
-fn is_false_positive_suggestion(suggestion: &str, original: &str) -> bool {
-    if suggestion.is_empty()
-        || original.len() < 3
-        || suggestion.to_lowercase().contains(
-            "unable to provide any corrections or feedback without any context or user input",
-        )
-        || suggestion
-            .to_lowercase()
-            .contains("you haven't provided any statement for me to convert to standard English")
-        || suggestion.to_ascii_lowercase().contains("sounds good")
-        || suggestion
-            .to_lowercase()
-            .contains("is not a statement that can be converted to standard English")
-        || suggestion
-            .to_lowercase()
-            .trim_end_matches('.')
-            .eq(&original.to_lowercase())
-        || suggestion.to_lowercase().eq(&original.to_lowercase())
-    {
-        // No suggestion
-        true
-    } else {
-        false
-    }
-}
-
-/// Sometimes we want to adjust suggestion a bit, this function does that.
-/// For example, OpenAI may suggest adding period when it si not needed.
-fn auto_correct_grammar_suggestion(suggestion: &str, original: &str) -> String {
-    if suggestion.ends_with('.') && !original.ends_with('.') {
-        suggestion.strip_suffix('.').unwrap().to_string()
-    } else {
-        suggestion.to_string()
-    }
-}
-
 fn is_false_positive_review_suggestion(suggestion_description: &str) -> bool {
     suggestion_description.contains("a space after the colon")
 }
 
 /// Get a grammar correction suggestion from the Open AI.
-pub async fn get_open_ai_grammar_suggestion(
-    text: &str,
-) -> Result<Vec<OpenAIReviewSuggestion>, OpenAIError> {
-    let role_prompt = "You are a grammar checker that. You take all the users input and auto correct it.
-Additionally it must contain detailed summary of the review.
-Suggestions should describe example which fix could be sufficient.
-Replacement should provide example how this can be fixed.
+pub async fn get_open_ai_grammar_suggestion(text: &str) -> Result<OpenAIReview, OpenAIError> {
+    let role_prompt = "This is a Markdown document.
+Please check it for any grammatical errors and suggest corrections.
+Ignore any other potential issues like style or formatting.
 The result must be in JSON. It shall have two properties - summary and suggestions.
 Suggestions is a list of suggestions that shows what is the problem, where it appear and how to fix that.
 Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary:
@@ -213,22 +173,7 @@ Provide your answer in JSON form. Reply with only the answer in JSON form and in
             Some(choice) => match serde_json::from_str::<OpenAIReview>(&choice.message.content) {
                 Ok(review) => {
                     log::debug!("Got a grammar review from OpenAI:\n{:#?}", &review);
-                    let suggestions: Vec<OpenAIReviewSuggestion> = review
-                        .suggestions
-                        .into_iter()
-                        .filter(|suggestion| {
-                            !is_false_positive_suggestion(&suggestion.description, text)
-                        })
-                        .map(|suggestion| OpenAIReviewSuggestion {
-                            description: suggestion.description,
-                            original: suggestion.original,
-                            replacement: auto_correct_grammar_suggestion(
-                                &suggestion.replacement,
-                                text,
-                            ),
-                        })
-                        .collect();
-                    Ok(suggestions)
+                    Ok(review)
                 }
                 Err(err) => {
                     log::error!("Error parsing response from OpenAI:{:#?}", &err);
