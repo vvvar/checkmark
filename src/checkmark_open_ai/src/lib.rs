@@ -51,27 +51,6 @@ pub async fn make_a_review(
 ) -> Result<(), open_ai::OpenAIError> {
     match open_ai::get_open_ai_review(file).await {
         Ok(review) => {
-            if review.suggestions.is_empty() {
-                log::warn!("OpenAI haven't provided any suggestions:\n{:#?}", &review);
-                return Ok(());
-            } else {
-                log::debug!("Got OpenAI review:\n{:#?}", &review);
-            }
-            file.issues.push(
-                common::CheckIssueBuilder::default()
-                    .set_category(common::IssueCategory::Review)
-                    .set_severity(common::IssueSeverity::Help)
-                    .set_file_path(file.path.clone())
-                    .set_row_num_start(0)
-                    .set_row_num_end(0)
-                    .set_col_num_start(0)
-                    .set_col_num_end(0)
-                    .set_offset_start(0)
-                    .set_offset_end(file.content.len())
-                    .set_message("Consider review of your document".to_string())
-                    .push_fix(&review.summary)
-                    .build(),
-            );
             for suggestion in &review.suggestions {
                 let offset = common::find_index(&file.content, &suggestion.original);
                 let mut issue = common::CheckIssueBuilder::default()
@@ -93,6 +72,20 @@ pub async fn make_a_review(
                 }
                 file.issues.push(issue.build());
             }
+            file.issues.push(
+                common::CheckIssueBuilder::default()
+                    .set_category(common::IssueCategory::Review)
+                    .set_severity(common::IssueSeverity::Help)
+                    .set_file_path(file.path.clone())
+                    .set_row_num_start(0)
+                    .set_row_num_end(0)
+                    .set_col_num_start(0)
+                    .set_col_num_end(0)
+                    .set_offset_start(0)
+                    .set_offset_end(file.content.len())
+                    .set_message(review.summary)
+                    .build(),
+            );
             Ok(())
         }
         Err(err) => {
