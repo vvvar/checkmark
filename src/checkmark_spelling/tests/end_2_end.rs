@@ -1,22 +1,33 @@
 #[cfg(test)]
 use pretty_assertions::assert_eq;
 
-/// Block quote(strikethrough)
-#[test]
-fn spell_check() {
-    let file_path = String::from("this/is/a/dummy/path/to/a/file.md");
+const DUMMY_FILE_PATH: &str = "this/is/a/dummy/path/to/a/file.md";
 
+#[cfg(test)]
+fn assert_has_issues(content: &str, whitelist: &Vec<String>, issues: &Vec<common::CheckIssue>) {
+    // if let Ok(_) = env_logger::try_init() {}
     let mut markdown = common::MarkDownFile {
-        path: file_path.clone(),
-        content: String::from(include_str!("data/basic.md")),
+        path: DUMMY_FILE_PATH.to_owned(),
+        content: content.to_owned(),
         issues: vec![],
     };
-    checkmark_spelling::spell_check(&mut markdown, &vec![]);
-    assert_eq!(&markdown.issues, &vec![
+    checkmark_spelling::spell_check(&mut markdown, whitelist);
+    assert_eq!(&markdown.issues, issues);
+}
+
+#[cfg(test)]
+fn assert_has_no_issues(content: &str, whitelist: &Vec<String>) {
+    assert_has_issues(&content, whitelist, &vec![]);
+}
+
+/// Basic spell checking tests
+#[test]
+fn spelling_plain_misspelled_word() {
+    assert_has_issues("# This is a headr\n", &vec![], &vec![
         common::CheckIssue {
             category: common::IssueCategory::Spelling,
             severity: common::IssueSeverity::Warning,
-            file_path: file_path.clone(),
+            file_path: DUMMY_FILE_PATH.to_owned(),
             row_num_start: 1,
             row_num_end: 1,
             col_num_start: 3,
@@ -29,16 +40,22 @@ fn spell_check() {
                 "If you're sure that this word is correct - add it to the spellcheck dictionary(TBD)".to_string(),
             ],
         },
+    ]);
+}
+
+#[test]
+fn spelling_several_misspelled_words() {
+    assert_has_issues("\n\nHere is som additnal txt\n", &vec![], &vec![
         common::CheckIssue {
             category: common::IssueCategory::Spelling,
             severity: common::IssueSeverity::Warning,
-            file_path: file_path.clone(),
+            file_path: DUMMY_FILE_PATH.to_owned(),
             row_num_start: 3,
             row_num_end: 3,
             col_num_start: 1,
-            col_num_end: 45,
-            offset_start: 51,
-            offset_end: 59,
+            col_num_end: 25,
+            offset_start: 14,
+            offset_end: 22,
             message: "Word \"additnal\" is unknown or miss-spelled".to_string(),
             fixes: vec![
                 "Consider changing \"additnal\" to \"additional\"".to_string(),
@@ -48,13 +65,13 @@ fn spell_check() {
         common::CheckIssue {
             category: common::IssueCategory::Spelling,
             severity: common::IssueSeverity::Warning,
-            file_path: file_path.clone(),
+            file_path: DUMMY_FILE_PATH.to_owned(),
             row_num_start: 3,
             row_num_end: 3,
             col_num_start: 1,
-            col_num_end: 45,
-            offset_start: 60,
-            offset_end: 63,
+            col_num_end: 25,
+            offset_start: 23,
+            offset_end: 26,
             message: "Word \"txt\" is unknown or miss-spelled".to_string(),
             fixes: vec![
                 "Consider changing \"txt\" to \"text\"".to_string(),
@@ -62,4 +79,31 @@ fn spell_check() {
             ],
         },
     ]);
+}
+
+#[test]
+fn spelling_apostrophe_supported() {
+    assert_has_no_issues("# Don't", &vec![]);
+    assert_has_no_issues("# Couldn't", &vec![]);
+    assert_has_no_issues("# Won't", &vec![]);
+}
+
+#[test]
+fn spelling_gibberish_handled() {
+    assert_has_issues("# fdssryyukiuu's ", &vec![], &vec![common::CheckIssue {
+        category: common::IssueCategory::Spelling,
+        severity: common::IssueSeverity::Warning,
+        file_path: DUMMY_FILE_PATH.to_owned(),
+        row_num_start: 1,
+        row_num_end: 1,
+        col_num_start: 3,
+        col_num_end: 17,
+        offset_start: 2,
+        offset_end: 16,
+        message: "Word \"fdssryyukiuu's\" is unknown or miss-spelled".to_string(),
+        fixes: vec![
+            "Cannot find any suggestion for word \"fdssryyukiuu's\"".to_string(),
+            "If you're sure that this word is correct - add it to the spellcheck dictionary(TBD)".to_string(),
+        ],
+    },]);
 }

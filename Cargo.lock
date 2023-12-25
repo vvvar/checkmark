@@ -699,6 +699,7 @@ name = "checkmark_spelling"
 version = "0.0.1"
 dependencies = [
  "common",
+ "env_logger",
  "log",
  "markdown",
  "pretty_assertions",

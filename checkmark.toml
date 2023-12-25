@@ -13,5 +13,13 @@ no_suggestions=false
 # List of words to ignore while spell checking
 words_whitelist=[
     "additnal",
-    "GoogleTest"
+    "API",
+    "behavior",
+    "Checkmark",
+    "dotenv",
+    "OpenAI",
+    "GoogleTest",
+    "CLI",
+    "URL",
+    "SARIF",
 ]

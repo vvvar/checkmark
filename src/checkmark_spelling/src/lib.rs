@@ -8,6 +8,11 @@ fn is_ignored_word(word: &str) -> bool {
 /// To check spelling we need to provide pure word
 /// without any special or punctuation characters
 fn remove_all_special_characters(word: &str, lowercase: bool) -> String {
+    // Remove "'s" apostrophe because it can be added to any noun
+    if word.contains("'s") {
+        // return remove_all_special_characters(word.strip_suffix("'s").unwrap(), lowercase);
+    }
+
     // These chars are generally considered unwanted
     let mut escaped = word
         .replace(
@@ -87,6 +92,7 @@ pub fn spell_check(file: &mut common::MarkDownFile, whitelist: &Vec<String>) {
     ))
     .lines()
     {
+        log::debug!("Loading word from extended dictionary: {:#?}", &line);
         symspell.load_dictionary_line(line, 0, 1, " ");
         symspell.load_bigram_dictionary_line(line, 0, 2, " ");
     }
@@ -96,25 +102,44 @@ pub fn spell_check(file: &mut common::MarkDownFile, whitelist: &Vec<String>) {
         &whitelist
     );
     for word in whitelist {
-        symspell.load_dictionary_line(&format!("{} 10956800", &word), 0, 1, " ");
-        symspell.load_bigram_dictionary_line(&format!("{} 10956800", &word), 0, 2, " ");
+        log::debug!("Loading whitelisted word: {:#?}", &word);
+        symspell.load_dictionary_line(&format!("{} 10956800", &word.to_lowercase()), 0, 1, " ");
+        symspell.load_bigram_dictionary_line(
+            &format!("{} 10956800", &word.to_lowercase()),
+            0,
+            2,
+            " ",
+        );
     }
 
     // Parse MD to AST
     let ast = markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
+    log::debug!("Parsed AST: {:#?}", &ast);
     // Filter only Text nodes
     for text_node in common::filter_text_nodes(&ast) {
+        log::debug!("Spell checking text node: {:#?}", &text_node);
         // Split text into the words because spellcheck checks words, not sentences
         for word in text_node.value.split_ascii_whitespace() {
+            log::debug!("Spell checking word: {:#?}", &word);
             // Remove special characters
             let escaped_word = remove_all_special_characters(word, true);
+            log::debug!("Word after escaping: {:#?}", &word);
             // Do not proceed when this is not an actual word
             if !escaped_word.is_empty() && !is_ignored_word(&escaped_word) {
                 // Get suggestions
                 let suggestions = symspell.lookup(&escaped_word, Verbosity::Top, 2);
-                // Only when there are suggestions to change something
-                // (SymSpell return same word when all fine)
-                if !suggestions.is_empty() && !suggestions.first().unwrap().term.eq(&escaped_word) {
+                log::debug!(
+                    "Suggestions on word {:#?}: {:#?}",
+                    &escaped_word,
+                    &suggestions
+                );
+                // SymSpell suggest same word when all fine
+                // Any suggestion - word is miss-spelled and SymSpell has ideas how to fix it
+                // Empty suggestions means SymSpell has no clue what it is
+                if !suggestions
+                    .iter()
+                    .any(|suggestion| suggestion.term.eq(&escaped_word))
+                {
                     let mut row_num_start = 0;
                     let mut row_num_end = 0;
                     let mut col_num_start = 0;
@@ -145,12 +170,19 @@ pub fn spell_check(file: &mut common::MarkDownFile, whitelist: &Vec<String>) {
                             "Word {:#?} is unknown or miss-spelled",
                             &remove_all_special_characters(word, false)
                         ));
-                    for suggestion in suggestions {
+                    if suggestions.is_empty() {
                         issue = issue.push_fix(&format!(
-                            "Consider changing {:#?} to {:#?}",
-                            &remove_all_special_characters(word, false),
-                            suggestion.term
+                            "Cannot find any suggestion for word {:#?}",
+                            &remove_all_special_characters(word, false)
                         ));
+                    } else {
+                        for suggestion in suggestions {
+                            issue = issue.push_fix(&format!(
+                                "Consider changing {:#?} to {:#?}",
+                                &remove_all_special_characters(word, false),
+                                suggestion.term
+                            ));
+                        }
                     }
                     issue = issue.push_fix("If you're sure that this word is correct - add it to the spellcheck dictionary(TBD)");
                     file.issues.push(issue.build());
