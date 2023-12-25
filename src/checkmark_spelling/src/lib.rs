@@ -2,15 +2,19 @@ use symspell::{AsciiStringStrategy, SymSpell, Verbosity};
 
 /// We want to ignore spell-checking for certain exceptions
 fn is_ignored_word(word: &str) -> bool {
-    return word.chars().all(|c| c.is_numeric());
+    dbg!(&word);
+    let is_number = |w: &str| w.chars().all(|c| c.is_numeric());
+    let is_single_quoted = |w: &str| w.starts_with("'") && w.ends_with("'");
+    let is_double_quoted = |w: &str| w.starts_with("\"") && w.ends_with("\"");
+    return is_number(word) || is_single_quoted(word) || is_double_quoted(word);
 }
 
 /// To check spelling we need to provide pure word
 /// without any special or punctuation characters
 fn remove_all_special_characters(word: &str, lowercase: bool) -> String {
     // Remove "'s" apostrophe because it can be added to any noun
-    if word.contains("'s") {
-        // return remove_all_special_characters(word.strip_suffix("'s").unwrap(), lowercase);
+    if let Some(stripped) = word.strip_suffix("'s") {
+        return remove_all_special_characters(stripped, lowercase);
     }
 
     // These chars are generally considered unwanted
@@ -125,7 +129,7 @@ pub fn spell_check(file: &mut common::MarkDownFile, whitelist: &Vec<String>) {
             let escaped_word = remove_all_special_characters(word, true);
             log::debug!("Word after escaping: {:#?}", &word);
             // Do not proceed when this is not an actual word
-            if !escaped_word.is_empty() && !is_ignored_word(&escaped_word) {
+            if !escaped_word.is_empty() && !is_ignored_word(&word) {
                 // Get suggestions
                 let suggestions = symspell.lookup(&escaped_word, Verbosity::Top, 2);
                 log::debug!(

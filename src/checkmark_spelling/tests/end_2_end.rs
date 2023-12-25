@@ -89,6 +89,22 @@ fn spelling_apostrophe_supported() {
 }
 
 #[test]
+fn spelling_respect_owned_form() {
+    assert_has_no_issues("# Project's", &vec![]);
+}
+
+#[test]
+fn spelling_skip_quoted() {
+    assert_has_no_issues("# Single quoted './report.sarif'", &vec![]);
+    assert_has_no_issues("# Double quoted \"./report.sarif\"", &vec![]);
+}
+
+#[test]
+fn spelling_skip_numbers() {
+    assert_has_no_issues("# Number here 42", &vec![]);
+}
+
+#[test]
 fn spelling_gibberish_handled() {
     assert_has_issues("# fdssryyukiuu's ", &vec![], &vec![common::CheckIssue {
         category: common::IssueCategory::Spelling,
