@@ -1,5 +1,35 @@
+//! # Checkmark Common
+//!
+//! `common` is a crate that collects various functionality shared between other internal crates.
+//!
+//! This crate provides the following main structures:
+//!
+//! ## `MarkDownFile`
+//!
+//! Represents a single markdown file under check. It contains the following fields:
+//!
+//! - `path`: The path to the markdown file.
+//! - `content`: The content of the markdown file.
+//! - `issues`: A vector of `CheckIssue` that occurred while checking the file.
+//!
+//! ## `IssueCategory`
+//!
+//! Represents the type of issue that occurred while checking the markdown file. It is an enum with the following variants:
+//!
+//! - `Formatting`: Issue with how the document has been formatted.
+//! - `Linting`: Issue indicates violation of some linting rule.
+//! - `LinkChecking`: Issue reaching a link from a file (either unreachable local file or URL).
+//! - `Spelling`: Issue with word spelling.
+//! - `Grammar`: Issue with grammar.
+//!
+//! This crate provides functionality to check a markdown file for these issues and report them for further action.
+//!
+//! `# Panics`
+//! CheckIssueBuilder::build() panics if any of the required fields has not been set.
+//! CheckIssue::to_sarif_result() panics if any of the required fields has not been set.
+
 /// Represents single markdown file under check
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct MarkDownFile {
     pub path: String,
     pub content: String,
@@ -7,7 +37,7 @@ pub struct MarkDownFile {
 }
 
 /// Represents type of issue that occurred while check
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum IssueCategory {
     /// Issue with how document has been formatted
     Formatting,
@@ -24,7 +54,7 @@ pub enum IssueCategory {
 }
 
 /// Represent how critical issue is
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum IssueSeverity {
     /// Highest level, bug
     Bug,
@@ -39,7 +69,7 @@ pub enum IssueSeverity {
 }
 
 /// Represents issue found by checking markdown file
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct CheckIssue {
     /// Category of the issue
     pub category: IssueCategory,
@@ -65,7 +95,7 @@ pub struct CheckIssue {
     pub fixes: Vec<String>,
 }
 
-/// Builder for CheckIssue struct
+/// Builder for `CheckIssue` struct
 #[derive(Default)]
 pub struct CheckIssueBuilder {
     pub category: Option<IssueCategory>,
@@ -82,68 +112,81 @@ pub struct CheckIssueBuilder {
 }
 
 impl CheckIssueBuilder {
-    pub fn set_category(mut self, category: IssueCategory) -> Self {
+    #[inline]
+    pub const fn set_category(mut self, category: IssueCategory) -> Self {
         self.category = Some(category);
         self
     }
 
-    pub fn set_severity(mut self, severity: IssueSeverity) -> Self {
+    #[inline]
+    pub const fn set_severity(mut self, severity: IssueSeverity) -> Self {
         self.severity = Some(severity);
         self
     }
 
+    #[inline]
     pub fn set_file_path(mut self, file_path: String) -> Self {
         self.file_path = Some(file_path);
         self
     }
 
-    pub fn set_row_num_start(mut self, row_num_start: usize) -> Self {
+    #[inline]
+    pub const fn set_row_num_start(mut self, row_num_start: usize) -> Self {
         self.row_num_start = Some(row_num_start);
         self
     }
 
-    pub fn set_row_num_end(mut self, row_num_end: usize) -> Self {
+    #[inline]
+    pub const fn set_row_num_end(mut self, row_num_end: usize) -> Self {
         self.row_num_end = Some(row_num_end);
         self
     }
 
-    pub fn set_col_num_start(mut self, col_num_start: usize) -> Self {
+    #[inline]
+    pub const fn set_col_num_start(mut self, col_num_start: usize) -> Self {
         self.col_num_start = Some(col_num_start);
         self
     }
 
-    pub fn set_col_num_end(mut self, col_num_end: usize) -> Self {
+    #[inline]
+    pub const fn set_col_num_end(mut self, col_num_end: usize) -> Self {
         self.col_num_end = Some(col_num_end);
         self
     }
 
-    pub fn set_offset_start(mut self, offset_start: usize) -> Self {
+    #[inline]
+    pub const fn set_offset_start(mut self, offset_start: usize) -> Self {
         self.offset_start = Some(offset_start);
         self
     }
 
-    pub fn set_offset_end(mut self, offset_end: usize) -> Self {
+    #[inline]
+    pub const fn set_offset_end(mut self, offset_end: usize) -> Self {
         self.offset_end = Some(offset_end);
         self
     }
 
+    #[inline]
     pub fn set_message(mut self, message: String) -> Self {
         self.message = Some(message);
         self
     }
 
     /// Replace fix
+    #[inline]
     pub fn set_fixes(mut self, fixes: Vec<String>) -> Self {
         self.fixes = fixes;
         self
     }
 
     /// Push fix
+    #[inline]
     pub fn push_fix(mut self, fix: &str) -> Self {
-        self.fixes.push(fix.to_string());
+        self.fixes.push(fix.to_owned());
         self
     }
 
+    #[inline]
     pub fn build(self) -> CheckIssue {
         CheckIssue {
             category: self.category.expect("Category has not been set, use set_category() method before building an instance"),
@@ -162,7 +205,8 @@ impl CheckIssueBuilder {
 }
 
 impl CheckIssue {
-    /// Convert CheckIssue to the sarif-compatible result
+    /// Convert `CheckIssue` to the sarif-compatible result
+    #[inline]
     pub fn to_sarif_result(&self) -> serde_sarif::sarif::Result {
         let artifact_location = serde_sarif::sarif::ArtifactLocationBuilder::default()
             .uri(String::from(&self.file_path))
@@ -259,7 +303,10 @@ impl CheckIssue {
 }
 
 // Collect nodes of type from provided AST
-pub fn for_each<'a>(ast: &'a markdown::mdast::Node, mut f: impl FnMut(&'a markdown::mdast::Node)) {
+pub fn for_each<'node_lifetime>(
+    ast: &'node_lifetime markdown::mdast::Node,
+    mut f: impl FnMut(&'node_lifetime markdown::mdast::Node),
+) {
     let mut stack: Vec<&markdown::mdast::Node> = vec![];
     stack.push(ast);
     while let Some(current) = stack.pop() {
@@ -272,10 +319,10 @@ pub fn for_each<'a>(ast: &'a markdown::mdast::Node, mut f: impl FnMut(&'a markdo
     }
 }
 
-pub fn filter<'a>(
-    ast: &'a markdown::mdast::Node,
-    mut predicate: impl FnMut(&'a markdown::mdast::Node) -> bool,
-) -> Vec<&'a markdown::mdast::Node> {
+pub fn filter<'node_lifetime>(
+    ast: &'node_lifetime markdown::mdast::Node,
+    mut predicate: impl FnMut(&'node_lifetime markdown::mdast::Node) -> bool,
+) -> Vec<&'node_lifetime markdown::mdast::Node> {
     let mut stack: Vec<&markdown::mdast::Node> = vec![];
     for_each(ast, |node| {
         if predicate(node) {
@@ -306,7 +353,7 @@ pub fn filter_paragraph_nodes(ast: &markdown::mdast::Node) -> Vec<&markdown::mda
 }
 
 /// Find index of substring in source string
-pub fn find_index(source: &str, sub_str: &str) -> std::ops::Range<usize> {
+pub fn find_index(source: &str, sub_str: &str) -> core::ops::Range<usize> {
     let mut index_start = 0;
     let mut index_end = source.len();
     log::debug!("Searching {:#?}", &sub_str);
@@ -328,7 +375,7 @@ pub fn find_index(source: &str, sub_str: &str) -> std::ops::Range<usize> {
             }
         }
     }
-    std::ops::Range {
+    core::ops::Range {
         start: index_start,
         end: index_end,
     }
