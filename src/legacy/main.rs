@@ -101,7 +101,6 @@ fn render_list_node(
                 if &child != &list_item.children.first().unwrap() {
                     buffer.push_str("   ");
                 }
-                dbg!(&child);
                 render_list_node(&child, &mut buffer, nesting_level, is_ordered, num_item, is_in_block_quote);
                 buffer.push_str("\n");
             }
@@ -148,7 +147,6 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String, is_in_block_quote:
             buffer.push_str("\n");
         }
         Node::List(l) => {
-            dbg!(&l);
             let mut start = if l.start.is_some() {
                 l.start.unwrap()
             } else {
@@ -220,8 +218,6 @@ fn travel_md_ast(node: &mdast::Node, mut buffer: &mut String, is_in_block_quote:
             buffer.push_str(&format!("![{}]({})", &i.alt, &i.url));
         }
         Node::BlockQuote(b) => {
-            // dbg!(&b);
-            // buffer.push_str("> ");
             for child in &b.children {
                 buffer.push_str("> ");
                 if &child != &b.children.first().unwrap() {
@@ -311,12 +307,8 @@ async fn main() -> Result<(), AppError> {
         let original = fs::read_to_string(&file).unwrap();
         let mut buffer: String = String::from("");
         let ast = markdown::to_mdast(&original, &markdown::ParseOptions::gfm()).unwrap();
-        // dbg!(&ast);
         travel_md_ast(&ast, &mut buffer, false);
-        // println!("{}", &buffer);
-
         fs::write("/Users/vvoinov/Documents/repos/md-checker/rendered.md", &buffer).expect("Cannot save result md");
-
         let diff = TextDiff::from_lines(
             &original,
             &buffer,
