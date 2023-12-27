@@ -118,7 +118,7 @@ fn spelling_gibberish_handled() {
         offset_end: 16,
         message: "Word \"fdssryyukiuu's\" is unknown or miss-spelled".to_string(),
         fixes: vec![
-            "Cannot find any suggestion for word \"fdssryyukiuu's\"".to_string(),
+            "Cannot find any suggestion for word \"fdssryyukiuu\"".to_string(),
             "If you're sure that this word is correct - add it to the spellcheck dictionary(TBD)".to_string(),
         ],
     },]);

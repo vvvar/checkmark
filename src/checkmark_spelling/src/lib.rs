@@ -2,7 +2,6 @@ use symspell::{AsciiStringStrategy, SymSpell, Verbosity};
 
 /// We want to ignore spell-checking for certain exceptions
 fn is_ignored_word(word: &str) -> bool {
-    dbg!(&word);
     let is_number = |w: &str| w.chars().all(|c| c.is_numeric());
     let is_single_quoted = |w: &str| w.starts_with("'") && w.ends_with("'");
     let is_double_quoted = |w: &str| w.starts_with("\"") && w.ends_with("\"");
@@ -170,10 +169,7 @@ pub fn spell_check(file: &mut common::MarkDownFile, whitelist: &Vec<String>) {
                         .set_col_num_end(col_num_end)
                         .set_offset_start(offset_start)
                         .set_offset_end(offset_end)
-                        .set_message(format!(
-                            "Word {:#?} is unknown or miss-spelled",
-                            &remove_all_special_characters(word, false)
-                        ));
+                        .set_message(format!("Word {:#?} is unknown or miss-spelled", &word));
                     if suggestions.is_empty() {
                         issue = issue.push_fix(&format!(
                             "Cannot find any suggestion for word {:#?}",

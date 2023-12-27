@@ -22,7 +22,7 @@ fn fmt() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains(
-            "A tool for checking and correcting Markdown file formatting",
+            "Formats all Markdown files in the project",
         ));
 
     Ok(())
