@@ -6,13 +6,15 @@ const DUMMY_FILE_PATH: &str = "this/is/a/dummy/path/to/a/file.md";
 #[cfg(test)]
 fn assert_has_issues(content: &str, whitelist: &Vec<String>, issues: &Vec<common::CheckIssue>) {
     // if let Ok(_) = env_logger::try_init() {}
-    let mut markdown = common::MarkDownFile {
+    let markdown = common::MarkDownFile {
         path: DUMMY_FILE_PATH.to_owned(),
         content: content.to_owned(),
         issues: vec![],
     };
-    checkmark_spelling::spell_check(&mut markdown, whitelist);
-    assert_eq!(&markdown.issues, issues);
+    assert_eq!(
+        &checkmark_spelling::spell_check(markdown, whitelist.clone()),
+        issues
+    );
 }
 
 #[cfg(test)]

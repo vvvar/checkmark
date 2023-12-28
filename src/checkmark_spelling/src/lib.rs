@@ -5,7 +5,7 @@ fn is_ignored_word(word: &str) -> bool {
     let is_number = |w: &str| w.chars().all(|c| c.is_numeric());
     let is_single_quoted = |w: &str| w.starts_with("'") && w.ends_with("'");
     let is_double_quoted = |w: &str| w.starts_with("\"") && w.ends_with("\"");
-    return is_number(word) || is_single_quoted(word) || is_double_quoted(word);
+    is_number(word) || is_single_quoted(word) || is_double_quoted(word)
 }
 
 /// To check spelling we need to provide pure word
@@ -67,7 +67,11 @@ fn remove_all_special_characters(word: &str, lowercase: bool) -> String {
 /// For the details of library & algo see:
 /// https://github.com/reneklacan/symspell
 /// https://github.com/wolfgarbe/SymSpell
-pub fn spell_check(file: &mut common::MarkDownFile, whitelist: &Vec<String>) {
+pub fn spell_check(file: common::MarkDownFile, whitelist: Vec<String>) -> Vec<common::CheckIssue> {
+    log::debug!("Checking spelling for file {:#?}", &file);
+
+    let mut issues: Vec<common::CheckIssue> = vec![];
+
     // Initialize SymSpell
 
     log::debug!("Initializing SymSpell...");
@@ -128,7 +132,7 @@ pub fn spell_check(file: &mut common::MarkDownFile, whitelist: &Vec<String>) {
             let escaped_word = remove_all_special_characters(word, true);
             log::debug!("Word after escaping: {:#?}", &word);
             // Do not proceed when this is not an actual word
-            if !escaped_word.is_empty() && !is_ignored_word(&word) {
+            if !escaped_word.is_empty() && !is_ignored_word(word) {
                 // Get suggestions
                 let suggestions = symspell.lookup(&escaped_word, Verbosity::Top, 2);
                 log::debug!(
@@ -185,9 +189,13 @@ pub fn spell_check(file: &mut common::MarkDownFile, whitelist: &Vec<String>) {
                         }
                     }
                     issue = issue.push_fix("If you're sure that this word is correct - add it to the spellcheck dictionary(TBD)");
-                    file.issues.push(issue.build());
+
+                    issues.push(issue.build());
+                    // file.issues.push(issue.build());
                 }
             }
         }
     }
+
+    issues
 }
