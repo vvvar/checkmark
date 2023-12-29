@@ -709,6 +709,7 @@ dependencies = [
  "log",
  "markdown",
  "pretty_assertions",
+ "rayon",
  "symspell",
 ]
 

@@ -1,3 +1,4 @@
+use rayon::prelude::*;
 use symspell::{AsciiStringStrategy, SymSpell, Verbosity};
 
 /// We want to ignore spell-checking for certain exceptions
@@ -73,7 +74,9 @@ pub fn spell_check(
 ) -> Vec<common::CheckIssue> {
     log::debug!("Checking spelling for file {:#?}", &file);
 
-    let mut issues: Vec<common::CheckIssue> = vec![];
+    // Thread-safe vector of issues
+    // because we're parallelizing with Rayon
+    let issues: std::sync::Mutex<Vec<common::CheckIssue>> = std::sync::Mutex::new(vec![]);
 
     // Initialize SymSpell
 
@@ -126,7 +129,8 @@ pub fn spell_check(
     let ast = markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
     log::debug!("Parsed AST: {:#?}", &ast);
     // Filter only Text nodes
-    for text_node in common::filter_text_nodes(&ast) {
+    // Do a spell check in parallel
+    common::filter_text_nodes(&ast).par_iter().for_each(|text_node| {
         log::debug!("Spell checking text node: {:#?}", &text_node);
         // Split text into the words because spellcheck checks words, not sentences
         for word in text_node.value.split_ascii_whitespace() {
@@ -193,12 +197,13 @@ pub fn spell_check(
                     }
                     issue = issue.push_fix("If you're sure that this word is correct - add it to the spellcheck dictionary(TBD)");
 
-                    issues.push(issue.build());
-                    // file.issues.push(issue.build());
+                    issues.lock().unwrap().push(issue.build());
                 }
             }
         }
-    }
+    });
 
-    issues
+    // To trick borrow checker because we're parallelizing
+    let cloned = issues.lock().unwrap().clone();
+    cloned
 }
