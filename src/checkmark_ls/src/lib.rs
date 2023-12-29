@@ -1,22 +1,96 @@
 use log::warn;
 
+/// Returns a path to a tmp dir based on input URI
+fn tmp_dir(uri: &str) -> std::path::PathBuf {
+    let path = std::env::temp_dir()
+        .join("checkmark")
+        .join(std::path::Path::new(uri).file_stem().unwrap());
+    if path.exists() {
+        log::debug!("Directory {:#?} already exists, removing", &path);
+        std::fs::remove_dir_all(&path).unwrap();
+    }
+    path
+}
+
 /// Creates a list of markdown files from provided path
 /// Path could be:
 ///     1. path to a file - will just add this file to the list
 ///     2. path to a dir - will lookup all markdown files in this ir
 ///     3. remote URL
 pub async fn ls(path: &str) -> Vec<common::MarkDownFile> {
+    log::debug!("Listing Markdown files in: {:#?}", &path);
+
     let mut input_path = path.to_owned();
+
     if is_url::is_url(&input_path) {
-        let response = reqwest::get(&input_path).await.unwrap();
-        let tmp_file_path = format!(
-            "{}/CHECKMARK_REMOTE_FILE.md",
-            std::env::temp_dir().to_str().unwrap()
-        );
-        let mut file = std::fs::File::create(&tmp_file_path).unwrap();
-        let mut content = std::io::Cursor::new(response.bytes().await.unwrap());
-        std::io::copy(&mut content, &mut file).unwrap();
-        input_path = tmp_file_path.clone();
+        if input_path.ends_with(".git") {
+            log::debug!("Path is a git repo, cloning into tmp dir");
+
+            let mut cb = git2::RemoteCallbacks::new();
+            cb.transfer_progress(|stats| {
+                log::trace!(
+                    "transfer_progress callback, stats.indexed_deltas(): {}",
+                    &stats.indexed_deltas()
+                );
+                log::trace!(
+                    "transfer_progress callback, stats.indexed_objects(): {}",
+                    &stats.indexed_objects()
+                );
+                log::trace!(
+                    "transfer_progress callback, stats.received_bytes(): {}",
+                    &stats.received_bytes()
+                );
+                log::trace!(
+                    "transfer_progress callback, stats.received_objects(): {}",
+                    &stats.received_objects()
+                );
+                true
+            });
+
+            let mut co = git2::build::CheckoutBuilder::new();
+            co.progress(|path, cur, total| {
+                if let Some(path) = path {
+                    log::trace!("progress callback, path: {}", &path.display());
+                }
+                log::trace!("progress callback, cur: {}", &cur);
+                log::trace!("progress callback, total: {}", &total);
+            });
+
+            let mut fo = git2::FetchOptions::new();
+            fo.remote_callbacks(cb);
+
+            let tmp_dir = tmp_dir(&input_path);
+
+            log::debug!("Cloning into the {:#?}", &tmp_dir);
+            git2::build::RepoBuilder::new()
+                .fetch_options(fo)
+                .with_checkout(co)
+                .clone(&input_path, &std::path::Path::new(&tmp_dir))
+                .unwrap();
+
+            log::debug!("Cloned {:#?} into the {:#?}", &input_path, &tmp_dir);
+            input_path = tmp_dir.to_str().unwrap().to_owned();
+        } else {
+            log::debug!("Path is a plain URL, downloading as single file into tmp dir");
+
+            let response = reqwest::get(&input_path).await.unwrap();
+
+            let tmp_file_path = tmp_dir(&input_path).join(format!(
+                "{}.md",
+                std::path::Path::new(&input_path)
+                    .file_stem()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+            ));
+            log::debug!("Will download into a file: {:#?}", &tmp_file_path);
+
+            let mut file = std::fs::File::create(&tmp_file_path).unwrap();
+            let mut content = std::io::Cursor::new(response.bytes().await.unwrap());
+            std::io::copy(&mut content, &mut file).unwrap();
+
+            input_path = tmp_file_path.to_str().unwrap().to_owned();
+        }
     }
 
     let mut files = Vec::<String>::new();

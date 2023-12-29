@@ -12,7 +12,7 @@ fn assert_has_issues(content: &str, whitelist: &Vec<String>, issues: &Vec<common
         issues: vec![],
     };
     assert_eq!(
-        &checkmark_spelling::spell_check(markdown, whitelist.clone()),
+        &checkmark_spelling::spell_check(&markdown, &whitelist),
         issues
     );
 }
