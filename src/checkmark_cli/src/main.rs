@@ -3,6 +3,8 @@ mod config;
 mod errors;
 mod tui;
 
+use rayon::prelude::*;
+
 fn has_any_critical_issue(files: &Vec<common::MarkDownFile>) -> bool {
     let mut any_critical_issue = false;
     for file in files {
@@ -40,31 +42,38 @@ async fn main() -> Result<(), errors::AppError> {
         cli::Subcommands::Fmt(fmt_cli) => match fmt_cli.check {
             true => {
                 tui.lock().unwrap().start_spinner("Checking format...");
-                for file in files.iter_mut() {
-                    checkmark_fmt::check_md_format(file);
+                files.par_iter_mut().for_each(|file| {
+                    file.issues
+                        .append(&mut checkmark_fmt::check_md_format(file));
                     tui.lock().unwrap().print_file_check_status(file);
-                }
+                });
             }
             false => {
                 tui.lock().unwrap().start_spinner("Auto-formatting...");
-                for file in files.iter_mut() {
+                files.par_iter_mut().for_each(|file| {
                     std::fs::write(&file.path, &checkmark_fmt::fmt_markdown(&file).content)
                         .unwrap();
-                }
+                    tui.lock().unwrap().print_file_check_status(file);
+                });
             }
         },
         cli::Subcommands::Grammar(_) => {
             tui.lock().unwrap().start_spinner("Checking grammar...");
             for file in files.iter_mut() {
-                checkmark_open_ai::check_grammar(file).await.unwrap();
+                file.issues
+                    .append(&mut checkmark_open_ai::check_grammar(file).await.unwrap());
+                tui.lock().unwrap().print_file_check_status(file);
             }
         }
         cli::Subcommands::Review(_) => {
             tui.lock().unwrap().start_spinner("Reviewing...");
             for file in files.iter_mut() {
-                checkmark_open_ai::make_a_review(file, !config.review.no_suggestions)
-                    .await
-                    .unwrap();
+                file.issues.append(
+                    &mut checkmark_open_ai::make_a_review(file, !config.review.no_suggestions)
+                        .await
+                        .unwrap(),
+                );
+                tui.lock().unwrap().print_file_check_status(file);
             }
         }
         cli::Subcommands::Links(_) => {
@@ -72,16 +81,15 @@ async fn main() -> Result<(), errors::AppError> {
             for file in files.iter_mut() {
                 checkmark_link_checker::check_links(file, &config.link_checker.ignore_wildcards)
                     .await;
+                tui.lock().unwrap().print_file_check_status(file);
             }
         }
         cli::Subcommands::Spelling(_) => {
-            use rayon::prelude::*;
-
             tui.lock().unwrap().start_spinner("Checking spelling...");
             files.par_iter_mut().for_each(|file| {
                 file.issues.append(&mut checkmark_spelling::spell_check(
-                    file.clone(),
-                    config.spelling.words_whitelist.clone(),
+                    file,
+                    &config.spelling.words_whitelist,
                 ));
                 tui.lock().unwrap().print_file_check_status(file);
             });

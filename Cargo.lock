@@ -621,6 +621,7 @@ dependencies = [
  "colored",
  "common",
  "env_logger",
+ "futures",
  "log",
  "predicates",
  "rayon",

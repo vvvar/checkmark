@@ -101,7 +101,12 @@ impl CheckProgressTUI {
                     .with_message(&issue.message)
                     .with_code(issue_code)
                     .with_notes(issue.fixes.clone());
-                if severity != Severity::Help {
+                if severity == Severity::Help {
+                    codespan_diagnostic = codespan_diagnostic.with_labels(vec![Label::primary(
+                        codespan_file_id,
+                        0..analyzed_file.content.len(),
+                    )]);
+                } else {
                     codespan_diagnostic = codespan_diagnostic.with_labels(vec![Label::primary(
                         codespan_file_id,
                         issue.offset_start..issue.offset_end,

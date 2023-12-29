@@ -22,4 +22,5 @@ words_whitelist=[
     "CLI",
     "URL",
     "SARIF",
+    "OPEN_AI_API_KEY"
 ]

@@ -454,9 +454,10 @@ pub fn fmt_markdown(file: &common::MarkDownFile) -> common::MarkDownFile {
     }
 }
 
-pub fn check_md_format(file: &mut common::MarkDownFile) {
+pub fn check_md_format(file: &common::MarkDownFile) -> Vec<common::CheckIssue> {
+    let mut issues: Vec<common::CheckIssue> = vec![];
     if !file.content.eq(&fmt_markdown(file).content) {
-        file.issues.push(
+        issues.push(
             common::CheckIssueBuilder::default()
                 .set_category(common::IssueCategory::Formatting)
                 .set_severity(common::IssueSeverity::Error)
@@ -475,4 +476,5 @@ pub fn check_md_format(file: &mut common::MarkDownFile) {
                 .build(),
         );
     }
+    issues
 }

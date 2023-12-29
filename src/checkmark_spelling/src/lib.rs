@@ -67,7 +67,10 @@ fn remove_all_special_characters(word: &str, lowercase: bool) -> String {
 /// For the details of library & algo see:
 /// https://github.com/reneklacan/symspell
 /// https://github.com/wolfgarbe/SymSpell
-pub fn spell_check(file: common::MarkDownFile, whitelist: Vec<String>) -> Vec<common::CheckIssue> {
+pub fn spell_check(
+    file: &common::MarkDownFile,
+    whitelist: &Vec<String>,
+) -> Vec<common::CheckIssue> {
     log::debug!("Checking spelling for file {:#?}", &file);
 
     let mut issues: Vec<common::CheckIssue> = vec![];
