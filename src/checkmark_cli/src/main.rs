@@ -51,8 +51,7 @@ async fn main() -> Result<(), errors::AppError> {
             false => {
                 tui.lock().unwrap().start_spinner("Auto-formatting...");
                 files.par_iter_mut().for_each(|file| {
-                    std::fs::write(&file.path, &checkmark_fmt::fmt_markdown(&file).content)
-                        .unwrap();
+                    std::fs::write(&file.path, checkmark_fmt::fmt_markdown(file).content).unwrap();
                     tui.lock().unwrap().print_file_check_status(file);
                 });
             }

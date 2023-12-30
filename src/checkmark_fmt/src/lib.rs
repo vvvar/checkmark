@@ -1,131 +1,39 @@
+mod context;
+mod style;
+mod utils;
+
+use context::*;
+use style::*;
+use utils::*;
+
 use markdown::mdast;
 use markdown::mdast::{AlignKind, Node};
 
-/// Represents the context of a list in a markdown document.
-#[derive(Debug)]
-struct ListContext {
-    nesting_level: usize,
-    is_ordered: bool,
-    num_item: u32,
-}
-
-/// Represents the context of a block quote in a markdown document.
-#[derive(Debug)]
-struct BlockQuoteContext {
-    depth: usize,
-}
-
-/// Represents the context of a block quote within a list in a markdown document.
-#[derive(Debug)]
-struct BlockQuoteInListContext {
-    list_ctx: ListContext,
-    block_quote_ctx: BlockQuoteContext,
-}
-
-/// Represents the current rendering context of a markdown document.
-#[derive(Debug)]
-enum Context {
-    Document,
-    List(ListContext),
-    BlockQuote(BlockQuoteContext),
-    BlockQuoteInList(BlockQuoteInListContext),
-}
-
-/// Calculates the diff between two strings
-/// and returns it as a string ready for printing
-fn get_diff(a: &str, b: &str) -> String {
-    let mut result = "".to_string();
-    let diff = similar::TextDiff::from_lines(a, b);
-    for op in diff.ops() {
-        for change in diff.iter_changes(op) {
-            let (sign, style) = match change.tag() {
-                similar::ChangeTag::Delete => ("-", console::Style::new().red()),
-                similar::ChangeTag::Insert => ("+", console::Style::new().green()),
-                similar::ChangeTag::Equal => ("", console::Style::new()),
-            };
-            if similar::ChangeTag::Equal == change.tag() {
-                if !result.ends_with("\n\n") {
-                    result.push_str("\n\n");
-                }
-            } else {
-                result.push_str(&format!(
-                    "{}{}",
-                    style.apply_to(sign).bold(),
-                    style.apply_to(change)
-                ));
-            }
-        }
-    }
-    result
-}
-
-/// It is possible to pass single "~" and it wold be interpreted
-/// as a delete which shall be interpreted as a superscript
-/// https://github.com/markdown-it/markdown-it-sup
-fn is_superscript(d: &mdast::Delete, source: &str) -> bool {
-    let mut superscript = false;
-    if let Some(position) = &d.position {
-        let slice = &source[position.start.offset..position.end.offset];
-        superscript = slice.matches('~').count() == 2;
-    }
-    superscript
-}
-
-/// There are two types of string(bold) - underscore(__) and asterisk(**)
-/// We can determine a type of it from the original file
-fn is_string_underscored(d: &mdast::Strong, source: &str) -> bool {
-    let mut underscored = false;
-    if let Some(position) = &d.position {
-        let slice = &source[position.start.offset..position.end.offset];
-        underscored = slice.matches("__").count() == 2;
-    }
-    underscored
-}
-
-/// There are two types of string(bold) - underscore(__) and asterisk(**)
-/// We can determine a type of it from the original file
-fn is_heading_atx(d: &mdast::Heading, source: &str) -> bool {
-    let mut atx = false;
-    if let Some(position) = &d.position {
-        let slice = &source[position.start.offset..position.end.offset];
-        atx = slice.contains('#');
-    }
-    atx
-}
-
-/// Removes trailing new-line and spaces from the end of the string
-fn remove_trailing_newline_and_space(s: &str) -> String {
-    let mut result = String::from(s);
-    while result.ends_with('\n') || result.ends_with(' ') {
-        if let Some(s) = result.strip_suffix('\n') {
-            result = s.to_string()
-        }
-        if let Some(s) = result.strip_suffix(' ') {
-            result = s.to_string()
-        }
-    }
-    result
-}
-
 /// Render Markdown file from AST
-fn to_md(node: &mdast::Node, buffer: &mut String, context: &Context, source: &str) {
+fn to_md(
+    node: &mdast::Node,
+    buffer: &mut String,
+    context: &Context,
+    source: &str,
+    options: &FormattingOptions,
+) {
     match node {
         Node::Root(r) => {
             for child in &r.children {
-                to_md(child, buffer, context, source);
+                to_md(child, buffer, context, source, options);
                 buffer.push('\n');
             }
         }
         Node::Heading(heading) => {
-            if is_heading_atx(heading, source) {
+            if HeaderStyle::Atx == options.header_style {
                 buffer.push_str("#".repeat(heading.depth as usize).as_str());
                 buffer.push(' ');
             }
             for child in &heading.children {
-                to_md(child, buffer, context, source);
+                to_md(child, buffer, context, source, options);
             }
             buffer.push('\n');
-            if !is_heading_atx(heading, source) {
+            if HeaderStyle::SetExt == options.header_style {
                 if heading.depth == 1 {
                     buffer.push_str("=============");
                 } else {
@@ -172,7 +80,7 @@ fn to_md(node: &mdast::Node, buffer: &mut String, context: &Context, source: &st
         }
         Node::Paragraph(p) => {
             for child in &p.children {
-                to_md(child, buffer, context, source);
+                to_md(child, buffer, context, source, options);
             }
             buffer.push('\n');
         }
@@ -201,6 +109,7 @@ fn to_md(node: &mdast::Node, buffer: &mut String, context: &Context, source: &st
                         num_item: start,
                     }),
                     source,
+                    options,
                 );
                 start += 1;
                 // Spread list(also called loose in CommonMark) is when
@@ -218,7 +127,7 @@ fn to_md(node: &mdast::Node, buffer: &mut String, context: &Context, source: &st
                 if ctx.is_ordered {
                     buffer.push_str(&format!("{}. ", ctx.num_item));
                 } else {
-                    buffer.push_str("+ ");
+                    buffer.push_str(&format!("{} ", options.list_sign_style.as_str()));
                 }
                 for child in &li.children {
                     // When there's 2+ paragraphs in a list item
@@ -243,9 +152,9 @@ fn to_md(node: &mdast::Node, buffer: &mut String, context: &Context, source: &st
                                 buffer.push_str("  ");
                             }
                         }
-                        to_md(child, buffer, context, source);
+                        to_md(child, buffer, context, source, options);
                     } else {
-                        to_md(child, buffer, context, source);
+                        to_md(child, buffer, context, source, options);
                     }
                 }
             }
@@ -268,23 +177,21 @@ fn to_md(node: &mdast::Node, buffer: &mut String, context: &Context, source: &st
         Node::Emphasis(e) => {
             buffer.push('*');
             for child in &e.children {
-                to_md(child, buffer, context, source);
+                to_md(child, buffer, context, source, options);
             }
             buffer.push('*');
         }
         Node::Strong(s) => {
-            if is_string_underscored(s, source) {
-                buffer.push_str("__");
-            } else {
-                buffer.push_str("**");
+            match options.strong_style {
+                StrongStyle::Asterisk => buffer.push_str("**"),
+                StrongStyle::Underscore => buffer.push_str("__"),
             }
             for child in &s.children {
-                to_md(child, buffer, context, source);
+                to_md(child, buffer, context, source, options);
             }
-            if is_string_underscored(s, source) {
-                buffer.push_str("__");
-            } else {
-                buffer.push_str("**");
+            match options.strong_style {
+                StrongStyle::Asterisk => buffer.push_str("**"),
+                StrongStyle::Underscore => buffer.push_str("__"),
             }
         }
         Node::Delete(d) => {
@@ -294,7 +201,7 @@ fn to_md(node: &mdast::Node, buffer: &mut String, context: &Context, source: &st
                 buffer.push_str("~~");
             }
             for child in &d.children {
-                to_md(child, buffer, context, source);
+                to_md(child, buffer, context, source, options);
             }
             if is_superscript(d, source) {
                 buffer.push('~');
@@ -308,7 +215,7 @@ fn to_md(node: &mdast::Node, buffer: &mut String, context: &Context, source: &st
         Node::Link(l) => {
             buffer.push('[');
             for child in &l.children {
-                to_md(child, buffer, context, source);
+                to_md(child, buffer, context, source, options);
             }
             buffer.push(']');
             buffer.push_str(&format!("({}", &l.url.clone().as_str()));
@@ -339,6 +246,7 @@ fn to_md(node: &mdast::Node, buffer: &mut String, context: &Context, source: &st
                             depth: ctx.depth + 1,
                         }),
                         source,
+                        options,
                     ),
                     Context::List(ctx) => to_md(
                         child,
@@ -352,6 +260,7 @@ fn to_md(node: &mdast::Node, buffer: &mut String, context: &Context, source: &st
                             block_quote_ctx: BlockQuoteContext { depth: 1 },
                         }),
                         source,
+                        options,
                     ),
                     Context::BlockQuoteInList(ctx) => to_md(
                         child,
@@ -367,12 +276,14 @@ fn to_md(node: &mdast::Node, buffer: &mut String, context: &Context, source: &st
                             },
                         }),
                         source,
+                        options,
                     ),
                     _ => to_md(
                         child,
                         buffer,
                         &Context::BlockQuote(BlockQuoteContext { depth: 1 }),
                         source,
+                        options,
                     ),
                 }
                 // Add new trailing blank block quote if there's more than one child
@@ -418,10 +329,10 @@ fn to_md(node: &mdast::Node, buffer: &mut String, context: &Context, source: &st
             buffer.push_str(&format!("[^{}]: ", &f.identifier));
             for child in &f.children {
                 if child == f.children.first().unwrap() {
-                    to_md(child, buffer, context, source);
+                    to_md(child, buffer, context, source, options);
                 } else {
                     let mut tmp_buffer = String::from("");
-                    to_md(child, &mut tmp_buffer, context, source);
+                    to_md(child, &mut tmp_buffer, context, source, options);
                     if let Some(position) = child.position() {
                         for line in tmp_buffer.lines() {
                             buffer.push_str(&" ".repeat(position.clone().start.column));
@@ -435,7 +346,7 @@ fn to_md(node: &mdast::Node, buffer: &mut String, context: &Context, source: &st
         Node::Table(t) => {
             for child in &t.children {
                 if child == t.children.first().unwrap() {
-                    to_md(child, buffer, context, source);
+                    to_md(child, buffer, context, source, options);
                     buffer.push('|');
                     for align in &t.align {
                         match align {
@@ -447,20 +358,20 @@ fn to_md(node: &mdast::Node, buffer: &mut String, context: &Context, source: &st
                     }
                     buffer.push('\n');
                 } else {
-                    to_md(child, buffer, context, source);
+                    to_md(child, buffer, context, source, options);
                 }
             }
         }
         Node::TableCell(tc) => {
             for child in &tc.children {
-                to_md(child, buffer, context, source);
+                to_md(child, buffer, context, source, options);
             }
             buffer.push_str(" | ");
         }
         Node::TableRow(tr) => {
             buffer.push_str("| ");
             for child in &tr.children {
-                to_md(child, buffer, context, source);
+                to_md(child, buffer, context, source, options);
             }
             buffer.push('\n');
         }
@@ -472,7 +383,13 @@ fn to_md(node: &mdast::Node, buffer: &mut String, context: &Context, source: &st
 pub fn fmt_markdown(file: &common::MarkDownFile) -> common::MarkDownFile {
     let mut buffer: String = String::from("");
     let ast = markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
-    to_md(&ast, &mut buffer, &Context::Document, &file.content);
+    to_md(
+        &ast,
+        &mut buffer,
+        &Context::Document,
+        &file.content,
+        &FormattingOptions::default(),
+    );
     buffer = remove_trailing_newline_and_space(&buffer);
     buffer.push('\n');
     common::MarkDownFile {

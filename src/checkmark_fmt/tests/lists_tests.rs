@@ -121,10 +121,15 @@ fn list_with_multiple_paragraphs() {
 
 #[test]
 fn list_with_multiple_text_lines() {
-    utils::assert_unchanged_after_formatting(
+    utils::assert_changed_after_formatting(
         "+ __[pica](https://nodeca.github.io/pica/demo/)__ - high quality and fast image
   resize in browser.
 + __[babelfish](https://github.com/nodeca/babelfish/)__ - developer friendly
+  i18n with plurals support and easy syntax.
+",
+        "+ **[pica](https://nodeca.github.io/pica/demo/)** - high quality and fast image
+  resize in browser.
++ **[babelfish](https://github.com/nodeca/babelfish/)** - developer friendly
   i18n with plurals support and easy syntax.
 ",
     );

@@ -26,17 +26,18 @@ fn heading_atx_trailing_space_removed() {
     );
 }
 
-/// Valid SetExt heading is preserved
+/// Valid SetExt heading is converted to the ATX
 #[test]
 fn heading_set_ext() {
-    utils::assert_unchanged_after_formatting("This is an H1\n=============\n");
-    utils::assert_unchanged_after_formatting("This is an H2\n-------------\n");
+    utils::assert_changed_after_formatting("H1\n=============\n", "# H1\n");
+    utils::assert_changed_after_formatting("H2\n-------------\n", "## H2\n");
 }
 
-/// Valid mixed headings are recognized and preserved
+/// Valid mixed headings are recognized but converted to ATX
 #[test]
 fn heading_mixed_atx_set_ext() {
-    utils::assert_unchanged_after_formatting("# This is an H1\n\nThis is an H2\n-------------\n");
+    utils::assert_changed_after_formatting("# H1\n\nH2\n-------------\n", "# H1\n\n## H2\n");
+    utils::assert_changed_after_formatting("H1\n============\n## H2\n", "# H1\n\n## H2\n");
 }
 
 /// Mixed heading order is ok

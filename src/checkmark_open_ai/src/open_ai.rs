@@ -131,11 +131,11 @@ pub async fn open_ai_request(
                 ],
             };
             log::debug!("Sending OpenAI request with data:\n{:#?}", &request_data);
-            return reqwest::Client::new()
+            reqwest::Client::new()
                 .post("https://api.openai.com/v1/chat/completions")
                 .bearer_auth(read_open_ai_api_key().unwrap())
                 .json(&request_data)
-                .send();
+                .send()
         })
         .collect::<Vec<_>>();
 
@@ -194,8 +194,10 @@ Provide your answer in JSON form. Reply with only the answer in JSON form and in
                 .take_while(|e| e.is_ok())
                 .map(|e| e.unwrap())
                 .reduce(|mut acc, r| {
-                    let mut review = OpenAIReview::default();
-                    review.summary = review.summary;
+                    let mut review = OpenAIReview {
+                        summary: r.summary,
+                        suggestions: vec![],
+                    };
                     review.suggestions.append(&mut r.suggestions.clone());
                     review.suggestions.append(&mut acc.suggestions);
                     review
@@ -238,8 +240,10 @@ Provide your answer in JSON form. Reply with only the answer in JSON form and in
                 .take_while(|e| e.is_ok())
                 .map(|e| e.unwrap())
                 .reduce(|mut acc, r| {
-                    let mut review = OpenAIReview::default();
-                    review.summary = review.summary;
+                    let mut review = OpenAIReview {
+                        summary: r.summary,
+                        suggestions: vec![],
+                    };
                     review.suggestions.append(&mut r.suggestions.clone());
                     review.suggestions.append(&mut acc.suggestions);
                     review

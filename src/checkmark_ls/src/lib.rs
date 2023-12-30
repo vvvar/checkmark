@@ -66,7 +66,7 @@ pub async fn ls(path: &str) -> Vec<common::MarkDownFile> {
             git2::build::RepoBuilder::new()
                 .fetch_options(fo)
                 .with_checkout(co)
-                .clone(&input_path, &std::path::Path::new(&tmp_dir))
+                .clone(&input_path, std::path::Path::new(&tmp_dir))
                 .unwrap();
 
             log::debug!("Cloned {:#?} into the {:#?}", &input_path, &tmp_dir);
