@@ -4,8 +4,8 @@ fn activate_logging() {
     if let Ok(_) = env_logger::try_init() {}
 }
 
-/// Check grammar check
-// #[ignore = "Involves real HTTP req - unstable. Use manual invocation and verification."]
+/// List files in folder
+#[ignore = "Involves real HTTP req - unstable. Use manual invocation and verification."]
 #[tokio::test]
 async fn ls() {
     // activate_logging();
