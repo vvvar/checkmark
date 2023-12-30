@@ -31,6 +31,34 @@ enum Context {
     BlockQuoteInList(BlockQuoteInListContext),
 }
 
+/// Calculates the diff between two strings
+/// and returns it as a string ready for printing
+fn get_diff(a: &str, b: &str) -> String {
+    let mut result = "".to_string();
+    let diff = similar::TextDiff::from_lines(a, b);
+    for op in diff.ops() {
+        for change in diff.iter_changes(op) {
+            let (sign, style) = match change.tag() {
+                similar::ChangeTag::Delete => ("-", console::Style::new().red()),
+                similar::ChangeTag::Insert => ("+", console::Style::new().green()),
+                similar::ChangeTag::Equal => ("", console::Style::new()),
+            };
+            if similar::ChangeTag::Equal == change.tag() {
+                if !result.ends_with("\n\n") {
+                    result.push_str("\n\n");
+                }
+            } else {
+                result.push_str(&format!(
+                    "{}{}",
+                    style.apply_to(sign).bold(),
+                    style.apply_to(change)
+                ));
+            }
+        }
+    }
+    result
+}
+
 /// It is possible to pass single "~" and it wold be interpreted
 /// as a delete which shall be interpreted as a superscript
 /// https://github.com/markdown-it/markdown-it-sup
@@ -456,7 +484,8 @@ pub fn fmt_markdown(file: &common::MarkDownFile) -> common::MarkDownFile {
 
 pub fn check_md_format(file: &common::MarkDownFile) -> Vec<common::CheckIssue> {
     let mut issues: Vec<common::CheckIssue> = vec![];
-    if !file.content.eq(&fmt_markdown(file).content) {
+    let formatted = &fmt_markdown(file);
+    if !file.content.eq(&formatted.content) {
         issues.push(
             common::CheckIssueBuilder::default()
                 .set_category(common::IssueCategory::Formatting)
@@ -469,10 +498,11 @@ pub fn check_md_format(file: &common::MarkDownFile) -> Vec<common::CheckIssue> {
                 .set_offset_start(0)
                 .set_offset_end(file.content.len())
                 .set_message(String::from("Formatting is incorrect"))
-                .set_fixes(vec![format!(
-                    "Run \"checkmark fmt {}\" to fix it",
-                    file.path.clone()
-                )])
+                .set_fixes(vec![
+                    format!("Run \"checkmark fmt {}\" to fix it", file.path.clone()),
+                    "See an approximated diff below:".to_string(),
+                    get_diff(&file.content, &formatted.content),
+                ])
                 .build(),
         );
     }
