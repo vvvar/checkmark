@@ -20,9 +20,13 @@ fn styles() -> clap::builder::styling::Styles {
 #[derive(Debug, clap::Parser)]
 #[command(long_about = None)]
 pub struct FmtCommand {
-    /// Check fmt issues without fixing them
+    /// Check mode: Reviews formatting issues without fixing them. Returns 0 if no issues, 1 otherwise
     #[arg(long, action)]
     pub check: bool,
+
+    /// Display a detailed comparison if formatting issues are detected
+    #[arg(long, action, requires = "check")]
+    pub show_diff: bool,
 }
 
 #[derive(Debug, clap::Parser)]
@@ -71,27 +75,30 @@ pub enum Subcommands {
 #[command(author, version, about, long_about = None, styles = styles())]
 #[command(propagate_version = true)]
 pub struct Cli {
-    /// Specifies the root directory of your project, a single file, or a web URL. This is where the tool will start scanning for Markdown files. If a single file or a web URL is specified, only that will be scanned. Defaults to the current directory
+    /// Sets the project root, file, or web URL for scanning Markdown files.
+    /// Can also accept a Git repository.
+    /// Defaults to the current directory if not specified
     #[arg(global = true, value_hint=clap::ValueHint::DirPath, default_value=".")]
     pub project_root: String,
 
-    /// Outputs the report to a specified file in SARIF format. If no file is specified, the report will be saved to './report.sarif'.
+    /// Saves the report in SARIF format to a given file or defaults to './report.sarif' if no file is specified
     #[arg(global = true, long, action, required = false, value_name = "FILE_PATH", value_hint=clap::ValueHint::FilePath, default_missing_value="./report.sarif", num_args=0..=1)]
     pub sarif: Option<String>,
 
-    /// Specifies the path to the configuration file. If this is set, files in default locations will be ignored
+    /// Sets the configuration file path. Overrides default files if set
     #[arg(global = true, long, short, action, required = false, value_name = "FILE_PATH", value_hint=clap::ValueHint::FilePath)]
     pub config: Option<String>,
 
-    /// Enable verbose logging. This will output more detailed information about what the tool is doing, which can be helpful for debugging
+    /// Verbose logging: Provides detailed tool activity, useful for debugging
     #[arg(global = true, long, required = false, action)]
     pub verbose: bool,
 
-    /// Enable CI Mode - disables all interactive prompts and outputs the report in a machine-readable format. This is useful for running the tool in a CI/CD pipeline
+    /// CI Mode: Turns off interactive prompts and outputs report in a format suitable for CI/CD pipelines
     #[arg(global = true, long, required = false, action)]
     pub ci: bool,
 
-    /// Specifies the individual tools or commands to run. This is required and allows you to run specific checks or operations
+    /// Specifies the individual tools or commands to run.
+    /// This is required and allows you to run specific checks or operations
     #[command(subcommand)]
     pub subcommands: Subcommands,
 }

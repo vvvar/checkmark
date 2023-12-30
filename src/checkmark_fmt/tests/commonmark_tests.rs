@@ -51,7 +51,6 @@ fn common_mark_end_2_end() {
         {
             let original = utils::create_dummy_md_file(&test_case.markdown);
             let formatted = checkmark_fmt::fmt_markdown(&original);
-            utils::print_diff(&original.content, &formatted.content);
             assert_eq!(
                 original.content, formatted.content,
                 "Testing test case #{}, section: {}",

@@ -12,5 +12,5 @@ serde-sarif = "0.4.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.108"
 
-similar = "2.3.0"
+prettydiff = "0.6.4"
 console = "0.15.7"

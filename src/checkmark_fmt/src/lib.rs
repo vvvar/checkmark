@@ -399,29 +399,36 @@ pub fn fmt_markdown(file: &common::MarkDownFile) -> common::MarkDownFile {
     }
 }
 
-pub fn check_md_format(file: &common::MarkDownFile) -> Vec<common::CheckIssue> {
+pub fn check_md_format(file: &common::MarkDownFile, show_diff: bool) -> Vec<common::CheckIssue> {
     let mut issues: Vec<common::CheckIssue> = vec![];
     let formatted = &fmt_markdown(file);
     if !file.content.eq(&formatted.content) {
-        issues.push(
-            common::CheckIssueBuilder::default()
-                .set_category(common::IssueCategory::Formatting)
-                .set_severity(common::IssueSeverity::Error)
-                .set_file_path(file.path.clone())
-                .set_row_num_start(1)
-                .set_row_num_end(file.content.lines().count())
-                .set_col_num_start(1)
-                .set_col_num_end(1)
-                .set_offset_start(0)
-                .set_offset_end(file.content.len())
-                .set_message(String::from("Formatting is incorrect"))
-                .set_fixes(vec![
-                    format!("Run \"checkmark fmt {}\" to fix it", file.path.clone()),
-                    "See an approximated diff below:".to_string(),
-                    get_diff(&file.content, &formatted.content),
-                ])
-                .build(),
-        );
+        let mut issue = common::CheckIssueBuilder::default()
+            .set_category(common::IssueCategory::Formatting)
+            .set_severity(common::IssueSeverity::Error)
+            .set_file_path(file.path.clone())
+            .set_row_num_start(1)
+            .set_row_num_end(file.content.lines().count())
+            .set_col_num_start(1)
+            .set_col_num_end(1)
+            .set_offset_start(0)
+            .set_offset_end(file.content.len())
+            .set_message(String::from("Formatting is incorrect"));
+        if show_diff {
+            issue = issue.push_fix(&format!(
+                "Detailed comparison of expected formatting and your file:\n\n{}\n\n",
+                get_diff(&file.content, &formatted.content)
+            ));
+        } else {
+            issue = issue
+                .push_fix(
+                    &format!("Suggestion: Run \"checkmark fmt --check --show-diff {}\" to see a how different expected formatting with your", &file.path));
+        }
+        issue = issue.push_fix(&format!(
+            "Suggestion: Run \"checkmark fmt {}\" to auto-format file",
+            &file.path
+        ));
+        issues.push(issue.build());
     }
     issues
 }

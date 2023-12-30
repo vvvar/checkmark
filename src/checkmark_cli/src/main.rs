@@ -44,7 +44,7 @@ async fn main() -> Result<(), errors::AppError> {
                 tui.lock().unwrap().start_spinner("Checking format...");
                 files.par_iter_mut().for_each(|file| {
                     file.issues
-                        .append(&mut checkmark_fmt::check_md_format(file));
+                        .append(&mut checkmark_fmt::check_md_format(file, fmt_cli.show_diff));
                     tui.lock().unwrap().print_file_check_status(file);
                 });
             }
