@@ -30,21 +30,6 @@ pub async fn check_grammar(
                     .build(),
             );
         }
-        // Ignore review for grammar
-        // issues.push(
-        //     common::CheckIssueBuilder::default()
-        //         .set_category(common::IssueCategory::Grammar)
-        //         .set_severity(common::IssueSeverity::Help)
-        //         .set_file_path(file.path.clone())
-        //         .set_row_num_start(0)
-        //         .set_row_num_end(0)
-        //         .set_col_num_start(0)
-        //         .set_col_num_end(0)
-        //         .set_offset_start(0)
-        //         .set_offset_end(file.content.len())
-        //         .set_message(review.summary)
-        //         .build(),
-        // );
     }
     Ok(issues)
 }
@@ -78,25 +63,30 @@ pub async fn make_a_review(
                 }
                 issues.push(issue.build());
             }
-            issues.push(
-                common::CheckIssueBuilder::default()
-                    .set_category(common::IssueCategory::Review)
-                    .set_severity(common::IssueSeverity::Help)
-                    .set_file_path(file.path.clone())
-                    .set_row_num_start(0)
-                    .set_row_num_end(0)
-                    .set_col_num_start(0)
-                    .set_col_num_end(0)
-                    .set_offset_start(0)
-                    .set_offset_end(file.content.len())
-                    .set_message(review.summary)
-                    .build(),
-            );
+            // issues.push(
+            //     common::CheckIssueBuilder::default()
+            //         .set_category(common::IssueCategory::Review)
+            //         .set_severity(common::IssueSeverity::Help)
+            //         .set_file_path(file.path.clone())
+            //         .set_row_num_start(0)
+            //         .set_row_num_end(0)
+            //         .set_col_num_start(0)
+            //         .set_col_num_end(0)
+            //         .set_offset_start(0)
+            //         .set_offset_end(file.content.len())
+            //         .set_message(review.summary)
+            //         .build(),
+            // );
             Ok(issues)
         }
         Err(err) => {
-            log::error!("Error getting review from OpenAI:\n{:#?}", &err);
-            Err(err)
+            log::error!(
+                "Error getting review from OpenAI for file {:#?}, error:\n{:#?}",
+                &file,
+                &err
+            );
+            // TODO: return error
+            Ok(issues)
         }
     }
 }

@@ -16,14 +16,14 @@ pub struct OpenAIChoice {
     pub finish_reason: String,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, serde::Serialize, serde::Deserialize)]
 pub struct OpenAIUsage {
     pub prompt_tokens: i64,
     pub completion_tokens: i64,
     pub total_tokens: i64,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, serde::Serialize, serde::Deserialize)]
 pub struct OpenAIResponse {
     pub id: String,
     pub object: String,
@@ -34,7 +34,7 @@ pub struct OpenAIResponse {
     pub system_fingerprint: Option<String>,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct OpenAIReviewSuggestion {
     pub description: String,
     pub original: String,
@@ -42,7 +42,7 @@ pub struct OpenAIReviewSuggestion {
 }
 
 /// Represents review of the Markdown document provided by OpenAI
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, serde::Serialize, serde::Deserialize)]
 pub struct OpenAIReview {
     pub summary: String,
     pub suggestions: Vec<OpenAIReviewSuggestion>,
@@ -108,46 +108,62 @@ pub async fn open_ai_request(
     ai_role: &str,
     user_input: &str,
 ) -> Result<OpenAIResponse, OpenAIError> {
-    let request_data = OpenAIRequestData {
-        model: "gpt-3.5-turbo-1106".to_string(),
-        n: 1,
-        seed: 12345,
-        temperature: 0.1,
-        response_format: OpenAIRequestDataResponseFormat {
-            response_type: "json_object".to_string(),
-        },
-        messages: vec![
-            OpenAIRequestDataMessage {
-                role: "system".to_string(),
-                content: ai_role.to_string(),
+    let requests = user_input
+        .split("\n\n#")
+        .map(|chunk| {
+            let request_data = OpenAIRequestData {
+                model: "gpt-3.5-turbo-1106".to_string(),
+                n: 1,
+                seed: 12345,
+                temperature: 0.2,
+                response_format: OpenAIRequestDataResponseFormat {
+                    response_type: "json_object".to_string(),
+                },
+                messages: vec![
+                    OpenAIRequestDataMessage {
+                        role: "system".to_string(),
+                        content: ai_role.to_string(),
+                    },
+                    OpenAIRequestDataMessage {
+                        role: "user".to_string(),
+                        content: chunk.to_string(),
+                    },
+                ],
+            };
+            log::debug!("Sending OpenAI request with data:\n{:#?}", &request_data);
+            return reqwest::Client::new()
+                .post("https://api.openai.com/v1/chat/completions")
+                .bearer_auth(read_open_ai_api_key().unwrap())
+                .json(&request_data)
+                .send();
+        })
+        .collect::<Vec<_>>();
+
+    let mut open_ai_response: OpenAIResponse = OpenAIResponse::default();
+    for response in futures::future::join_all(requests).await {
+        match response {
+            Ok(response) => match &mut response.json::<OpenAIResponse>().await {
+                Ok(response) => {
+                    log::debug!("Got response from OpenAI:\n{:#?}", &response);
+                    open_ai_response.choices.append(&mut response.choices);
+                }
+                Err(err) => {
+                    log::error!("Error parsing response from OpenAI:{:#?}", &err);
+                    return Err(OpenAIError {
+                        message: "Error parsing response from OpenAI".to_string(),
+                    });
+                }
             },
-            OpenAIRequestDataMessage {
-                role: "user".to_string(),
-                content: user_input.to_string(),
-            },
-        ],
-    };
-    log::debug!("Sending OpenAI request with data:\n{:#?}", &request_data);
-    match reqwest::Client::new()
-        .post("https://api.openai.com/v1/chat/completions")
-        .bearer_auth(read_open_ai_api_key()?)
-        .json(&request_data)
-        .send()
-        .await
-    {
-        Ok(response) => {
-            log::debug!("HTTP response from OpenAI:\n{:#?}", &response);
-            let open_ai_response: OpenAIResponse = response.json().await.unwrap();
-            log::debug!("Response body from OpenAI:\n{:#?}", &open_ai_response);
-            Ok(open_ai_response)
-        }
-        Err(err) => {
-            log::error!("Error from OpenAI:\n{:#?}", &err);
-            Err(OpenAIError {
-                message: "Error sending request to the OpenAI".to_string(),
-            })
+            Err(err) => {
+                log::error!("Error sending request to OpenAI:{:#?}", &err);
+                // return Err(OpenAIError {
+                //     message: "Error sending request to OpenAI".to_string(),
+                // });
+            }
         }
     }
+
+    Ok(open_ai_response)
 }
 
 fn is_false_positive_review_suggestion(suggestion_description: &str) -> bool {
@@ -156,11 +172,12 @@ fn is_false_positive_review_suggestion(suggestion_description: &str) -> bool {
 
 /// Get a grammar correction suggestion from the Open AI.
 pub async fn get_open_ai_grammar_suggestion(text: &str) -> Result<OpenAIReview, OpenAIError> {
-    let role_prompt = "This is a Markdown document.
-Please check it for any grammatical errors and suggest corrections.
-Ignore any other potential issues like style or formatting.
+    let role_prompt = "This is a project documentation written in Markdown split by sections. 
+It includes various sections such as Introduction, Installation, Usage, API Reference, and more.
+Find all grammatical errors in it.
+Ignore text inside code blocks.
 The result must be in JSON. It shall have two properties - summary and suggestions.
-Suggestions is a list of suggestions that shows what is the problem, where it appear and how to fix that.
+Suggestions is a list of suggestions that shows where is the problem and provides grammatically correct replacement.
 Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary:
 {
     \"summary\": \"string\",
@@ -169,26 +186,26 @@ Provide your answer in JSON form. Reply with only the answer in JSON form and in
     ]
 }";
     return match open_ai_request(role_prompt, text).await {
-        Ok(response) => match response.choices.first() {
-            Some(choice) => match serde_json::from_str::<OpenAIReview>(&choice.message.content) {
-                Ok(review) => {
-                    log::debug!("Got a grammar review from OpenAI:\n{:#?}", &review);
-                    Ok(review)
-                }
-                Err(err) => {
-                    log::error!("Error parsing response from OpenAI:{:#?}", &err);
-                    Err(OpenAIError {
-                        message: "Error parsing response from OpenAI".to_string(),
-                    })
-                }
-            },
-            None => {
-                log::error!("OpenAI replied without suggestions:\n{:#?}", &response);
-                Err(OpenAIError {
-                    message: "OpenAI replied without suggestions".to_string(),
-                })
+        Ok(response) => {
+            match response
+                .choices
+                .iter()
+                .map(|choice| serde_json::from_str::<OpenAIReview>(&choice.message.content))
+                .take_while(|e| e.is_ok())
+                .map(|e| e.unwrap())
+                .reduce(|mut acc, r| {
+                    let mut review = OpenAIReview::default();
+                    review.summary = review.summary;
+                    review.suggestions.append(&mut r.suggestions.clone());
+                    review.suggestions.append(&mut acc.suggestions);
+                    review
+                }) {
+                Some(review) => Ok(review),
+                None => Err(OpenAIError {
+                    message: "OpenAI haven't provided any suggestion".to_string(),
+                }),
             }
-        },
+        }
         Err(err) => Err(err),
     };
 }
@@ -196,14 +213,12 @@ Provide your answer in JSON form. Reply with only the answer in JSON form and in
 /// Makes a review of provided markdown file with OpenAI.
 /// Returns string with suggestions.
 pub async fn get_open_ai_review(file: &common::MarkDownFile) -> Result<OpenAIReview, OpenAIError> {
-    let role_prompt = "You will be provided with project documentation in Markdown format.
-Your task it to review a text in it and provide suggestions for improvement. Ensure it meets high-quality standards.
-Provide detailed feedback on grammar, punctuation, sentence structure, consistency, clarity, readability, and overall coherence.
-Additionally, assess the use of active voice, appropriate word choice, and proper citation and referencing.
-Aim to enhance the audience perspective, conciseness, and effectiveness of the content.
-Additionally it must contain detailed summary of the review.
-Suggestions should describe example which fix could be sufficient.
-Replacement should provide example how this can be fixed.
+    let role_prompt = "This is a project documentation written in Markdown.
+It includes various sections such as Introduction, Installation, Usage, API Reference, and more.
+Please review it for any inconsistencies, inaccuracies, or areas that lack clarity.
+Ignore any other potential issues like style or formatting. 
+Include detailed summary of the review.
+Suggestions should describe example of the sufficient fix as a replacement.
 The resulting must be JSON. It shall have two properties - summary and suggestions.
 Suggestions is a list of suggestions that shows what is the problem, where it appear and how to fix that.
 Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary:
@@ -215,35 +230,35 @@ Provide your answer in JSON form. Reply with only the answer in JSON form and in
 }
 ";
     return match open_ai_request(role_prompt, &file.content).await {
-        Ok(response) => match response.choices.first() {
-            Some(choice) => match serde_json::from_str::<OpenAIReview>(&choice.message.content) {
-                Ok(review) => {
-                    log::debug!("Got a review from OpenAI:\n{:#?}", &review);
-                    Ok(OpenAIReview {
-                        summary: review.summary,
-                        suggestions: review
-                            .suggestions
-                            .into_iter()
-                            .filter(|suggestion| {
-                                !is_false_positive_review_suggestion(&suggestion.description)
-                            })
-                            .collect(),
-                    })
-                }
-                Err(err) => {
-                    log::error!("Error parsing response from OpenAI:{:#?}", &err);
-                    Err(OpenAIError {
-                        message: "Error parsing response from OpenAI".to_string(),
-                    })
-                }
-            },
-            None => {
-                log::error!("OpenAI replied without suggestions:\n{:#?}", &response);
-                Err(OpenAIError {
-                    message: "OpenAI replied without suggestions".to_string(),
-                })
+        Ok(response) => {
+            match response
+                .choices
+                .iter()
+                .map(|choice| serde_json::from_str::<OpenAIReview>(&choice.message.content))
+                .take_while(|e| e.is_ok())
+                .map(|e| e.unwrap())
+                .reduce(|mut acc, r| {
+                    let mut review = OpenAIReview::default();
+                    review.summary = review.summary;
+                    review.suggestions.append(&mut r.suggestions.clone());
+                    review.suggestions.append(&mut acc.suggestions);
+                    review
+                }) {
+                Some(review) => Ok(OpenAIReview {
+                    summary: review.summary,
+                    suggestions: review
+                        .suggestions
+                        .into_iter()
+                        .filter(|suggestion| {
+                            !is_false_positive_review_suggestion(&suggestion.description)
+                        })
+                        .collect(),
+                }),
+                None => Err(OpenAIError {
+                    message: "OpenAI haven't provided any suggestion".to_string(),
+                }),
             }
-        },
+        }
         Err(err) => Err(err),
     };
 }

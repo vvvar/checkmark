@@ -9,6 +9,7 @@ fn tmp_dir(uri: &str) -> std::path::PathBuf {
         log::debug!("Directory {:#?} already exists, removing", &path);
         std::fs::remove_dir_all(&path).unwrap();
     }
+    std::fs::create_dir_all(&path).unwrap();
     path
 }
 
