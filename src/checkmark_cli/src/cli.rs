@@ -93,6 +93,10 @@ pub struct Cli {
     #[arg(global = true, long, required = false, action)]
     pub verbose: bool,
 
+    /// Ignore LICENSE.md file, if present
+    #[arg(global = true, long, required = false, action)]
+    pub ignore_license: bool,
+
     /// CI Mode: Turns off interactive prompts and outputs report in a format suitable for CI/CD pipelines
     #[arg(global = true, long, required = false, action)]
     pub ci: bool,

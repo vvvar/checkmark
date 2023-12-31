@@ -18,7 +18,7 @@ fn tmp_dir(uri: &str) -> std::path::PathBuf {
 ///     1. path to a file - will just add this file to the list
 ///     2. path to a dir - will lookup all markdown files in this ir
 ///     3. remote URL
-pub async fn ls(path: &str) -> Vec<common::MarkDownFile> {
+pub async fn ls(path: &str, ignore_license: bool) -> Vec<common::MarkDownFile> {
     log::debug!("Listing Markdown files in: {:#?}", &path);
 
     let mut input_path = path.to_owned();
@@ -144,6 +144,14 @@ pub async fn ls(path: &str) -> Vec<common::MarkDownFile> {
             }),
             Err(_) => warn!("Unable to read file content. Make sure file has correct permissions"),
         }
+    }
+
+    // Filter LICENSE.md file if requested
+    if ignore_license {
+        markdown_files = markdown_files
+            .into_iter()
+            .filter(|markdown_file| !markdown_file.path.ends_with("LICENSE.md"))
+            .collect();
     }
 
     markdown_files

@@ -32,7 +32,7 @@ async fn main() -> Result<(), errors::AppError> {
     let config = config::read_config(&cli);
 
     // Read all MD files
-    let mut files = checkmark_ls::ls(&cli.project_root).await;
+    let mut files = checkmark_ls::ls(&cli.project_root, cli.ignore_license).await;
 
     // Create TUI
     let tui = tui::CheckProgressTUI::new_thread_safe(cli.ci);
