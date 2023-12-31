@@ -10,30 +10,3 @@ members = [
     "src/common",
 ]
 resolver = "2"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-# [dependencies]
-
-# js-sandbox = "0.2.0-rc.2"
-# lychee-lib = "0.13.0"
-
-# anyhow = "1.0.75"
-# secrecy = "0.8.0"
-# serde = "1.0.188"
-# strum = "0.25.0"
-# async-std = "1.12.0"
-# 
-# reqwest = { version = "0.11.22", features = ["json"] }
-# serde_json = "1.0.107"
-# markdown_to_text = "1.0.0"
-# pathdiff = "0.2.1"
-# symspell = { git = "https://github.com/vvvar/symspell.git", branch = "no_print_progress" }
-# wildmatch = "2.1.1"
-# assert_cmd = "2.0.12"
-# predicates = "3.0.4"
-# 
-# 
-# 
-# 
-

@@ -380,3 +380,27 @@ pub fn find_index(source: &str, sub_str: &str) -> core::ops::Range<usize> {
         end: index_end,
     }
 }
+
+/// Find offset of symbol in text by line number
+/// text - input text
+/// line_number - line number to find offset for. Starts at 1
+/// returns offset of the line relative to the beginning of the text
+pub fn find_offset_by_line_number(text: &str, line_number: usize) -> usize {
+    let mut pos: usize = 0;
+    for (i, line) in text.lines().enumerate() {
+        if i < line_number {
+            pos += line.len();
+            pos += 1;
+            continue;
+        } else {
+            break;
+        }
+    }
+    return pos;
+}
+
+/// Force activate debug logging
+pub fn activate_debug_logging() {
+    std::env::set_var("RUST_LOG", "debug");
+    if let Ok(_) = env_logger::try_init() {}
+}

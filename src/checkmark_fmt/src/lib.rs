@@ -129,6 +129,13 @@ fn to_md(
                 } else {
                     buffer.push_str(&format!("{} ", options.list_sign_style.as_str()));
                 }
+                match li.checked {
+                    Some(is_checked) => match is_checked {
+                        true => buffer.push_str("[x] "),
+                        false => buffer.push_str("[ ] "),
+                    },
+                    _ => {}
+                }
                 for child in &li.children {
                     // When there's 2+ paragraphs in a list item
                     // then we want to align then with list
@@ -168,6 +175,19 @@ fn to_md(
                 Context::BlockQuote(_) => buffer.push_str(
                     &format!("```{}\n{}\n```\n", syntax_highlight, c.value,).replace('\n', "\n> "),
                 ),
+                Context::List(ctx) => {
+                    // Add horizontal padding to align code block with list
+                    let padding_left = if ctx.is_ordered {
+                        format!("\n{}", "    ".repeat(ctx.nesting_level + 1))
+                    } else {
+                        format!("\n{}", "   ".repeat(ctx.nesting_level + 1))
+                    };
+                    let mut code_block = format!("\n```{}\n{}\n```\n", syntax_highlight, c.value);
+                    code_block = code_block.replace('\n', &padding_left);
+                    code_block = remove_trailing_newline_and_space(&code_block);
+                    code_block.push('\n');
+                    buffer.push_str(&code_block);
+                }
                 _ => buffer.push_str(&format!("```{}\n{}\n```\n", syntax_highlight, c.value)),
             }
         }
@@ -309,26 +329,48 @@ fn to_md(
         }
         Node::Html(h) => {
             buffer.push_str(&h.value);
+            if is_surrounded_with_newline(h, source) {
+                buffer.push('\n');
+            }
         }
         Node::ImageReference(ir) => {
             buffer.push_str(&format!("![{}][{}]", ir.alt, ir.identifier));
         }
         Node::Definition(d) => {
-            buffer.push_str(&format!("[{}]: {}", d.identifier, d.url));
+            if let Some(label) = &d.label {
+                buffer.push_str(&format!("[{}]: {}", label, d.url));
+            } else {
+                buffer.push_str(&format!("[{}]: {}", d.identifier, d.url));
+            }
             if let Some(title) = &d.title {
                 buffer.push_str(&format!(" \"{}\"", &title));
             }
         }
         Node::LinkReference(lr) => {
-            buffer.push_str(&format!("[^{}]", &lr.identifier));
+            buffer.push('[');
+            for child in &lr.children {
+                match child {
+                    Node::Text(_) => to_md(child, buffer, context, source, options),
+                    Node::Link(l) => {
+                        buffer.push_str(&l.url);
+                    }
+                    _ => to_md(child, buffer, context, source, options),
+                }
+            }
+            buffer.push(']');
+            if let Some(label) = &lr.label {
+                buffer.push_str(&format!("[{}]", &label));
+            } else {
+                buffer.push_str(&format!("[{}]", &lr.identifier));
+            }
         }
-        Node::FootnoteReference(f) => {
-            buffer.push_str(&format!("[^{}]", &f.identifier));
+        Node::FootnoteReference(fr) => {
+            buffer.push_str(&format!("[^{}]", &fr.identifier));
         }
-        Node::FootnoteDefinition(f) => {
-            buffer.push_str(&format!("[^{}]: ", &f.identifier));
-            for child in &f.children {
-                if child == f.children.first().unwrap() {
+        Node::FootnoteDefinition(fd) => {
+            buffer.push_str(&format!("[^{}]: ", &fd.identifier));
+            for child in &fd.children {
+                if child == fd.children.first().unwrap() {
                     to_md(child, buffer, context, source, options);
                 } else {
                     let mut tmp_buffer = String::from("");

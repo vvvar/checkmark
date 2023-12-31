@@ -4,7 +4,8 @@
         "marklint",
         "reqwest",
         "sorensen",
-        "strsim"
+        "strsim",
+        "mdast"
     ],
     "rust-analyzer.linkedProjects": [
         "./Cargo.toml"

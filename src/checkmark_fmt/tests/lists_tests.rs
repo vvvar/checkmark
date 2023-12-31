@@ -3,22 +3,22 @@ mod utils;
 /// Check that valid single level list preserved
 #[test]
 fn single_level_list_preserved() {
-    utils::assert_unchanged_after_formatting("+ First\n+ Second\n+ Third\n");
+    utils::assert_unchanged_after_formatting("- First\n- Second\n- Third\n");
 }
 
 /// Check that valid single level list preserved
 #[test]
 fn consequent_double_level_list_preserved() {
     utils::assert_unchanged_after_formatting(
-        "+ First
-  + First_One
-  + First_Two
-+ Second
-  + Second_One
-  + Second_Two
-  + Second_Three
-+ Third
-  + Third_One
+        "- First
+  - First_One
+  - First_Two
+- Second
+  - Second_One
+  - Second_Two
+  - Second_Three
+- Third
+  - Third_One
 ",
     );
 }
@@ -28,17 +28,17 @@ fn consequent_double_level_list_preserved() {
 #[test]
 fn consequent_spread_nested_lists_preserved() {
     utils::assert_unchanged_after_formatting(
-        "+ First
-  + FirstOne
-  + FirstTwo
+        "- First
+  - FirstOne
+  - FirstTwo
 
-+ Second
-  + SecondOne
-  + SecondTwo
-  + SecondThree
+- Second
+  - SecondOne
+  - SecondTwo
+  - SecondThree
 
-+ Third
-  + ThirdOne
+- Third
+  - ThirdOne
 ",
     );
 }
@@ -101,8 +101,8 @@ fn mix_ordered_list_with_unordered() {
         "1. One
 2. Two
 
-+ Three
-+ Four
+- Three
+- Four
 ",
     );
 }
@@ -122,14 +122,14 @@ fn list_with_multiple_paragraphs() {
 #[test]
 fn list_with_multiple_text_lines() {
     utils::assert_changed_after_formatting(
-        "+ __[pica](https://nodeca.github.io/pica/demo/)__ - high quality and fast image
+        "- __[pica](https://nodeca.github.io/pica/demo/)__ - high quality and fast image
   resize in browser.
-+ __[babelfish](https://github.com/nodeca/babelfish/)__ - developer friendly
+- __[babelfish](https://github.com/nodeca/babelfish/)__ - developer friendly
   i18n with plurals support and easy syntax.
 ",
-        "+ **[pica](https://nodeca.github.io/pica/demo/)** - high quality and fast image
+        "- **[pica](https://nodeca.github.io/pica/demo/)** - high quality and fast image
   resize in browser.
-+ **[babelfish](https://github.com/nodeca/babelfish/)** - developer friendly
+- **[babelfish](https://github.com/nodeca/babelfish/)** - developer friendly
   i18n with plurals support and easy syntax.
 ",
     );
@@ -138,8 +138,88 @@ fn list_with_multiple_text_lines() {
 #[test]
 fn list_with_two_items_and_code_like_character() {
     utils::assert_unchanged_after_formatting(
-        "+ `one
-+ two`
+        "- `one
+- two`
+",
+    );
+}
+
+#[test]
+fn code_in_list() {
+    // Ordered
+    utils::assert_unchanged_after_formatting(
+        "1. List item with code block associated with it:
+
+    ```javascript
+    console.log('hello world');
+    ```
+",
+    );
+
+    utils::assert_unchanged_after_formatting(
+        "1. List item with code block NOT associated with it:
+
+```javascript
+console.log('hello world');
+```
+",
+    );
+    utils::assert_unchanged_after_formatting(
+        "1. One:
+
+    ```javascript
+    console.log('hello world');
+    ```
+
+2. Two:
+
+    ```javascript
+    console.log('hello world');
+    ```
+",
+    );
+
+    // Unordered
+    utils::assert_unchanged_after_formatting(
+        "- List item with code block associated with it:
+
+   ```javascript
+   console.log('hello world');
+   ```
+",
+    );
+    utils::assert_unchanged_after_formatting(
+        "- List item with code block NOT associated with it:
+
+```javascript
+console.log('hello world');
+```
+",
+    );
+    utils::assert_unchanged_after_formatting(
+        "- One:
+
+   ```javascript
+   console.log('hello world');
+   ```
+
+- Two:
+
+   ```javascript
+   console.log('hello world');
+   ```
+",
+    );
+}
+
+#[test]
+fn list_with_checkboxes() {
+    utils::assert_unchanged_after_formatting(
+        "# List with checkboxes
+
+- [ ] Port remaining [markdownlint](https://github.com/DavidAnson/markdownlint) rules
+- [ ] Provide a package via crates.io
+- [ ] Provide pre-built packages via `brew`, `choco` and `apt`
 ",
     );
 }

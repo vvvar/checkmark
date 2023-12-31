@@ -3,6 +3,7 @@ mod config;
 mod errors;
 mod tui;
 
+use colored::Colorize;
 use rayon::prelude::*;
 
 fn has_any_critical_issue(files: &Vec<common::MarkDownFile>) -> bool {
@@ -32,7 +33,7 @@ async fn main() -> Result<(), errors::AppError> {
     let config = config::read_config(&cli);
 
     // Read all MD files
-    let mut files = checkmark_ls::ls(&cli.project_root, cli.ignore_license).await;
+    let mut files = checkmark_ls::ls(&cli.project_root, &config.global.exclude).await;
 
     // Create TUI
     let tui = tui::CheckProgressTUI::new_thread_safe(cli.ci);
@@ -50,30 +51,60 @@ async fn main() -> Result<(), errors::AppError> {
             }
             false => {
                 tui.lock().unwrap().start_spinner("Auto-formatting...");
+                tui.lock().unwrap().set_custom_finish_message(
+                    &"ʕっ•ᴥ•ʔっ All files has been auto-formatted"
+                        .cyan()
+                        .bold()
+                        .to_string(),
+                );
                 files.par_iter_mut().for_each(|file| {
                     std::fs::write(&file.path, checkmark_fmt::fmt_markdown(file).content).unwrap();
                     tui.lock().unwrap().print_file_check_status(file);
                 });
             }
         },
-        cli::Subcommands::Grammar(_) => {
-            tui.lock().unwrap().start_spinner("Checking grammar...");
-            for file in files.iter_mut() {
-                file.issues
-                    .append(&mut checkmark_open_ai::check_grammar(file).await.unwrap());
-                tui.lock().unwrap().print_file_check_status(file);
-            }
-        }
         cli::Subcommands::Review(_) => {
             tui.lock().unwrap().start_spinner("Reviewing...");
             for file in files.iter_mut() {
                 file.issues.append(
-                    &mut checkmark_open_ai::make_a_review(file, !config.review.no_suggestions)
-                        .await
-                        .unwrap(),
+                    &mut checkmark_open_ai::make_a_review(
+                        file,
+                        !config.review.no_suggestions,
+                        &config.review.prompt,
+                    )
+                    .await
+                    .unwrap(),
                 );
                 tui.lock().unwrap().print_file_check_status(file);
             }
+        }
+        cli::Subcommands::Compose(compose_cmd) => {
+            tui.lock().unwrap().start_spinner("Composing...");
+            let output_file = match &compose_cmd.output {
+                Some(path) => path.clone(),
+                None => "output.md".to_string(),
+            };
+            let context = match &compose_cmd.context {
+                Some(path) => Some(std::fs::read_to_string(path).unwrap()),
+                None => None,
+            };
+            tui.lock().unwrap().set_custom_finish_message(
+                &"ʕっ•ᴥ•ʔっ Open a file to review the result"
+                    .cyan()
+                    .bold()
+                    .to_string(),
+            );
+            let text = checkmark_open_ai::compose_markdown(&compose_cmd.prompt, &context)
+                .await
+                .unwrap();
+            std::fs::write(&output_file, &text).unwrap();
+            tui.lock()
+                .unwrap()
+                .print_file_check_status(&common::MarkDownFile {
+                    path: output_file,
+                    content: text,
+                    issues: vec![],
+                });
         }
         cli::Subcommands::Links(_) => {
             tui.lock().unwrap().start_spinner("Checking links...");
@@ -82,6 +113,13 @@ async fn main() -> Result<(), errors::AppError> {
                     .await;
                 tui.lock().unwrap().print_file_check_status(file);
             }
+        }
+        cli::Subcommands::Lint(_) => {
+            tui.lock().unwrap().start_spinner("Linting...");
+            files.par_iter_mut().for_each(|file| {
+                file.issues.append(&mut checkmark_lint::lint(file));
+                tui.lock().unwrap().print_file_check_status(file);
+            });
         }
         cli::Subcommands::Spelling(_) => {
             tui.lock().unwrap().start_spinner("Checking spelling...");

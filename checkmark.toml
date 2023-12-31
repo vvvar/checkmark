@@ -1,3 +1,11 @@
+[global]
+exclude = [
+    "*LICENSE*",
+    "*/.github/*",
+    "*/tests/*",
+    "*/src/*",
+]
+
 [link_checker]
 # List of glob patterns to ignore when checking links
 ignore_wildcards = [
@@ -8,6 +16,7 @@ ignore_wildcards = [
 [review]
 # When true, the review will be printed without fix suggestions
 no_suggestions=false
+# prompt="Make a grammar review"
 
 [spelling]
 # List of words to ignore while spell checking

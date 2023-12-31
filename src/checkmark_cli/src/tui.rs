@@ -7,6 +7,7 @@ pub struct CheckProgressTUI {
     ci_mode: bool,
     had_any_issue: bool,
     spinner: Option<spinners::Spinner>,
+    custom_finish_message: Option<String>,
 }
 
 impl Drop for CheckProgressTUI {
@@ -21,7 +22,12 @@ impl CheckProgressTUI {
             ci_mode,
             had_any_issue: false,
             spinner: None,
+            custom_finish_message: None,
         }
+    }
+
+    pub fn set_custom_finish_message(&mut self, message: &str) {
+        self.custom_finish_message = Some(message.to_string());
     }
 
     pub fn new_thread_safe(ci_mode: bool) -> std::sync::Arc<std::sync::Mutex<Self>> {
@@ -39,17 +45,20 @@ impl CheckProgressTUI {
     }
 
     pub fn finish_spinner(&mut self) {
-        let message = match self.had_any_issue {
-            true => format!(
+        let message = if self.custom_finish_message.is_some() {
+            self.custom_finish_message.take().unwrap()
+        } else if self.had_any_issue {
+            format!(
                 "{}: {}",
                 "Check finished".cyan().bold(),
                 "✗ Issues detected. See report above".red().bold()
-            ),
-            false => format!(
+            )
+        } else {
+            format!(
                 "{}: {}",
                 "Check finished".cyan().bold(),
                 "✓ No issues detected".green().bold()
-            ),
+            )
         };
         if let Some(spinner) = &mut self.spinner {
             spinner.stop_with_message(message);

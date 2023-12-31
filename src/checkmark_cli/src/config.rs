@@ -1,6 +1,9 @@
 #[derive(Debug, Default, serde::Deserialize)]
 pub struct Config {
     #[serde(default)]
+    pub global: GlobalConfig,
+
+    #[serde(default)]
     pub review: ReviewConfig,
 
     #[serde(default)]
@@ -32,9 +35,21 @@ impl Config {
 }
 
 #[derive(Debug, Default, serde::Deserialize)]
+pub struct GlobalConfig {
+    #[serde(default)]
+    pub exclude: Vec<String>,
+
+    #[serde(default)]
+    pub exclude_license: bool,
+}
+
+#[derive(Debug, Default, serde::Deserialize)]
 pub struct ReviewConfig {
     #[serde(default)]
     pub no_suggestions: bool,
+
+    #[serde(default)]
+    pub prompt: Option<String>,
 }
 
 #[derive(Debug, Default, serde::Deserialize)]
@@ -97,16 +112,23 @@ pub fn read_config(cli: &crate::cli::Cli) -> Config {
     log::debug!("Merging config with CLI options...");
     match &cli.subcommands {
         crate::cli::Subcommands::Fmt(_) => {}
-        crate::cli::Subcommands::Grammar(_) => {}
         crate::cli::Subcommands::Links(links) => {
             if !links.ignore_wildcards.is_empty() {
                 config.link_checker.ignore_wildcards = links.ignore_wildcards.clone();
             }
         }
+        crate::cli::Subcommands::Lint(_) => {}
         crate::cli::Subcommands::Review(review) => {
             config.review.no_suggestions = review.no_suggestions;
+            if let Some(prompt) = &review.prompt {
+                config.review.prompt = Some(prompt.clone());
+            }
         }
+        crate::cli::Subcommands::Compose(_) => {}
         crate::cli::Subcommands::Spelling(_) => {}
+    }
+    if !cli.exclude.is_empty() {
+        config.global.exclude = cli.exclude.clone();
     }
     log::debug!("Config after merging with CLI: {:#?}", &config);
 

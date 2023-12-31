@@ -2,4 +2,5 @@
 /target
 .env
 report.sarif
+output.md
 *.zip

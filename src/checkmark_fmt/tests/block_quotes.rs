@@ -23,8 +23,8 @@ fn block_quote() {
         "> This is a main quote
 > And this is a list in it:
 >
-> + One
-> + Two
+> - One
+> - Two
 ",
     );
 
@@ -32,13 +32,13 @@ fn block_quote() {
         "> This is a main quote
 > And this is a list in it:
 >
-> + One
-> + Two
+> - One
+> - Two
 ",
     );
 
     utils::assert_unchanged_after_formatting(
-        "+ A list item with a blockquote:
+        "- A list item with a blockquote:
   > This is a blockquote
   > inside a list item.
 ",
@@ -88,8 +88,8 @@ fn block_quote_with_list_and_nested_block_quote() {
     utils::assert_unchanged_after_formatting(
         "> This is a block quote with a list:
 >
-> + List item 1
-> + List item 2
+> - List item 1
+> - List item 2
 >
 > > And this is a nested block quote.
 ",

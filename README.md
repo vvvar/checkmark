@@ -1,58 +1,77 @@
 # Checkmark
 
-Checkmark is a Command Line Interface (CLI) tool that helps maintain high-quality Markdown documentation. It checks for formatting, grammatical, and spelling errors, as well as broken links.
+Checkmark is a CLI tool designed to streamline your Markdown workflow. It provides a suite of features including auto-formatting, linting, AI-powered document review, link checking, spell checking, and AI-assisted document composition.
 
 ## Features
 
-+ **Formatting**: Checks and corrects Markdown file formatting.
-+ **Grammar**: Checks the document for grammatical errors. Requires internet connection and OPEN_AI_API_KEY environment variable (.dotenv file is supported).
-+ **Review**: Reviews the document using OpenAI's API. Requires internet connection and OPEN_AI_API_KEY environment variable (.dotenv file is supported).
-+ **Links**: Checks the document for broken links (both web and local).
-+ **Spelling**: Checks the document for spelling errors.
+Checkmark offers a range of commands to help maintain high-quality Markdown documentation:
+
+- **fmt**: Auto-formats all Markdown files in the project, fixing common formatting issues such as trailing whitespace and inconsistent line endings.
+- **links**: Check broken links in your documents, covering both web and local file links.
+- **lint**: Runs a linter (port of [markdownlint](https://github.com/DavidAnson/markdownlint), see [Roadmap](#roadmap) section for details) to ensure your Markdown files adhere to best practices.
+- **review**: Uses OpenAI's API to review your documents, providing AI-powered insights and suggestions. Requires OpenAI API key.
+- **compose**: Assists in composing new Markdown documents from a prompt in a context of an existing document. Powered by OpenAI. Requires OpenAI API key.
+- **spelling**: Check your documents for spelling errors.
+- **CI mode**: Turns off interactive prompts and outputs reports in a format suitable for CI/CD pipelines.
 
 ## Installation
 
-Provide instructions on how to install your tool here.
+Make sure you install the latest [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) version. Next, run the following command:
+
+```bash
+cargo install --git https://github.com/vvvar/checkmark.git
+```
+
+> **NOTE**: Pre-built as well as installation from crates.io is planned. See [Roadmap](#roadmap) section for details.
 
 ## Usage
 
-```bash
-checkmark [OPTIONS] [PROJECT_ROOT] <COMMAND>
-```
+Checkmark is a set of tools. Each tool has its command. Tools are:
 
-## Commands
+- `fmt` - Opinionated auto-formatter and format checker.
+- `links` - Link checker. Finds broken hyperlinks and mail addresses.
+- `lint` - Port of [markdownlint](https://github.com/DavidAnson/markdownlint).
+- `review` - AI review assistant. Reviews your documents using OpenAI's API to highlight areas that could be improved. Requires an internet connection and the OPEN_AI_API_KEY environment variable (supports .env file).
+- `compose` - AI Markdown document generator. Generates a Markdown document based on user prompts and an optional context file. Requires an internet connection and the OPEN_AI_API_KEY environment variable (supports .env file).
+- `spelling` - Spell checker.
 
-+ `fmt`: The `fmt` command is a tool for checking and correcting Markdown file formatting. It ensures that your Markdown files adhere to a consistent style, making them easier to read and maintain. This command can automatically fix many common formatting issues, such as inconsistent indentation, incorrect header levels, and improperly formatted lists.
-+ `grammar`: The `grammar` command checks the document for grammatical errors. It uses OpenAI's API to provide advanced grammar checking, helping to ensure that your documentation is clear and professional. This command requires an internet connection and the OPEN_AI_API_KEY environment variable (.dotenv file is supported). Note that this command may not catch all grammatical errors, especially in complex sentences.
-+ `review`: The `review` command reviews the document using OpenAI's API. It provides a high-level review of your documentation, helping to catch issues that other checks might miss. This command requires an internet connection and the OPEN_AI_API_KEY environment variable (.dotenv file is supported). The review command can provide suggestions for improving the clarity, conciseness, and tone of your documentation.
-  + `-l, --language <LANGUAGE>`: Specifies the language to use for the review. Defaults to 'en' (English). This option is available with the `review` command.
-+ `links`: The `links` command checks the document for broken links. It checks both web and local links, ensuring that your documentation is reliable and accurate. This command can catch both 404 errors from web links and broken relative links in your local project. Note that checking web links requires an internet connection.
-+ `spelling`: The `spelling` command checks the document for spelling errors. It helps to catch and correct spelling mistakes, improving the quality of your documentation. This command uses a built-in dictionary to check words, and it can suggest corrections for misspelled words.
-  + `-d, --dictionary <FILE_PATH>`: Specifies the path to a custom dictionary file. This allows you to add your own words that are not in the built-in dictionary. This option is available with the `spelling` command.
-
-## Arguments
-
-+ `[PROJECT_ROOT]`: Specifies the root directory of your project, a single file, or a web URL. This is where the tool will start scanning for Markdown files. If a single file or a web URL is specified, only that will be scanned. Defaults to the current directory.
-
-## Options
-
-+ `-s, --sarif [<FILE_PATH>]`: Outputs the report to a specified file in SARIF format. This is useful for integrating with other tools that can process SARIF. If no file is specified, the report will be saved to './report.sarif'. This option is available with all commands.
-+ `-c, --config <FILE_PATH>`: Specifies the path to the configuration file. This allows you to customize the behavior of the tool. If this is set, configuration files in default locations will be ignored. This option is available with all commands.
-+ `-v, --verbose`: Enable verbose logging. This will output more detailed information about what the tool is doing, which can be helpful for debugging. This option is available with all commands.
-+ `-h, --help`: Print help. This option is available with all commands.
-+ `-V, --version`: Print version. This option is available with all commands.
-
-## Examples
+Full list of commands can be displayed by running:
 
 ```bash
-checkmark -v . fmt
-checkmark --config myconfig.toml . review
+$ checkmark --help
+
+A CLI tool that helps maintain high-quality Markdown documentation by checking for formatting, grammatical, and spelling errors, as well as broken links
+
+Usage: checkmark [OPTIONS] [PROJECT_ROOT] <COMMAND>
+
+Commands:
+  fmt       Formats all Markdown files in the project. This will fix common formatting issues such as trailing whitespace, inconsistent line endings, and more
+  links     Checks the document for broken links(both web and local)
+  lint      Run linter
+  review    Reviews the document using OpenAI's API. Requires internet connection and OPEN_AI_API_KEY environment variable(.dotenv file is supported)
+  compose   Compose a file in Markdown format from a prompt
+  spelling  Checks the document for spelling errors(offline)
+  help      Print this message or the help of the given subcommand(s)
+
+Arguments:
+  [PROJECT_ROOT]  Sets the project root, file, or web URL for scanning Markdown files. Can also accept a Git repository. Defaults to the current directory if not specified [default: .]
+
+Options:
+      --exclude <EXCLUDE>...  List of files(wildcards) to exclude from scanning
+  -c, --config <FILE_PATH>    Sets the configuration file path. Overrides default files if set
+      --ci                    CI Mode: Turns off interactive prompts and outputs report in a format suitable for CI/CD pipelines
+      --sarif [<FILE_PATH>]   Saves the report in SARIF format to a given file or defaults to './report.sarif' if no file is specified
+      --verbose               Verbose logging: Provides detailed tool activity, useful for debugging
+  -h, --help                  Print help
+  -V, --version               Print version
 ```
+
+## Roadmap
+
+- [ ] Port remaining markdownlint rules
+- [ ] Provide a package via crates.io
+- [ ] Provide pre-built packages via `brew`, `choco` and `apt`
 
 ## Contributing
 
-Provide instructions on how to contribute to your project here.
-
-## License
-
-Provide information about your project's license here.
+See [CONTRIBUTING.md](./CONTRIBUTING.md).

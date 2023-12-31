@@ -1,260 +1,76 @@
-use markdown::mdast;
-use markdown::mdast::Node;
+mod md001_heading_level_should_increment_by_one_level_at_time;
+mod md003_heading_style;
+mod md004_unordered_list_style;
+mod md005_consistent_list_items_indentation;
+mod md007_unordered_list_identation;
+mod md009_trailing_spaces;
+mod md010_hard_tabs;
+mod md011_reversed_link_syntax;
+mod md012_multiple_blank_lines;
+mod md022_headings_should_be_surrounded_by_blank_lines;
+mod md028_blank_line_inside_block_quote;
+mod md033_inline_html;
+mod md046_code_block_style;
+mod md051_link_fragments_should_be_valid;
+mod violation;
 
-// Document shall start with H1
-// Document shall have sequent headers
-
-fn starts_with_header(node: &mdast::Node) -> bool {
-    match node {
-        Node::Root(r) => {
-            if let Some(Node::Heading(h)) = r.children.first() {
-                h.depth == 1
-            } else {
-                false
-            }
-        }
-        _ => false,
-    }
-}
-
-fn extract_headings(node: &mdast::Node, headings: &mut Vec<mdast::Heading>) {
-    match node {
-        Node::Root(r) => {
-            for child in &r.children {
-                extract_headings(child, headings);
-            }
-        }
-        Node::Heading(heading) => {
-            headings.push(heading.clone());
-            for child in &heading.children {
-                extract_headings(child, headings);
-            }
-        }
-        Node::Text(_) => {
-            // End of tree
-        }
-        Node::Paragraph(p) => {
-            for child in &p.children {
-                extract_headings(child, headings);
-            }
-        }
-        Node::List(l) => {
-            for child in &l.children {
-                extract_headings(child, headings);
-            }
-        }
-        Node::ListItem(li) => {
-            for child in &li.children {
-                extract_headings(child, headings);
-            }
-        }
-        Node::Code(_) => {
-            // End of tree
-        }
-        Node::InlineCode(_) => {
-            // End of tree
-        }
-        Node::Emphasis(e) => {
-            for child in &e.children {
-                extract_headings(child, headings);
-            }
-        }
-        Node::Strong(s) => {
-            for child in &s.children {
-                extract_headings(child, headings);
-            }
-        }
-        Node::Delete(d) => {
-            for child in &d.children {
-                extract_headings(child, headings);
-            }
-        }
-        Node::Break(_) => {
-            // End of tree
-        }
-        Node::Link(l) => {
-            for child in &l.children {
-                extract_headings(child, headings);
-            }
-        }
-        Node::Image(_) => {
-            // End of tree
-        }
-        Node::BlockQuote(b) => {
-            for child in &b.children {
-                extract_headings(child, headings);
-            }
-        }
-        Node::ThematicBreak(_) => {
-            // End of tree
-        }
-        Node::Html(_) => {
-            // End of tree
-        }
-        Node::ImageReference(_) => {
-            // End of tree
-        }
-        Node::Definition(_) => {
-            // End of tree
-        }
-        Node::LinkReference(_) => {
-            // End of tree
-        }
-        Node::FootnoteReference(_) => {
-            // End of tree
-        }
-        Node::FootnoteDefinition(f) => {
-            for child in &f.children {
-                extract_headings(child, headings);
-            }
-        }
-        Node::Table(t) => {
-            for child in &t.children {
-                extract_headings(child, headings);
-            }
-        }
-        Node::TableCell(tc) => {
-            for child in &tc.children {
-                extract_headings(child, headings);
-            }
-        }
-        Node::TableRow(tr) => {
-            for child in &tr.children {
-                extract_headings(child, headings);
-            }
-        }
-        _ => panic!("Unexpected node type {node:#?}"),
-    }
-}
-
-fn has_consequent_headers(node: &mdast::Node) -> bool {
-    let mut headings: Vec<mdast::Heading> = vec![];
-    extract_headings(node, &mut headings);
-    let mut last_heading_level = 0;
-    for heading in headings {
-        if heading.depth >= last_heading_level {
-            last_heading_level = heading.depth;
-        } else {
-            return false;
-        }
-    }
-    true
-}
-
-fn lint_md_ast(node: &mdast::Node, _is_in_block_quote: bool) {
-    match node {
-        Node::Root(r) => {
-            for child in &r.children {
-                lint_md_ast(child, _is_in_block_quote);
-            }
-        }
-        Node::Heading(heading) => {
-            for child in &heading.children {
-                lint_md_ast(child, _is_in_block_quote);
-            }
-        }
-        Node::Text(_) => {
-            // End of tree
-        }
-        Node::Paragraph(p) => {
-            for child in &p.children {
-                lint_md_ast(child, _is_in_block_quote);
-            }
-        }
-        Node::List(l) => {
-            for child in &l.children {
-                lint_md_ast(child, _is_in_block_quote);
-            }
-        }
-        Node::ListItem(li) => {
-            for child in &li.children {
-                lint_md_ast(child, _is_in_block_quote);
-            }
-        }
-        Node::Code(_) => {
-            // End of tree
-        }
-        Node::InlineCode(_) => {
-            // End of tree
-        }
-        Node::Emphasis(e) => {
-            for child in &e.children {
-                lint_md_ast(child, _is_in_block_quote);
-            }
-        }
-        Node::Strong(s) => {
-            for child in &s.children {
-                lint_md_ast(child, _is_in_block_quote);
-            }
-        }
-        Node::Delete(d) => {
-            for child in &d.children {
-                lint_md_ast(child, _is_in_block_quote);
-            }
-        }
-        Node::Break(_) => {
-            // End of tree
-        }
-        Node::Link(l) => {
-            for child in &l.children {
-                lint_md_ast(child, _is_in_block_quote);
-            }
-        }
-        Node::Image(_) => {
-            // End of tree
-        }
-        Node::BlockQuote(b) => {
-            for child in &b.children {
-                lint_md_ast(child, true);
-            }
-        }
-        Node::ThematicBreak(_) => {
-            // End of tree
-        }
-        Node::Html(_) => {
-            // End of tree
-        }
-        Node::ImageReference(_) => {
-            // End of tree
-        }
-        Node::Definition(_) => {
-            // End of tree
-        }
-        Node::LinkReference(_) => {
-            // End of tree
-        }
-        Node::FootnoteReference(_) => {
-            // End of tree
-        }
-        Node::FootnoteDefinition(f) => {
-            for child in &f.children {
-                lint_md_ast(child, _is_in_block_quote);
-            }
-        }
-        Node::Table(t) => {
-            for child in &t.children {
-                lint_md_ast(child, _is_in_block_quote);
-            }
-        }
-        Node::TableCell(tc) => {
-            for child in &tc.children {
-                lint_md_ast(child, _is_in_block_quote);
-            }
-        }
-        Node::TableRow(tr) => {
-            for child in &tr.children {
-                lint_md_ast(child, _is_in_block_quote);
-            }
-        }
-        _ => panic!("Unexpected node type {node:#?}"),
-    }
-}
+use common::{CheckIssue, MarkDownFile};
+use md001_heading_level_should_increment_by_one_level_at_time::*;
+use md003_heading_style::*;
+use md004_unordered_list_style::*;
+use md005_consistent_list_items_indentation::*;
+use md007_unordered_list_identation::*;
+use md009_trailing_spaces::*;
+use md010_hard_tabs::*;
+use md011_reversed_link_syntax::*;
+use md012_multiple_blank_lines::*;
+use md022_headings_should_be_surrounded_by_blank_lines::*;
+use md028_blank_line_inside_block_quote::*;
+use md033_inline_html::*;
+use md046_code_block_style::*;
+use md051_link_fragments_should_be_valid::*;
 
 /// Return formatted Markdown file
-pub fn lint(file: &common::MarkDownFile) -> Vec<common::CheckIssue> {
-    let ast = markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
-    lint_md_ast(&ast, false);
-    starts_with_header(&ast);
-    has_consequent_headers(&ast);
-    vec![]
+pub fn lint(file: &MarkDownFile) -> Vec<CheckIssue> {
+    vec![
+        md001_heading_level_should_increment_by_one_level_at_time(&file),
+        md003_heading_style(&file, &HeadingStyle::Consistent),
+        md004_unordered_list_style(&file, &UnorderedListStyle::Consistent),
+        md005_consistent_list_items_indentation(&file),
+        md007_unordered_list_indentation(&file, 2),
+        md009_trailing_spaces(&file),
+        md010_hard_tabs(&file),
+        md011_reversed_link_syntax(&file),
+        md012_multiple_blank_lines(&file),
+        md022_headings_should_be_surrounded_by_blank_lines(&file),
+        md028_blank_line_inside_block_quote(&file),
+        md033_inline_html(&file, &vec![]),
+        md046_code_block_style(&file, &CodeBlockStyle::Consistent),
+        md051_link_fragments_should_be_valid(&file),
+    ]
+    .into_iter()
+    .flatten()
+    .map(|violation| {
+        let mut issue = common::CheckIssueBuilder::default()
+            .set_category(common::IssueCategory::Linting)
+            .set_severity(common::IssueSeverity::Error)
+            .set_file_path(file.path.clone())
+            .set_row_num_start(violation.position.start.line)
+            .set_row_num_end(violation.position.end.line)
+            .set_col_num_start(violation.position.start.column)
+            .set_col_num_end(violation.position.end.line)
+            .set_offset_start(violation.position.start.offset)
+            .set_offset_end(violation.position.end.offset)
+            .set_message(format!("{} - {}", violation.code, violation.message))
+            .set_fixes(violation.fixes);
+        if violation.is_fmt_fixable {
+            issue = issue.push_fix(&format!(
+                "run \"checkmark fmt {}\" to fix it automatically",
+                &file.path
+            ));
+        }
+        issue = issue.push_fix(&format!("See details: {}", violation.doc_link));
+        issue.build()
+    })
+    .collect::<Vec<CheckIssue>>()
 }

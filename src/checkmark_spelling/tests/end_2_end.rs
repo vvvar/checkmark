@@ -5,7 +5,6 @@ const DUMMY_FILE_PATH: &str = "this/is/a/dummy/path/to/a/file.md";
 
 #[cfg(test)]
 fn assert_has_issues(content: &str, whitelist: &Vec<String>, issues: &Vec<common::CheckIssue>) {
-    // if let Ok(_) = env_logger::try_init() {}
     let markdown = common::MarkDownFile {
         path: DUMMY_FILE_PATH.to_owned(),
         content: content.to_owned(),

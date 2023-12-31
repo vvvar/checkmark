@@ -58,7 +58,7 @@ async fn review() {
         issues: vec![],
     };
 
-    checkmark_open_ai::make_a_review(&mut markdown, true)
+    checkmark_open_ai::make_a_review(&mut markdown, true, &None)
         .await
         .unwrap();
 

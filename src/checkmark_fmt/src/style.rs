@@ -1,10 +1,10 @@
 #[derive(Debug, Clone, Default, PartialEq)]
 #[allow(dead_code)]
 pub enum ListSignStyle {
+    /// "+"
+    Plus,
     /// "-"
     #[default]
-    Plus,
-    /// "+"
     Minus,
     /// "*"
     Asterisk,
@@ -82,4 +82,25 @@ pub fn is_heading_atx(d: &markdown::mdast::Heading, source: &str) -> bool {
         atx = slice.contains('#');
     }
     atx
+}
+
+pub fn is_surrounded_with_newline(d: &markdown::mdast::Html, source: &str) -> bool {
+    let mut is_surrounded = false;
+    if let Some(position) = &d.position {
+        let newline_offset = 2;
+        let pos_start = if position.start.offset < 1 {
+            0
+        } else {
+            position.start.offset - 1
+        };
+        let pos_end = if position.end.offset + newline_offset > source.len() {
+            source.len()
+        } else {
+            position.end.offset + newline_offset
+        };
+        if let Some(slice) = source.get(pos_start..pos_end) {
+            is_surrounded = slice.starts_with("\n") && slice.ends_with("\n\n");
+        }
+    }
+    is_surrounded
 }

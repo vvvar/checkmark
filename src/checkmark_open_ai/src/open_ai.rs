@@ -78,7 +78,7 @@ struct OpenAIRequestDataMessage {
 struct OpenAIRequestData {
     pub model: String,
     pub n: usize,
-    pub seed: usize,
+    // pub seed: usize,
     pub temperature: f32,
     pub response_format: OpenAIRequestDataResponseFormat,
     pub messages: Vec<OpenAIRequestDataMessage>,
@@ -104,9 +104,11 @@ fn read_open_ai_api_key() -> Result<String, OpenAIError> {
 /// Make a request to the OpenAI.
 /// Use ai_role to describe the role that OpenAI assistant shall take.
 /// Use user_input as a prompt from user, OpenAI will perform analysis of it.
+/// response_format - https://platform.openai.com/docs/api-reference/chat/create#chat-create-response_format
 pub async fn open_ai_request(
     ai_role: &str,
     user_input: &str,
+    response_format: &str,
 ) -> Result<OpenAIResponse, OpenAIError> {
     let requests = user_input
         .split("\n\n#")
@@ -114,10 +116,10 @@ pub async fn open_ai_request(
             let request_data = OpenAIRequestData {
                 model: "gpt-3.5-turbo-1106".to_string(),
                 n: 1,
-                seed: 12345,
+                // seed: 12345,
                 temperature: 0.2,
                 response_format: OpenAIRequestDataResponseFormat {
-                    response_type: "json_object".to_string(),
+                    response_type: response_format.to_string(),
                 },
                 messages: vec![
                     OpenAIRequestDataMessage {
@@ -142,18 +144,30 @@ pub async fn open_ai_request(
     let mut open_ai_response: OpenAIResponse = OpenAIResponse::default();
     for response in futures::future::join_all(requests).await {
         match response {
-            Ok(response) => match &mut response.json::<OpenAIResponse>().await {
-                Ok(response) => {
-                    log::debug!("Got response from OpenAI:\n{:#?}", &response);
-                    open_ai_response.choices.append(&mut response.choices);
-                }
-                Err(err) => {
-                    log::error!("Error parsing response from OpenAI:{:#?}", &err);
+            Ok(response) => {
+                log::debug!("Got response from OpenAI:\n{:#?}\n", &response);
+                if response.status() != 200 {
+                    log::error!("OpenAI returned error status code: {}", response.status());
                     return Err(OpenAIError {
-                        message: "Error parsing response from OpenAI".to_string(),
+                        message: "OpenAI returned error status code".to_string(),
                     });
                 }
-            },
+                match &mut response.json::<OpenAIResponse>().await {
+                    Ok(response) => {
+                        log::debug!(
+                            "Successfully parsed response from OpenAI:\n{:#?}",
+                            &response
+                        );
+                        open_ai_response.choices.append(&mut response.choices);
+                    }
+                    Err(err) => {
+                        log::error!("Error parsing response from OpenAI:{:#?}", &err);
+                        return Err(OpenAIError {
+                            message: "Error parsing response from OpenAI".to_string(),
+                        });
+                    }
+                }
+            }
             Err(err) => {
                 log::error!("Error sending request to OpenAI:{:#?}", &err);
                 // return Err(OpenAIError {
@@ -185,7 +199,7 @@ Provide your answer in JSON form. Reply with only the answer in JSON form and in
         { \"description\": \"string\", \"original\": \"string\", \"replacement\": \"string\" }
     ]
 }";
-    return match open_ai_request(role_prompt, text).await {
+    return match open_ai_request(role_prompt, text, "json_object").await {
         Ok(response) => {
             match response
                 .choices
@@ -214,24 +228,34 @@ Provide your answer in JSON form. Reply with only the answer in JSON form and in
 
 /// Makes a review of provided markdown file with OpenAI.
 /// Returns string with suggestions.
-pub async fn get_open_ai_review(file: &common::MarkDownFile) -> Result<OpenAIReview, OpenAIError> {
-    let role_prompt = "This is a project documentation written in Markdown.
-It includes various sections such as Introduction, Installation, Usage, API Reference, and more.
-Please review it for any inconsistencies, inaccuracies, or areas that lack clarity.
-Ignore any other potential issues like style or formatting. 
-Include detailed summary of the review.
-Suggestions should describe example of the sufficient fix as a replacement.
-The resulting must be JSON. It shall have two properties - summary and suggestions.
-Suggestions is a list of suggestions that shows what is the problem, where it appear and how to fix that.
-Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary:
+pub async fn get_open_ai_review(
+    file: &common::MarkDownFile,
+    prompt: &Option<String>,
+) -> Result<OpenAIReview, OpenAIError> {
+    let response_format_prompt = r#"
+Output should be in JSON format with 'summary' and 'suggestions'.
+Format your response as follows:
 {
-    \"summary\": \"string\",
-    \"suggestions\": [
-        { \"description\": \"string\", \"original\": \"string\", \"replacement\": \"string\" }
+    "summary": "<summary of the review>",
+    "suggestions": [
+        { 
+            "description": "<description of the issue>", 
+            "original": "<original text>", 
+            "replacement": "<suggested fix>" 
+        }
     ]
 }
-";
-    return match open_ai_request(role_prompt, &file.content).await {
+Avoid additional commentary.
+"#;
+    let role_prompt = match &prompt {
+        Some(prompt) => format!("{}{}", prompt, response_format_prompt),
+        None => format!("{}{}", "
+Review this Markdown project documentation for grammar, inconsistencies, inaccuracies, or unclear content.
+Ignore style or formatting. Provide a summary and improvement suggestions.
+Each suggestion should identify the issue, its location, and a proposed fix.
+Each suggestion should have 'description', 'original', and 'replacement'.", response_format_prompt),
+    };
+    return match open_ai_request(&role_prompt, &file.content, "json_object").await {
         Ok(response) => {
             match response
                 .choices

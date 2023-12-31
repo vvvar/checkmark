@@ -37,10 +37,11 @@ pub async fn check_grammar(
 pub async fn make_a_review(
     file: &common::MarkDownFile,
     suggestions: bool,
+    prompt: &Option<String>,
 ) -> Result<Vec<common::CheckIssue>, open_ai::OpenAIError> {
     let mut issues: Vec<common::CheckIssue> = vec![];
 
-    match open_ai::get_open_ai_review(file).await {
+    match open_ai::get_open_ai_review(file, prompt).await {
         Ok(review) => {
             for suggestion in &review.suggestions {
                 let offset = common::find_index(&file.content, &suggestion.original);
@@ -63,30 +64,45 @@ pub async fn make_a_review(
                 }
                 issues.push(issue.build());
             }
-            // issues.push(
-            //     common::CheckIssueBuilder::default()
-            //         .set_category(common::IssueCategory::Review)
-            //         .set_severity(common::IssueSeverity::Help)
-            //         .set_file_path(file.path.clone())
-            //         .set_row_num_start(0)
-            //         .set_row_num_end(0)
-            //         .set_col_num_start(0)
-            //         .set_col_num_end(0)
-            //         .set_offset_start(0)
-            //         .set_offset_end(file.content.len())
-            //         .set_message(review.summary)
-            //         .build(),
-            // );
             Ok(issues)
         }
         Err(err) => {
-            log::error!(
+            log::warn!(
                 "Error getting review from OpenAI for file {:#?}, error:\n{:#?}",
-                &file,
+                &file.path,
                 &err
             );
             // TODO: return error
             Ok(issues)
         }
     }
+}
+
+pub async fn compose_markdown(
+    prompt: &str,
+    context: &Option<String>,
+) -> Result<String, open_ai::OpenAIError> {
+    let base_role_prompt = "You will be provided with user prompt.
+Your task is to compose a file in Markdown format based on it.
+Reply only with content of the file.
+Avoid additional commentary.";
+    let role_prompt = match context {
+        Some(text) => format!(
+            "{} \n\nUse following content as a context: {}",
+            base_role_prompt, text
+        ),
+        None => base_role_prompt.to_string(),
+    };
+    return match open_ai::open_ai_request(&role_prompt, &prompt, "text").await {
+        Ok(response) => {
+            if let Some(choice) = response.choices.first() {
+                Ok(choice.message.content.clone())
+            } else {
+                Err(open_ai::OpenAIError {
+                    message: "OpenAI failed to compose anything".to_string(),
+                })
+            }
+        }
+        Err(err) => Err(err),
+    };
 }
