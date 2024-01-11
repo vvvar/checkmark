@@ -105,7 +105,16 @@ pub async fn ls(path: &str, exclude: &Vec<String>) -> Vec<common::MarkDownFile> 
             } else if absolute_root_path.is_dir() {
                 // Someone provided just a plain path to dir
                 log::debug!("Path is a dir");
-                match glob::glob(&format!("{}{}", &absolute_root_path_str, "/**/*.md")) {
+
+                let glob_pattern = std::path::Path::new(absolute_root_path_str)
+                    .join("**")
+                    .join("*.md")
+                    .to_str()
+                    .unwrap()
+                    .to_owned();
+                log::debug!("Searching files by glob pattern: {:#?}", &glob_pattern);
+                
+                match glob::glob(&glob_pattern) {
                     Ok(search_results) => {
                         log::debug!("Glob search results: {:#?}", &search_results);
                         for search_result in search_results {
