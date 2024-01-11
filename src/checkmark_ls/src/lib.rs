@@ -96,14 +96,18 @@ pub async fn ls(path: &str, exclude: &Vec<String>) -> Vec<common::MarkDownFile> 
 
     let mut files = Vec::<String>::new();
     if let Ok(absolute_root_path) = std::path::PathBuf::from(&input_path).canonicalize() {
+        log::debug!("Absolute path: {:#?}", &absolute_root_path);
         if let Some(absolute_root_path_str) = absolute_root_path.to_str() {
             if absolute_root_path.is_file() {
                 // Someone requested just a single file
+                log::debug!("Path is a single file");
                 files.push(String::from(absolute_root_path_str));
             } else if absolute_root_path.is_dir() {
                 // Someone provided just a plain path to dir
+                log::debug!("Path is a dir");
                 match glob::glob(&format!("{}{}", &absolute_root_path_str, "/**/*.md")) {
                     Ok(search_results) => {
+                        log::debug!("Glob search results: {:#?}", &search_results);
                         for search_result in search_results {
                             match search_result {
                                 Ok(markdown_file_path) => match markdown_file_path.canonicalize() {
@@ -133,6 +137,7 @@ pub async fn ls(path: &str, exclude: &Vec<String>) -> Vec<common::MarkDownFile> 
     } else {
         warn!("Unable to read root/file path. Make sure you are providing either a valid path(absolute/relative), glob or filename as a first argument");
     }
+    log::debug!("Collected list of files {:#?}", &files);
 
     let mut markdown_files: Vec<common::MarkDownFile> = vec![];
     for file_path in &files {
@@ -152,6 +157,7 @@ pub async fn ls(path: &str, exclude: &Vec<String>) -> Vec<common::MarkDownFile> 
         .filter(|markdown_file| {
             for exclude_pattern in exclude {
                 if wildmatch::WildMatch::new(exclude_pattern).matches(markdown_file.path.as_str()) {
+                    log::debug!("Ignoring {:#?}", &markdown_file.path);
                     return false;
                 }
             }
