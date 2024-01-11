@@ -24,7 +24,7 @@ jobs:
           - name: Build | Check Unused Deps
             run: |
               cargo install cargo-udeps --locked
-              cargo +nightly udeps
+              cargo udeps
     compile:
         name: Compile
         runs-on: ubuntu-latest
