@@ -75,3 +75,7 @@ Options:
 ## Contributing
 
 See [CONTRIBUTING.md](./docs/CONTRIBUTING.md).
+
+## Support
+
+See [SUPPORT.md](./docs/SUPPORT.md).
