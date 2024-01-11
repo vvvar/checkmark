@@ -1,6 +1,6 @@
 name: Pull Request
 
-run-name: 🚀 PR ${{ github.event.number }} by ${{ github.actor }} 
+run-name: 🚀 PR #${{ github.event.number }} by ${{ github.actor }} 
 
 env:
   CARGO_TERM_COLOR: always
@@ -21,6 +21,10 @@ jobs:
               components: clippy
           - name: Build | Lint
             run: cargo clippy
+          - name: Build | Check Unused Deps
+            run: |
+              cargo install cargo-udeps --locked
+              cargo +nightly udeps
     compile:
         name: Compile
         runs-on: ubuntu-latest
