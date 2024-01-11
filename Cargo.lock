@@ -721,6 +721,7 @@ name = "checkmark_ls"
 version = "0.0.1"
 dependencies = [
  "common",
+ "dunce",
  "env_logger",
  "git2",
  "glob",
@@ -1332,6 +1333,12 @@ checksum = "dbaceec3c6e4211c79e7b1800fb9680527106beb2f9c51904a3210c03a448c74"
 dependencies = [
  "dtoa",
 ]
+
+[[package]]
+name = "dunce"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56ce8c6da7551ec6c462cbaf3bfbc75131ebbfa1c944aeaa9dab51ca1c5f0c3b"
 
 [[package]]
 name = "ego-tree"

@@ -106,14 +106,29 @@ pub async fn ls(path: &str, exclude: &Vec<String>) -> Vec<common::MarkDownFile> 
                 // Someone provided just a plain path to dir
                 log::debug!("Path is a dir");
 
-                let glob_pattern = std::path::Path::new(absolute_root_path_str)
-                    .join("**")
-                    .join("*.md")
-                    .to_str()
-                    .unwrap()
-                    .to_owned();
+                let glob_pattern = if std::env::consts::OS == "windows" {
+                    log::debug!("Windows detected, will convert verbatim path to a legacy path");
+                    let verbatim_path = std::path::Path::new(absolute_root_path_str)
+                        .join("**")
+                        .join("*.md")
+                        .to_str()
+                        .unwrap()
+                        .to_owned();
+                    dunce::canonicalize(&verbatim_path)
+                        .unwrap_or_default()
+                        .to_str()
+                        .unwrap()
+                        .to_owned()
+                } else {
+                    std::path::Path::new(absolute_root_path_str)
+                        .join("**")
+                        .join("*.md")
+                        .to_str()
+                        .unwrap()
+                        .to_owned()
+                };
                 log::debug!("Searching files by glob pattern: {:#?}", &glob_pattern);
-                
+
                 match glob::glob(&glob_pattern) {
                     Ok(search_results) => {
                         log::debug!("Glob search results: {:#?}", &search_results);
