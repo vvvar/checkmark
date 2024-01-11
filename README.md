@@ -1,6 +1,6 @@
 # Checkmark
 
-Checkmark is a CLI tool designed to streamline your Markdown workflow. It provides a suite of features including auto-formatting, linting, AI-powered document review, link checking, spell checking, and AI-assisted document composition.
+Checkmark is a CLI tool designed to streamline your Markdown workflow. It provides a suite of features including auto-formatting, linting, AI-assisted document review, link checking, spell checking, and AI-assisted document composition.
 
 ## Features
 
@@ -9,14 +9,14 @@ Checkmark offers a range of commands to help maintain high-quality Markdown docu
 - **fmt**: Auto-formats all Markdown files in the project, fixing common formatting issues such as trailing whitespace and inconsistent line endings.
 - **links**: Check broken links in your documents, covering both web and local file links.
 - **lint**: Runs a linter (port of [markdownlint](https://github.com/DavidAnson/markdownlint), see [Roadmap](#roadmap) section for details) to ensure your Markdown files adhere to best practices.
-- **review**: Uses OpenAI's API to review your documents, providing AI-powered insights and suggestions. Requires OpenAI API key.
+- **review**: Uses OpenAI's API to review your documents, providing AI-assisted insights and suggestions. Requires OpenAI API key.
 - **compose**: Assists in composing new Markdown documents from a prompt in a context of an existing document. Powered by OpenAI. Requires OpenAI API key.
 - **spelling**: Check your documents for spelling errors.
 - **CI mode**: Turns off interactive prompts and outputs reports in a format suitable for CI/CD pipelines.
 
 ## Installation
 
-Make sure you install the latest [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) version. Next, run the following command:
+Make sure you install the latest [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) version. If you are using Windows, ensure that Perl is installed and added to the system's `PATH`. You may consider using [Strawberry Perl](https://strawberryperl.com) for this purpose. Next, run the following command:
 
 ```bash
 cargo install --git https://github.com/vvvar/checkmark.git
@@ -68,14 +68,14 @@ Options:
 
 ## Roadmap
 
-- [ ] Port remaining markdownlint rules
-- [ ] Provide a package via crates.io
-- [ ] Provide pre-built packages via `brew`, `choco` and `apt`
+- [ ] Port remaining markdownlint rules.
+- [ ] Provide a package via crates.io.
+- [ ] Provide pre-built packages via `brew`, `choco` and `apt`.
 
 ## Contributing
 
-See [CONTRIBUTING.md](./docs/CONTRIBUTING.md).
+For information about contribution, please refer to the [CONTRIBUTING.md](./docs/CONTRIBUTING.md) file.
 
 ## Support
 
-See [SUPPORT.md](./docs/SUPPORT.md).
+For information about support, please refer to the [SUPPORT.md](./docs/SUPPORT.md) file.
