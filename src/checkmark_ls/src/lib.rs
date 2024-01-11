@@ -95,7 +95,7 @@ pub async fn ls(path: &str, exclude: &Vec<String>) -> Vec<common::MarkDownFile> 
     }
 
     let mut files = Vec::<String>::new();
-    if let Ok(absolute_root_path) = std::path::PathBuf::from(&input_path).canonicalize() {
+    if let Ok(absolute_root_path) = dunce::canonicalize(&input_path) {
         log::debug!("Absolute path: {:#?}", &absolute_root_path);
         if let Some(absolute_root_path_str) = absolute_root_path.to_str() {
             if absolute_root_path.is_file() {
@@ -106,20 +106,12 @@ pub async fn ls(path: &str, exclude: &Vec<String>) -> Vec<common::MarkDownFile> 
                 // Someone provided just a plain path to dir
                 log::debug!("Path is a dir");
 
-                let mut glob_pattern = std::path::Path::new(absolute_root_path_str)
+                let glob_pattern = std::path::Path::new(absolute_root_path_str)
                     .join("**")
                     .join("*.md")
                     .to_str()
                     .unwrap()
                     .to_owned();
-                if std::env::consts::OS == "windows" {
-                    log::debug!("Windows detected, will convert verbatim path to a legacy path");
-                    glob_pattern = dunce::canonicalize(&glob_pattern)
-                        .unwrap()
-                        .to_str()
-                        .unwrap()
-                        .to_owned();
-                }
                 log::debug!("Searching files by glob pattern: {:#?}", &glob_pattern);
 
                 match glob::glob(&glob_pattern) {
