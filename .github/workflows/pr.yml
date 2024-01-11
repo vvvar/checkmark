@@ -1,6 +1,6 @@
 name: Pull Request
 
-run-name: 🚀 PR \#${{ github.event.number }} by ${{ github.actor }} 
+run-name: 🚀 PR ${{ github.event.number }} by ${{ github.actor }} 
 
 env:
   CARGO_TERM_COLOR: always
