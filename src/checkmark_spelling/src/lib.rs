@@ -134,7 +134,8 @@ pub fn spell_check(
     common::filter_text_nodes(&ast).par_iter().for_each(|text_node| {
         log::debug!("Spell checking text node: {:#?}", &text_node);
         // Split text into the words because spellcheck checks words, not sentences
-        for word in text_node.value.split_ascii_whitespace() {
+        let words = text_node.value.split_ascii_whitespace().collect::<Vec<_>>();
+        words.par_iter().for_each(|word| {
             log::debug!("Spell checking word: {:#?}", &word);
             // Remove special characters
             let escaped_word = remove_all_special_characters(word, true);
@@ -201,7 +202,7 @@ pub fn spell_check(
                     issues.lock().unwrap().push(issue.build());
                 }
             }
-        }
+        });
     });
 
     // To trick borrow checker because we're parallelizing

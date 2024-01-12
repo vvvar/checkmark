@@ -46,7 +46,7 @@ fn spelling_plain_misspelled_word() {
 
 #[test]
 fn spelling_several_misspelled_words() {
-    assert_has_issues("\n\nHere is som additnal txt\n", &vec![], &vec![
+    assert_has_issues("\n\nHere is sommm additnal txt\n", &vec![], &vec![
         common::CheckIssue {
             category: common::IssueCategory::Spelling,
             severity: common::IssueSeverity::Warning,
@@ -54,31 +54,31 @@ fn spelling_several_misspelled_words() {
             row_num_start: 3,
             row_num_end: 3,
             col_num_start: 1,
-            col_num_end: 25,
-            offset_start: 14,
-            offset_end: 22,
+            col_num_end: 27,
+            offset_start: 10,
+            offset_end: 15,
+            message: "Word \"sommm\" is unknown or miss-spelled".to_string(),
+            fixes: vec![
+                "Consider changing \"sommm\" to \"somme\"".to_string(),
+                "If you're sure that this word is correct - add it to the spellcheck dictionary(TBD)".to_string(),
+            ],
+        },
+        common::CheckIssue {
+            category: common::IssueCategory::Spelling,
+            severity: common::IssueSeverity::Warning,
+            file_path: DUMMY_FILE_PATH.to_owned(),
+            row_num_start: 3,
+            row_num_end: 3,
+            col_num_start: 1,
+            col_num_end: 27,
+            offset_start: 16,
+            offset_end: 24,
             message: "Word \"additnal\" is unknown or miss-spelled".to_string(),
             fixes: vec![
                 "Consider changing \"additnal\" to \"additional\"".to_string(),
                 "If you're sure that this word is correct - add it to the spellcheck dictionary(TBD)".to_string(),
             ],
-        },
-        common::CheckIssue {
-            category: common::IssueCategory::Spelling,
-            severity: common::IssueSeverity::Warning,
-            file_path: DUMMY_FILE_PATH.to_owned(),
-            row_num_start: 3,
-            row_num_end: 3,
-            col_num_start: 1,
-            col_num_end: 25,
-            offset_start: 23,
-            offset_end: 26,
-            message: "Word \"txt\" is unknown or miss-spelled".to_string(),
-            fixes: vec![
-                "Consider changing \"txt\" to \"text\"".to_string(),
-                "If you're sure that this word is correct - add it to the spellcheck dictionary(TBD)".to_string(),
-            ],
-        },
+        }
     ]);
 }
 
