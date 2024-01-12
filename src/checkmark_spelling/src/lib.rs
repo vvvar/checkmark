@@ -106,8 +106,9 @@ pub fn spell_check(
     .lines()
     {
         log::debug!("Loading word from extended dictionary: {:#?}", &line);
-        symspell.load_dictionary_line(line, 0, 1, " ");
-        symspell.load_bigram_dictionary_line(line, 0, 2, " ");
+        let word = format!("{} 10956800", &line);
+        symspell.load_dictionary_line(&word, 0, 1, " ");
+        symspell.load_bigram_dictionary_line(&word, 0, 2, " ");
     }
 
     log::debug!(

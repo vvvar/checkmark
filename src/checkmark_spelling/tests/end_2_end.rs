@@ -124,3 +124,11 @@ fn spelling_gibberish_handled() {
         ],
     },]);
 }
+
+#[test]
+fn spelling_consider_abbreviation() {
+    assert_has_no_issues(
+        "# p.s. this is an example a.k.a. Example e.g. yeah, and etc.",
+        &vec![],
+    );
+}
