@@ -25,7 +25,7 @@ async fn main() -> Result<(), errors::AppError> {
 
     // When needed, force enable verbose logging
     if cli.verbose {
-        std::env::set_var("RUST_LOG", "debug")
+        std::env::set_var("RUST_LOG", "none,checkmark_cli=debug,checkmark_fmt=debug,checkmark_link_checker=debug,checkmark_lint=debug,checkmark_ls=debug,checkmark_open_ai=debug,checkmark_spelling=debug,common=debug")
     }
     env_logger::init();
 

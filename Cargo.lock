@@ -693,6 +693,7 @@ version = "0.0.1"
 dependencies = [
  "async-std",
  "common",
+ "futures",
  "log",
  "lychee-lib",
  "pretty_assertions",

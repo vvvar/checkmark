@@ -90,12 +90,14 @@ async fn collect_links(
         &path,
         &ignored_uri_wildcards
     );
+
     let input = vec![lychee_lib::Input {
         source: lychee_lib::InputSource::FsPath(std::path::PathBuf::from(path)),
         file_type_hint: None,
         excluded_paths: None,
     }];
     log::debug!("Lychee inputs:\n{:#?}", &input);
+
     let links = lychee_lib::Collector::new(None) // base
         .skip_missing_inputs(false) // don't skip missing inputs? (default=false)
         .use_html5ever(false) // use html5ever for parsing? (default=false)
@@ -105,6 +107,7 @@ async fn collect_links(
         .collect::<Result<Vec<_>>>()
         .await?;
     log::debug!("Found links:\n{:#?}", &links);
+
     // Dedup them
     let mut links_map: std::collections::HashMap<String, lychee_lib::Request> =
         std::collections::HashMap::new();
@@ -123,31 +126,38 @@ async fn collect_links(
         }
     }
     log::debug!("De-duplicated links:\n{:#?}", &links_map);
+
     Ok(links_map)
 }
 
 pub async fn check_links(file: &mut common::MarkDownFile, ignored_uri_wildcards: &Vec<String>) {
-    for (uri, request) in collect_links(&file.path, ignored_uri_wildcards)
+    let links = collect_links(&file.path, ignored_uri_wildcards)
         .await
-        .unwrap()
-    {
-        match lychee_lib::check(request).await.unwrap().status() {
+        .unwrap();
+    let requests = links.iter().map(|(uri, request)| {
+        log::debug!("Checking {:#?}", &uri);
+        let uri = uri.clone();
+        let request = request.clone();
+        async move { (uri, lychee_lib::check(request).await.unwrap()) }
+    });
+    for (uri, response) in futures::future::join_all(requests).await {
+        match response.status() {
             // Request was successful
             lychee_lib::Status::Ok(status_code) => {
-                log::debug!("{:#?} request OK with code {:#?}", &uri, &status_code);
+                log::debug!("{:#?} respond OK with code {:#?}", &uri, &status_code);
             }
             // Failed request
             lychee_lib::Status::Error(error_kind) => {
                 match error_kind {
                     // Network error while handling request
                     lychee_lib::ErrorKind::NetworkRequest(error) => {
-                        log::debug!("{:#?} request network error:\n{:#?}", &uri, &error);
+                        log::debug!("{:#?} respond with network error:\n{:#?}", &uri, &error);
                         network_error_to_issues(file, error);
                     }
                     // Cannot read the body of the received response
                     lychee_lib::ErrorKind::ReadResponseBody(error) => {
                         log::debug!(
-                            "{:#?} request OK, but unable to read response body, error:\n{:#?}",
+                            "{:#?} respond OK, but unable to read response body, error:\n{:#?}",
                             &uri,
                             &error
                         );
