@@ -22,6 +22,11 @@ fn to_md(
             for child in &r.children {
                 to_md(child, buffer, context, source, options);
                 buffer.push('\n');
+                // Only when HTML is on a Root-level
+                // we want to add extra newline
+                if let Node::Html(_) = child {
+                    buffer.push('\n');
+                }
             }
         }
         Node::Heading(heading) => {
@@ -329,9 +334,6 @@ fn to_md(
         }
         Node::Html(h) => {
             buffer.push_str(&h.value);
-            if is_surrounded_with_newline(h, source) {
-                buffer.push('\n');
-            }
         }
         Node::ImageReference(ir) => {
             buffer.push_str(&format!("![{}][{}]", ir.alt, ir.identifier));
