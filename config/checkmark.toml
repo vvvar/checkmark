@@ -13,6 +13,10 @@ ignore_wildcards = [
     "/**.rs"
 ]
 
+[linter]
+# List of HTML elements to ignore when linting
+allowed_html_tags = []
+
 [review]
 # When true, the review will be printed without fix suggestions
 no_suggestions=false

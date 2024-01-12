@@ -1,77 +1,11 @@
-#[derive(Debug, Default, serde::Deserialize)]
-pub struct Config {
-    #[serde(default)]
-    pub global: GlobalConfig,
-
-    #[serde(default)]
-    pub review: ReviewConfig,
-
-    #[serde(default)]
-    pub link_checker: LinkCheckerConfig,
-
-    #[serde(default)]
-    pub spelling: SpellingConfig,
-}
-
-impl Config {
-    /// Try to build config from TOML file
-    pub fn from_file(path: &str) -> Option<Self> {
-        log::debug!("Trying to build config from file: {}", &path);
-        if let Ok(file) = std::fs::read_to_string(path) {
-            match toml::from_str(&file) {
-                Ok(cfg) => {
-                    log::debug!("Config file found in {}: {:#?}", &path, &cfg);
-                    Some(cfg)
-                }
-                Err(err) => {
-                    log::error!("Error while parsing config file: {}", err);
-                    None
-                }
-            }
-        } else {
-            None
-        }
-    }
-}
-
-#[derive(Debug, Default, serde::Deserialize)]
-pub struct GlobalConfig {
-    #[serde(default)]
-    pub exclude: Vec<String>,
-
-    #[serde(default)]
-    pub exclude_license: bool,
-}
-
-#[derive(Debug, Default, serde::Deserialize)]
-pub struct ReviewConfig {
-    #[serde(default)]
-    pub no_suggestions: bool,
-
-    #[serde(default)]
-    pub prompt: Option<String>,
-}
-
-#[derive(Debug, Default, serde::Deserialize)]
-pub struct LinkCheckerConfig {
-    #[serde(default)]
-    pub ignore_wildcards: Vec<String>,
-}
-
-#[derive(Debug, Default, serde::Deserialize)]
-pub struct SpellingConfig {
-    #[serde(default)]
-    pub words_whitelist: Vec<String>,
-}
-
 /// First, create one with default values
 /// Then, try reading from TOML file by path provided in CLI
 /// if no CLI option provided - try reading from default locations(replace when found)
 /// and then apply config from CLI because it has higher priority
-pub fn read_config(cli: &crate::cli::Cli) -> Config {
+pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
     log::debug!("Building default config...");
 
-    let mut config = Config::default();
+    let mut config = common::Config::default();
     log::debug!("Default config built: {:#?}", &config);
 
     log::debug!("Trying to read config from file...");
@@ -80,7 +14,7 @@ pub fn read_config(cli: &crate::cli::Cli) -> Config {
             "Trying to read config from CLI arg {}...",
             &cfg_path_from_cli
         );
-        if let Some(cfg) = Config::from_file(cfg_path_from_cli) {
+        if let Some(cfg) = common::Config::from_file(cfg_path_from_cli) {
             config = cfg; // Replace default config with config from file
         } else {
             log::warn!("Config file not found in {}", &cfg_path_from_cli);
@@ -101,7 +35,7 @@ pub fn read_config(cli: &crate::cli::Cli) -> Config {
             &default_locations
         );
         for file_path in default_locations.iter() {
-            if let Some(cfg) = Config::from_file(file_path) {
+            if let Some(cfg) = common::Config::from_file(file_path) {
                 config = cfg; // Replace default config with config from file
                 break;
             }
@@ -117,7 +51,11 @@ pub fn read_config(cli: &crate::cli::Cli) -> Config {
                 config.link_checker.ignore_wildcards = links.ignore_wildcards.clone();
             }
         }
-        crate::cli::Subcommands::Lint(_) => {}
+        crate::cli::Subcommands::Lint(lint) => {
+            if !lint.allowed_html_tags.is_empty() {
+                config.linter.allowed_html_tags = lint.allowed_html_tags.clone();
+            }
+        }
         crate::cli::Subcommands::Review(review) => {
             config.review.no_suggestions = review.no_suggestions;
             if let Some(prompt) = &review.prompt {

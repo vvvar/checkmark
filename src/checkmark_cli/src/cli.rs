@@ -64,7 +64,11 @@ pub struct LinksCommand {
 
 #[derive(Debug, clap::Parser)]
 #[command(long_about = None)]
-pub struct LintCommand {}
+pub struct LintCommand {
+    /// MD033: List of HTML tags to allow in the document
+    #[arg(long, short)]
+    pub allowed_html_tags: Vec<String>,
+}
 
 #[derive(Debug, clap::Parser)]
 #[command(long_about = None)]

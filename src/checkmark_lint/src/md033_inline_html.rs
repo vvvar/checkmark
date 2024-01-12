@@ -12,11 +12,11 @@ fn violation_builder() -> ViolationBuilder {
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md033.md")
 }
 
-pub fn md033_inline_html(file: &MarkDownFile, allowed_elements: &Vec<String>) -> Vec<Violation> {
+pub fn md033_inline_html(file: &MarkDownFile, allowed_tags: &Vec<String>) -> Vec<Violation> {
     log::debug!(
-        "[MD033] File: {:#?}, Allowed elements: {:#?}",
+        "[MD033] File: {:#?}, Allowed tags: {:#?}",
         &file.path,
-        &allowed_elements
+        &allowed_tags
     );
 
     let ast = to_mdast(&file.content, &ParseOptions::gfm()).unwrap();
@@ -31,20 +31,37 @@ pub fn md033_inline_html(file: &MarkDownFile, allowed_elements: &Vec<String>) ->
     let violations = html_nodes
         .iter()
         .filter(|node| {
-            let mut is_allowed = false;
-            for allowed_element in allowed_elements {
-                if node.value.contains(&format!("<{}", allowed_element)) {
-                    is_allowed = true;
-                    break;
-                }
-            }
-            !is_allowed
+            // Markdown parser parses closing tags(e.x. "</a>")
+            // as separate nodes. We need to filter them out.
+            let closing_tag_error =
+                std::borrow::Cow::Owned("Found special tag while closing generic tag".to_string());
+            let is_closing_tag = scraper::Html::parse_fragment(&node.value)
+                .errors
+                .contains(&closing_tag_error);
+            !is_closing_tag
+        })
+        .filter(|node| {
+            // Parse HTML into the node tree
+            // and check if all elements in it are allowed
+            !scraper::Html::parse_fragment(&node.value)
+                .tree
+                .into_iter()
+                .all(|node| {
+                    if let Some(el) = node.as_element() {
+                        allowed_tags.contains(&el.name().to_string())
+                            || el.name().eq("body")
+                            || el.name().eq("html")
+                    } else {
+                        true
+                    }
+                })
         })
         .map(|node| {
             violation_builder()
                 .position(&node.position)
                 .push_fix("Replace inline HTML with Markdown")
                 .push_fix("Remove inline HTML")
+                .push_fix("Or suppress it by adding name of the element to the list of allowed tags. Use \"allowed_html_tags\" option from the \"[lint]\" section in the config file or \"allowed_html_tags\" argument from the CLI")
                 .build()
         })
         .collect();
@@ -98,6 +115,34 @@ mod tests {
                     issues: vec![],
                 },
                 &vec![]
+            ),
+        );
+
+        // HTML code block can be completely ignored
+        assert_eq!(
+            Vec::<Violation>::new(),
+            md033_inline_html(
+                &common::MarkDownFile {
+                    path: String::from("this/is/a/dummy/path/to/a/file.md"),
+                    content: "<div><h1>Header 1<\\h1><img/></div>".to_string(),
+                    issues: vec![],
+                },
+                &vec!["div".to_string(), "h1".to_string(), "img".to_string()]
+            ),
+        );
+
+        // HTML code block is not ignored if it contains at least one non-whitelisted element
+        assert_eq!(
+            vec![violation_builder()
+                .position(&Some(markdown::unist::Position::new(1, 1, 0, 1, 35, 34)))
+                .build(),],
+            md033_inline_html(
+                &common::MarkDownFile {
+                    path: String::from("this/is/a/dummy/path/to/a/file.md"),
+                    content: "<div><h1>Header 1<\\h1><img/></div>".to_string(),
+                    issues: vec![],
+                },
+                &vec!["div".to_string(), "h1".to_string()]
             ),
         );
     }

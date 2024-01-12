@@ -14,7 +14,7 @@ mod md046_code_block_style;
 mod md051_link_fragments_should_be_valid;
 mod violation;
 
-use common::{CheckIssue, MarkDownFile};
+use common::{CheckIssue, Config, MarkDownFile};
 use md001_heading_level_should_increment_by_one_level_at_time::*;
 use md003_heading_style::*;
 use md004_unordered_list_style::*;
@@ -31,7 +31,7 @@ use md046_code_block_style::*;
 use md051_link_fragments_should_be_valid::*;
 
 /// Return formatted Markdown file
-pub fn lint(file: &MarkDownFile) -> Vec<CheckIssue> {
+pub fn lint(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
     vec![
         md001_heading_level_should_increment_by_one_level_at_time(&file),
         md003_heading_style(&file, &HeadingStyle::Consistent),
@@ -44,7 +44,7 @@ pub fn lint(file: &MarkDownFile) -> Vec<CheckIssue> {
         md012_multiple_blank_lines(&file),
         md022_headings_should_be_surrounded_by_blank_lines(&file),
         md028_blank_line_inside_block_quote(&file),
-        md033_inline_html(&file, &vec![]),
+        md033_inline_html(&file, &config.linter.allowed_html_tags),
         md046_code_block_style(&file, &CodeBlockStyle::Consistent),
         md051_link_fragments_should_be_valid(&file),
     ]

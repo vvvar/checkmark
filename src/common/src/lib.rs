@@ -404,3 +404,79 @@ pub fn activate_debug_logging() {
     std::env::set_var("RUST_LOG", "debug");
     if let Ok(_) = env_logger::try_init() {}
 }
+
+#[derive(Debug, Default, serde::Deserialize)]
+pub struct Config {
+    #[serde(default)]
+    pub global: GlobalConfig,
+
+    #[serde(default)]
+    pub review: ReviewConfig,
+
+    #[serde(default)]
+    pub link_checker: LinkCheckerConfig,
+
+    #[serde(default)]
+    pub linter: LinterConfig,
+
+    #[serde(default)]
+    pub spelling: SpellingConfig,
+}
+
+impl Config {
+    /// Try to build config from TOML file
+    pub fn from_file(path: &str) -> Option<Self> {
+        log::debug!("Trying to build config from file: {}", &path);
+        if let Ok(file) = std::fs::read_to_string(path) {
+            match toml::from_str(&file) {
+                Ok(cfg) => {
+                    log::debug!("Config file found in {}: {:#?}", &path, &cfg);
+                    Some(cfg)
+                }
+                Err(err) => {
+                    log::error!("Error while parsing config file: {}", err);
+                    None
+                }
+            }
+        } else {
+            None
+        }
+    }
+}
+
+/// TOML config for checkmark
+#[derive(Debug, Default, serde::Deserialize)]
+pub struct GlobalConfig {
+    #[serde(default)]
+    pub exclude: Vec<String>,
+
+    #[serde(default)]
+    pub exclude_license: bool,
+}
+
+#[derive(Debug, Default, serde::Deserialize)]
+pub struct ReviewConfig {
+    #[serde(default)]
+    pub no_suggestions: bool,
+
+    #[serde(default)]
+    pub prompt: Option<String>,
+}
+
+#[derive(Debug, Default, serde::Deserialize)]
+pub struct LinkCheckerConfig {
+    #[serde(default)]
+    pub ignore_wildcards: Vec<String>,
+}
+
+#[derive(Debug, Default, serde::Deserialize)]
+pub struct LinterConfig {
+    #[serde(default)]
+    pub allowed_html_tags: Vec<String>,
+}
+
+#[derive(Debug, Default, serde::Deserialize)]
+pub struct SpellingConfig {
+    #[serde(default)]
+    pub words_whitelist: Vec<String>,
+}
