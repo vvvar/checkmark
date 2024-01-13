@@ -17,3 +17,12 @@ pub fn remove_trailing_newline_and_space(s: &str) -> String {
     }
     result
 }
+
+// When we have " \n" - replace it with "\n"
+pub fn trim_trailing_space_before_newline(s: &mut String) {
+    if s.ends_with(" \n") {
+        s.pop();
+        s.pop();
+        s.push('\n');
+    }
+}

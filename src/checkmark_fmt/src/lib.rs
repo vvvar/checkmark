@@ -390,20 +390,55 @@ fn to_md(
         Node::Table(t) => {
             for child in &t.children {
                 if child == t.children.first().unwrap() {
+                    // Render a heading of the table
                     to_md(child, buffer, context, source, options);
+                    trim_trailing_space_before_newline(buffer); // Dirty hack to fix trailing space
+                                                                // Follow it with a separator
+                                                                // Remember lengths of each column
+                                                                // to align them later
+                    let mut headers_cols_lengths: Vec<usize> = vec![];
+                    if let Node::TableRow(tr) = child {
+                        for child in &tr.children {
+                            let offset_start =
+                                child.position().as_ref().unwrap().start.offset.clone();
+                            let offset_end = child.position().as_ref().unwrap().end.offset.clone();
+                            let col_len = source[offset_start..offset_end]
+                                .trim_matches(' ')
+                                .trim_matches('|')
+                                .trim_matches(' ')
+                                .len();
+                            headers_cols_lengths.push(col_len);
+                        }
+                    }
                     buffer.push('|');
-                    for align in &t.align {
+                    for (i, align) in t.align.iter().enumerate() {
+                        let padding = if let Some(len) = headers_cols_lengths.get(i) {
+                            len - 1
+                        } else {
+                            // Default padding, to avoid overflow
+                            2
+                        };
                         match align {
-                            AlignKind::Left => buffer.push_str(" :-- |"),
-                            AlignKind::Right => buffer.push_str(" --: |"),
-                            AlignKind::Center => buffer.push_str(" :-: |"),
-                            AlignKind::None => buffer.push_str(" --- |"),
+                            AlignKind::Left => buffer
+                                .push_str(&format!(" :{} |", &format!("{}", "-".repeat(padding)))),
+                            AlignKind::Right => buffer
+                                .push_str(&format!(" {}: |", &format!("{}", "-".repeat(padding)))),
+                            AlignKind::Center => buffer.push_str(&format!(
+                                " :{}: |",
+                                &format!("{}", "-".repeat(padding - 1))
+                            )),
+                            AlignKind::None => buffer.push_str(&format!(
+                                " -{}- |",
+                                &format!("{}", "-".repeat(padding - 1))
+                            )),
                         }
                     }
                     buffer.push('\n');
                 } else {
+                    // Render normal row
                     to_md(child, buffer, context, source, options);
                 }
+                trim_trailing_space_before_newline(buffer); // Dirty hack to fix trailing space
             }
         }
         Node::TableCell(tc) => {
