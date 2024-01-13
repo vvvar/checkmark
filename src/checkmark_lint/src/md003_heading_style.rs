@@ -8,7 +8,8 @@ use markdown::{
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
         .code("MD003")
-        .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md001.md")
+        .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md003.md")
+        .is_fmt_fixable(true)
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -69,20 +70,34 @@ pub fn md003_heading_style(file: &MarkDownFile, style: &HeadingStyle) -> Vec<Vio
         &preferred_style
     );
 
+    let input_style_string = match style {
+        HeadingStyle::Consistent => "consistent",
+        HeadingStyle::Atx => "atx",
+        HeadingStyle::SetExt => "setext",
+    };
+
     headings
         .iter()
         .filter(|h| get_heading_style(&h, &file.content).ne(&preferred_style))
         .map(|h| {
-            violation_builder()
-                .message(&format!(
-                    "Wrong heading style. Expected {:#?}, got {:#?}",
+            let mut violation = violation_builder();
+            if style.eq(&HeadingStyle::Consistent) {
+                violation = violation.message(&format!(
+                    "Inconsistent headings style. First heading in this file is {:#?}, but this one is {:#?}",
                     preferred_style.as_str(),
                     get_heading_style(&h, &file.content).as_str()
                 ))
-                .push_fix(&format!("Change to {:#?} style", preferred_style.as_str()))
-                .push_fix(
-                    "See Markdown reference: https://www.markdownguide.org/basic-syntax/#headings",
-                )
+            } else {
+                violation = violation.message(&format!(
+                    "Wrong heading style. Expected {:#?}, got {:#?}",
+                    input_style_string,
+                    get_heading_style(&h, &file.content).as_str()
+                ))
+            }
+            violation
+                .push_fix(&format!("Change heading style to {:#?}", preferred_style.as_str()))
+                .push_fix(&format!("Alternatively, you can enforce specific heading style via either \"headings\" option from the \"[style]\" section in config file or via \"--style-headings\" CLI option"))
+                .push_fix("See Markdown headings reference: https://www.markdownguide.org/basic-syntax/#headings")
                 .position(&h.position)
                 .build()
         })
@@ -108,7 +123,7 @@ H2
 
         assert_eq!(
             vec![violation_builder()
-                .message("Wrong heading style. Expected \"ATX\", got \"SetExt\"")
+                .message("Inconsistent headings style. First heading in this file is \"ATX\", but this one is \"SetExt\"")
                 .position(&Some(markdown::unist::Position::new(3, 1, 14, 4, 6, 22)))
                 .build()],
             md003_heading_style(&file, &HeadingStyle::Consistent),
@@ -122,7 +137,7 @@ H2
 
         assert_eq!(
             vec![violation_builder()
-                .message("Wrong heading style. Expected \"SetExt\", got \"ATX\"")
+                .message("Wrong heading style. Expected \"setext\", got \"ATX\"")
                 .position(&Some(markdown::unist::Position::new(1, 1, 0, 1, 5, 4)))
                 .build()],
             md003_heading_style(&file, &HeadingStyle::SetExt),
@@ -138,7 +153,7 @@ H2
 
         assert_eq!(
             vec![violation_builder()
-                .message("Wrong heading style. Expected \"ATX\", got \"SetExt\"")
+                .message("Wrong heading style. Expected \"atx\", got \"SetExt\"")
                 .position(&Some(markdown::unist::Position::new(1, 1, 0, 2, 12, 14)))
                 .build()],
             md003_heading_style(&file, &HeadingStyle::Atx),

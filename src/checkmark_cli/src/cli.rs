@@ -109,8 +109,8 @@ pub struct Cli {
     pub exclude: Vec<String>,
 
     /// Style: Type of heading style to enforce
-    #[arg(long, action, required = false)]
-    pub style_heading: Option<String>,
+    #[arg(global = true, long, required = false)]
+    pub style_headings: Option<String>,
 
     /// Sets the configuration file path. Overrides default files if set
     #[arg(global = true, long, short, action, required = false, value_name = "FILE_PATH", value_hint=clap::ValueHint::FilePath)]

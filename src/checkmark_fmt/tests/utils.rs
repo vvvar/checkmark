@@ -16,7 +16,7 @@ pub fn create_dummy_md_file(content: &str) -> common::MarkDownFile {
 #[allow(dead_code)]
 pub fn assert_unchanged_after_formatting(markdown: &str) {
     let original = create_dummy_md_file(markdown);
-    let formatted = checkmark_fmt::fmt_markdown(&original);
+    let formatted = checkmark_fmt::fmt_markdown(&original, &common::Config::default());
     assert_eq!(&original.content, &formatted.content);
 }
 
@@ -25,6 +25,6 @@ pub fn assert_unchanged_after_formatting(markdown: &str) {
 #[allow(dead_code)]
 pub fn assert_changed_after_formatting(source: &str, expected: &str) {
     let original = create_dummy_md_file(source);
-    let formatted = checkmark_fmt::fmt_markdown(&original);
+    let formatted = checkmark_fmt::fmt_markdown(&original, &common::Config::default());
     assert_eq!(&expected, &formatted.content);
 }

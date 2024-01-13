@@ -50,7 +50,7 @@ fn common_mark_end_2_end() {
             && !ignore_sections.contains(&test_case.section.as_str())
         {
             let original = utils::create_dummy_md_file(&test_case.markdown);
-            let formatted = checkmark_fmt::fmt_markdown(&original);
+            let formatted = checkmark_fmt::fmt_markdown(&original, &common::Config::default());
             assert_eq!(
                 original.content, formatted.content,
                 "Testing test case #{}, section: {}",

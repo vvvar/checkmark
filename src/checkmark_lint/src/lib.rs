@@ -34,7 +34,14 @@ use md051_link_fragments_should_be_valid::*;
 pub fn lint(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
     vec![
         md001_heading_level_should_increment_by_one_level_at_time(&file),
-        md003_heading_style(&file, &HeadingStyle::Consistent),
+        md003_heading_style(
+            &file,
+            &match config.style.headings {
+                common::HeadingStyle::Consistent => HeadingStyle::Consistent,
+                common::HeadingStyle::Atx => HeadingStyle::Atx,
+                common::HeadingStyle::Setext => HeadingStyle::SetExt,
+            },
+        ),
         md004_unordered_list_style(&file, &UnorderedListStyle::Consistent),
         md005_consistent_list_items_indentation(&file),
         md007_unordered_list_indentation(&file, 2),
@@ -69,7 +76,7 @@ pub fn lint(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
                 &file.path
             ));
         }
-        issue = issue.push_fix(&format!("See details: {}", violation.doc_link));
+        issue = issue.push_fix(&format!("Rule details: {}", violation.doc_link));
         issue.build()
     })
     .collect::<Vec<CheckIssue>>()

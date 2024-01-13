@@ -78,15 +78,15 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
     if !cli.exclude.is_empty() {
         config.global.exclude = cli.exclude.clone();
     }
-    if let Some(style_heading) = &cli.style_heading {
-        if style_heading.eq("consistent") {
-            config.style.heading = common::HeadingStyle::Consistent;
-        } else if style_heading.eq("atx") {
-            config.style.heading = common::HeadingStyle::Atx;
-        } else if style_heading.eq("setext") {
-            config.style.heading = common::HeadingStyle::Setext;
+    if let Some(style_headings) = &cli.style_headings {
+        if style_headings.eq("consistent") {
+            config.style.headings = common::HeadingStyle::Consistent;
+        } else if style_headings.eq("atx") {
+            config.style.headings = common::HeadingStyle::Atx;
+        } else if style_headings.eq("setext") {
+            config.style.headings = common::HeadingStyle::Setext;
         } else {
-            log::warn!("Unknown heading style: {}", &style_heading);
+            log::warn!("Unknown heading style: {}", &style_headings);
         }
     }
     log::debug!("Config after merging with CLI: {:#?}", &config);

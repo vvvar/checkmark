@@ -481,7 +481,7 @@ pub enum HeadingStyle {
 #[derive(Debug, Default, serde::Deserialize)]
 pub struct StyleConfig {
     #[serde(default)]
-    pub heading: HeadingStyle,
+    pub headings: HeadingStyle,
 }
 
 #[derive(Debug, Default, serde::Deserialize)]

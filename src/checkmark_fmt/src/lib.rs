@@ -424,18 +424,60 @@ fn to_md(
 }
 
 /// Return formatted Markdown file
-pub fn fmt_markdown(file: &common::MarkDownFile) -> common::MarkDownFile {
-    let mut buffer: String = String::from("");
+pub fn fmt_markdown(file: &common::MarkDownFile, config: &common::Config) -> common::MarkDownFile {
+    log::debug!(
+        "Formatting a file {:#?} using provided config {:#?}",
+        &file.path,
+        &config
+    );
+
+    log::debug!("Parsing file to an AST");
     let ast = markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
+
+    log::debug!("Constructing formatting options");
+    let fmt_options = FormattingOptions {
+        list_sign_style: ListSignStyle::Minus,
+        header_style: match config.style.headings {
+            common::HeadingStyle::Consistent => {
+                // Detect header style from the file by checking first heading
+                let ast =
+                    markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
+                let mut headings: Vec<&mdast::Heading> = vec![];
+                common::for_each(&ast, |node| {
+                    if let mdast::Node::Heading(h) = node {
+                        headings.push(h);
+                    }
+                });
+                if let Some(first_heading) = headings.first() {
+                    if is_heading_atx(first_heading, &file.content) {
+                        HeaderStyle::Atx
+                    } else {
+                        HeaderStyle::SetExt
+                    }
+                } else {
+                    HeaderStyle::Atx
+                }
+            }
+            common::HeadingStyle::Setext => HeaderStyle::SetExt,
+            common::HeadingStyle::Atx => HeaderStyle::Atx,
+        },
+        strong_style: StrongStyle::Asterisk,
+    };
+
+    log::debug!("Formatting a file using options: {:#?}", &fmt_options);
+    let mut buffer: String = String::from("");
     to_md(
         &ast,
         &mut buffer,
         &Context::Document,
         &file.content,
-        &FormattingOptions::default(),
+        &fmt_options,
     );
+
+    log::debug!("Removing trailing newlines and spaces");
     buffer = remove_trailing_newline_and_space(&buffer);
     buffer.push('\n');
+
     common::MarkDownFile {
         path: file.path.clone(),
         content: buffer,
@@ -448,7 +490,7 @@ pub fn check_md_format(
     config: &common::Config,
 ) -> Vec<common::CheckIssue> {
     let mut issues: Vec<common::CheckIssue> = vec![];
-    let formatted = &fmt_markdown(file);
+    let formatted = &fmt_markdown(file, &config);
     if !file.content.eq(&formatted.content) {
         let mut issue = common::CheckIssueBuilder::default()
             .set_category(common::IssueCategory::Formatting)

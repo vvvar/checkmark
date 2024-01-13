@@ -16,28 +16,37 @@ fn heading_atx() {
 fn heading_atx_trailing_space_removed() {
     assert_eq!(
         "# This is an H1\n",
-        checkmark_fmt::fmt_markdown(&utils::create_dummy_md_file("#        This is an H1\n"))
-            .content
+        checkmark_fmt::fmt_markdown(
+            &utils::create_dummy_md_file("#        This is an H1\n"),
+            &common::Config::default()
+        )
+        .content
     );
     assert_eq!(
         "## This is an H2\n",
-        checkmark_fmt::fmt_markdown(&utils::create_dummy_md_file("##        This is an H2\n"))
-            .content
+        checkmark_fmt::fmt_markdown(
+            &utils::create_dummy_md_file("##        This is an H2\n"),
+            &common::Config::default()
+        )
+        .content
     );
 }
 
-/// Valid SetExt heading is converted to the ATX
+/// Valid SetExt heading is preserved
 #[test]
 fn heading_set_ext() {
-    utils::assert_changed_after_formatting("H1\n=============\n", "# H1\n");
-    utils::assert_changed_after_formatting("H2\n-------------\n", "## H2\n");
+    utils::assert_changed_after_formatting("H1\n=============\n", "H1\n=============\n");
+    utils::assert_changed_after_formatting("H2\n-------------\n", "H2\n-------------\n");
 }
 
 /// Valid mixed headings are recognized but converted to ATX
 #[test]
 fn heading_mixed_atx_set_ext() {
     utils::assert_changed_after_formatting("# H1\n\nH2\n-------------\n", "# H1\n\n## H2\n");
-    utils::assert_changed_after_formatting("H1\n============\n## H2\n", "# H1\n\n## H2\n");
+    utils::assert_changed_after_formatting(
+        "H1\n============\n\n## H2\n",
+        "H1\n=============\nH2\n-------------\n",
+    );
 }
 
 /// Mixed heading order is ok

@@ -12,11 +12,21 @@ exclude = [
     "*/src/*",
 ]
 
+# Common style options shared across all tools
+[style]
+# Heading style to enforce, e.g. "atx" or "setext"
+# They will be used to enforce the same style across all Markdown files
+# If not specified, the style will be inferred from the first heading in the file
+# This option affects fmt and linter
+# Possible values are: "consistent", "atx" and "setext"
+# Read to understand the difference: https://www.markdownguide.org/basic-syntax/#headings
+headings = "consistent"
+
 # Formatter-specific options   
 [fmt]
 # Check mode - when true, fmt will only print the diff without applying it
 # and exit with status code 1 if any formatting issues are found
-check = false
+check = true
 # When true + "--check" flag, fmt will print the full diff 
 show_diff = true
 
