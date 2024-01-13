@@ -9,6 +9,97 @@ use utils::*;
 use markdown::mdast;
 use markdown::mdast::{AlignKind, Node};
 
+/// Takes a table, walks through it's cells, calculates max size of each column
+/// and returns a vector of sizes that represents maximum possible size of each column(per all rows)
+/// Useful to get know what is the expected size of each column to align them later
+fn calculate_max_col_len(table: &mdast::Table, source: &str) -> Vec<usize> {
+    let mut max_col_len = std::collections::BTreeMap::<usize, usize>::new();
+    for child in &table.children {
+        if let Node::TableRow(tr) = child {
+            for (i, child) in tr.children.iter().enumerate() {
+                let offset_start = child.position().as_ref().unwrap().start.offset;
+                let offset_end = child.position().as_ref().unwrap().end.offset;
+                let col_len = source[offset_start..offset_end]
+                    .trim_matches(' ')
+                    .trim_matches('|')
+                    .trim_matches(' ')
+                    .len();
+                if let Some(max_len) = max_col_len.get(&i) {
+                    if col_len > *max_len {
+                        max_col_len.insert(i, col_len);
+                    }
+                } else {
+                    max_col_len.insert(i, col_len);
+                }
+            }
+        }
+    }
+    max_col_len.into_iter().map(|(_, size)| size).collect()
+}
+
+fn render_table_row(
+    node: &mdast::Node,
+    buffer: &mut String,
+    context: &Context,
+    source: &str,
+    options: &FormattingOptions,
+    expected_col_lengths: &Vec<usize>,
+) {
+    // Render a heading of the table
+    buffer.push_str("| ");
+    // Rows
+    for (i, child) in node.children().unwrap().into_iter().enumerate() {
+        // Cols
+        let len_before = buffer.len();
+        for child in child.children().unwrap() {
+            to_md(child, buffer, context, source, options);
+        }
+        let len_after = buffer.len();
+        let expected_len = len_before + expected_col_lengths.get(i).unwrap();
+        if len_after < expected_len {
+            // Fill missing with white spaces
+            buffer.push_str(&format!("{}", " ".repeat(expected_len - len_after)));
+        }
+        buffer.push_str(" | ");
+    }
+    buffer.push('\n');
+    trim_trailing_space_before_newline(buffer); // Dirty hack to fix trailing space
+                                                // Follow it with a separator
+                                                // Remember lengths of each column
+                                                // to align them later
+}
+
+fn render_table_heading_separator(
+    table: &mdast::Table,
+    buffer: &mut String,
+    expected_col_lengths: &Vec<usize>,
+) {
+    buffer.push('|');
+    for (i, align) in table.align.iter().enumerate() {
+        let padding = if let Some(len) = expected_col_lengths.get(i) {
+            len - 1
+        } else {
+            // Default padding, to avoid overflow
+            2
+        };
+        match align {
+            AlignKind::Left => {
+                buffer.push_str(&format!(" :{} |", &format!("{}", "-".repeat(padding))))
+            }
+            AlignKind::Right => {
+                buffer.push_str(&format!(" {}: |", &format!("{}", "-".repeat(padding))))
+            }
+            AlignKind::Center => {
+                buffer.push_str(&format!(" :{}: |", &format!("{}", "-".repeat(padding - 1))))
+            }
+            AlignKind::None => {
+                buffer.push_str(&format!(" -{}- |", &format!("{}", "-".repeat(padding - 1))))
+            }
+        }
+    }
+    buffer.push('\n');
+}
+
 /// Render Markdown file from AST
 fn to_md(
     node: &mdast::Node,
@@ -388,57 +479,19 @@ fn to_md(
             }
         }
         Node::Table(t) => {
+            let headers_cols_lengths = calculate_max_col_len(t, source);
             for child in &t.children {
+                render_table_row(
+                    child,
+                    buffer,
+                    context,
+                    source,
+                    options,
+                    &headers_cols_lengths,
+                );
                 if child == t.children.first().unwrap() {
-                    // Render a heading of the table
-                    to_md(child, buffer, context, source, options);
-                    trim_trailing_space_before_newline(buffer); // Dirty hack to fix trailing space
-                                                                // Follow it with a separator
-                                                                // Remember lengths of each column
-                                                                // to align them later
-                    let mut headers_cols_lengths: Vec<usize> = vec![];
-                    if let Node::TableRow(tr) = child {
-                        for child in &tr.children {
-                            let offset_start =
-                                child.position().as_ref().unwrap().start.offset.clone();
-                            let offset_end = child.position().as_ref().unwrap().end.offset.clone();
-                            let col_len = source[offset_start..offset_end]
-                                .trim_matches(' ')
-                                .trim_matches('|')
-                                .trim_matches(' ')
-                                .len();
-                            headers_cols_lengths.push(col_len);
-                        }
-                    }
-                    buffer.push('|');
-                    for (i, align) in t.align.iter().enumerate() {
-                        let padding = if let Some(len) = headers_cols_lengths.get(i) {
-                            len - 1
-                        } else {
-                            // Default padding, to avoid overflow
-                            2
-                        };
-                        match align {
-                            AlignKind::Left => buffer
-                                .push_str(&format!(" :{} |", &format!("{}", "-".repeat(padding)))),
-                            AlignKind::Right => buffer
-                                .push_str(&format!(" {}: |", &format!("{}", "-".repeat(padding)))),
-                            AlignKind::Center => buffer.push_str(&format!(
-                                " :{}: |",
-                                &format!("{}", "-".repeat(padding - 1))
-                            )),
-                            AlignKind::None => buffer.push_str(&format!(
-                                " -{}- |",
-                                &format!("{}", "-".repeat(padding - 1))
-                            )),
-                        }
-                    }
-                    buffer.push('\n');
-                } else {
-                    // Render normal row
-                    to_md(child, buffer, context, source, options);
+                    render_table_heading_separator(t, buffer, &headers_cols_lengths);
                 }
-                trim_trailing_space_before_newline(buffer); // Dirty hack to fix trailing space
             }
         }
         Node::TableCell(tc) => {

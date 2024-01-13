@@ -9,14 +9,14 @@ fn table() {
 | Syntax | Description | Something Else | Opapa [Here](./Cargo.lock) |
 | :-- | -----: | :--: | ---- |
 | Header | Title | fdfdsf | On ho! |
-| Paragraph | Text | fdfsdf | Lol |
+| Paragraph | Text | dfdfdfdfdfdfdfdfdfdfdfdfdfddsf | Lol |
 ",
         "# Table
 
-| Syntax | Description | Something Else | Opapa [Here](./Cargo.lock) |
-| :----- | ----------: | :------------: | -------------------------- |
-| Header | Title | fdfdsf | On ho! |
-| Paragraph | Text | fdfsdf | Lol |
+| Syntax    | Description | Something Else                 | Opapa [Here](./Cargo.lock) |
+| :-------- | ----------: | :----------------------------: | -------------------------- |
+| Header    | Title       | fdfdsf                         | On ho!                     |
+| Paragraph | Text        | dfdfdfdfdfdfdfdfdfdfdfdfdfddsf | Lol                        |
 ",
     );
 }
