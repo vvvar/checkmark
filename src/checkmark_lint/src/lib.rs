@@ -42,7 +42,15 @@ pub fn lint(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
                 common::HeadingStyle::Setext => HeadingStyle::SetExt,
             },
         ),
-        md004_unordered_list_style(&file, &UnorderedListStyle::Consistent),
+        md004_unordered_list_style(
+            &file,
+            &match config.style.unordered_lists {
+                common::UnorderedListStyle::Consistent => UnorderedListStyle::Consistent,
+                common::UnorderedListStyle::Dash => UnorderedListStyle::Dash,
+                common::UnorderedListStyle::Plus => UnorderedListStyle::Plus,
+                common::UnorderedListStyle::Asterisk => UnorderedListStyle::Asterisk,
+            },
+        ),
         md005_consistent_list_items_indentation(&file),
         md007_unordered_list_indentation(&file, 2),
         md009_trailing_spaces(&file),

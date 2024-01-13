@@ -436,10 +436,75 @@ pub fn fmt_markdown(file: &common::MarkDownFile, config: &common::Config) -> com
 
     log::debug!("Constructing formatting options");
     let fmt_options = FormattingOptions {
-        list_sign_style: ListSignStyle::Minus,
+        list_sign_style: match config.style.unordered_lists {
+            common::UnorderedListStyle::Consistent => {
+                log::debug!(
+                    "Detecting unordered list style from the file {:#?}",
+                    &file.path
+                );
+
+                let ast =
+                    markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
+                let mut unordered_list_items: Vec<&mdast::ListItem> = vec![];
+                common::for_each(&ast, |node| {
+                    if let mdast::Node::List(l) = node {
+                        if l.ordered == false {
+                            for child in &l.children {
+                                if let mdast::Node::ListItem(li) = child {
+                                    unordered_list_items.push(li);
+                                }
+                            }
+                        }
+                    }
+                });
+                if let Some(first_unordered_list_item) = unordered_list_items.first() {
+                    log::debug!(
+                        "First unordered list item: {:#?}",
+                        &first_unordered_list_item
+                    );
+
+                    let offset_start = first_unordered_list_item
+                        .position
+                        .as_ref()
+                        .unwrap()
+                        .start
+                        .offset;
+                    let offset_end = first_unordered_list_item
+                        .position
+                        .as_ref()
+                        .unwrap()
+                        .end
+                        .offset;
+                    let first_unordered_list_item_str =
+                        &file.content[offset_start..offset_end].trim();
+                    log::debug!(
+                        "Extracted first unordered list item from file: {:#?}",
+                        &first_unordered_list_item_str
+                    );
+
+                    if first_unordered_list_item_str.starts_with('*') {
+                        log::debug!("First unordered list item has asterisk style");
+                        ListSignStyle::Asterisk
+                    } else if first_unordered_list_item_str.starts_with('+') {
+                        log::debug!("First unordered list item has plus style");
+                        ListSignStyle::Plus
+                    } else {
+                        log::debug!("First unordered list style is neither asterisk nor plus, defaulting to dash");
+                        ListSignStyle::Minus
+                    }
+                } else {
+                    log::debug!("File has no unordered lists, defaulting to dash");
+                    ListSignStyle::Minus
+                }
+            }
+            common::UnorderedListStyle::Asterisk => ListSignStyle::Asterisk,
+            common::UnorderedListStyle::Plus => ListSignStyle::Plus,
+            common::UnorderedListStyle::Dash => ListSignStyle::Minus,
+        },
         header_style: match config.style.headings {
             common::HeadingStyle::Consistent => {
-                // Detect header style from the file by checking first heading
+                log::debug!("Detecting heading style from the file {:#?}", &file.path);
+
                 let ast =
                     markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
                 let mut headings: Vec<&mdast::Heading> = vec![];
@@ -449,12 +514,17 @@ pub fn fmt_markdown(file: &common::MarkDownFile, config: &common::Config) -> com
                     }
                 });
                 if let Some(first_heading) = headings.first() {
+                    log::debug!("First heading in a file: {:#?}", &first_heading);
+
                     if is_heading_atx(first_heading, &file.content) {
+                        log::debug!("First heading has ATX style");
                         HeaderStyle::Atx
                     } else {
+                        log::debug!("First heading has SetExt style");
                         HeaderStyle::SetExt
                     }
                 } else {
+                    log::debug!("There are no headings in a file, defaulting to ATX");
                     HeaderStyle::Atx
                 }
             }

@@ -108,9 +108,13 @@ pub struct Cli {
     #[arg(global = true, long, required = false, num_args = 1.., value_delimiter = ' ', value_hint=clap::ValueHint::AnyPath)]
     pub exclude: Vec<String>,
 
-    /// Style: Type of heading style to enforce
+    /// Style: Type of heading style to enforce. Possible values are: "atx", "setext" or "consistent"
     #[arg(global = true, long, required = false)]
     pub style_headings: Option<String>,
+
+    /// Style: Type of unordered list style to enforce. Possible values are: "dash", "asterisk", "plus" or "consistent"
+    #[arg(global = true, long, required = false)]
+    pub style_unordered_lists: Option<String>,
 
     /// Sets the configuration file path. Overrides default files if set
     #[arg(global = true, long, short, action, required = false, value_name = "FILE_PATH", value_hint=clap::ValueHint::FilePath)]

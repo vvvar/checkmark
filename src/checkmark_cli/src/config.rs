@@ -89,6 +89,19 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
             log::warn!("Unknown heading style: {}", &style_headings);
         }
     }
+    if let Some(style_unordered_lists) = &cli.style_unordered_lists {
+        if style_unordered_lists.eq("consistent") {
+            config.style.unordered_lists = common::UnorderedListStyle::Consistent;
+        } else if style_unordered_lists.eq("dash") {
+            config.style.unordered_lists = common::UnorderedListStyle::Dash;
+        } else if style_unordered_lists.eq("asterisk") {
+            config.style.unordered_lists = common::UnorderedListStyle::Asterisk;
+        } else if style_unordered_lists.eq("plus") {
+            config.style.unordered_lists = common::UnorderedListStyle::Plus;
+        } else {
+            log::warn!("Unknown unordered list style: {}", &style_unordered_lists);
+        }
+    }
     log::debug!("Config after merging with CLI: {:#?}", &config);
 
     config

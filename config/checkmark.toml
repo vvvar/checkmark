@@ -18,9 +18,16 @@ exclude = [
 # They will be used to enforce the same style across all Markdown files
 # If not specified, the style will be inferred from the first heading in the file
 # This option affects fmt and linter
-# Possible values are: "consistent", "atx" and "setext"
+# Possible values are: "consistent", "atx" or "setext"
 # Read to understand the difference: https://www.markdownguide.org/basic-syntax/#headings
 headings = "consistent"
+# Unordered list style to enforce, e.g. "asterisk", "plus" or "dash"
+# They will be used to enforce the same style across all Markdown files
+# If not specified, the style will be inferred from the first unordered list item in the file
+# This option affects fmt and linter
+# Possible values are: "asterisk", "plus", "dash" or "consistent"
+# Read to understand the difference: https://www.markdownguide.org/basic-syntax/#lists-1
+unordered_lists = "consistent"
 
 # Formatter-specific options   
 [fmt]

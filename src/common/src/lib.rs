@@ -479,9 +479,22 @@ pub enum HeadingStyle {
 }
 
 #[derive(Debug, Default, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum UnorderedListStyle {
+    #[default]
+    Consistent,
+    Dash,
+    Asterisk,
+    Plus,
+}
+
+#[derive(Debug, Default, serde::Deserialize)]
 pub struct StyleConfig {
     #[serde(default)]
     pub headings: HeadingStyle,
+
+    #[serde(default)]
+    pub unordered_lists: UnorderedListStyle,
 }
 
 #[derive(Debug, Default, serde::Deserialize)]
