@@ -127,9 +127,9 @@ fn list_with_multiple_text_lines() {
 - __[babelfish](https://github.com/nodeca/babelfish/)__ - developer friendly
   i18n with plurals support and easy syntax.
 ",
-        "- **[pica](https://nodeca.github.io/pica/demo/)** - high quality and fast image
+        "- __[pica](https://nodeca.github.io/pica/demo/)__ - high quality and fast image
   resize in browser.
-- **[babelfish](https://github.com/nodeca/babelfish/)** - developer friendly
+- __[babelfish](https://github.com/nodeca/babelfish/)__ - developer friendly
   i18n with plurals support and easy syntax.
 ",
     );

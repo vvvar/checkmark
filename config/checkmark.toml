@@ -12,22 +12,23 @@ exclude = [
     "*/src/*",
 ]
 
-# Common style options shared across all tools
+# Common style options of your project
+# These options affects fmt and linter
+# Used to enforce the same style across all Markdown files
+# If not specified, the style will be inferred from the first element in the file
 [style]
 # Heading style to enforce, e.g. "atx" or "setext"
-# They will be used to enforce the same style across all Markdown files
-# If not specified, the style will be inferred from the first heading in the file
-# This option affects fmt and linter
-# Possible values are: "consistent", "atx" or "setext"
+# Possible values are: "atx", "setext" or "consistent"
 # Read to understand the difference: https://www.markdownguide.org/basic-syntax/#headings
 headings = "consistent"
 # Unordered list style to enforce, e.g. "asterisk", "plus" or "dash"
-# They will be used to enforce the same style across all Markdown files
-# If not specified, the style will be inferred from the first unordered list item in the file
-# This option affects fmt and linter
 # Possible values are: "asterisk", "plus", "dash" or "consistent"
 # Read to understand the difference: https://www.markdownguide.org/basic-syntax/#lists-1
 unordered_lists = "consistent"
+# Bold(string) emphasis element style to enforce, e.g. "asterisk" or "underscore"
+# Possible values are: "asterisk", "underscore" or "consistent"
+# Read to understand the difference: https://www.markdownguide.org/basic-syntax/#bold
+bold = "consistent"
 
 # Formatter-specific options   
 [fmt]

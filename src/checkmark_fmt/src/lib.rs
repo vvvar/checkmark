@@ -531,7 +531,41 @@ pub fn fmt_markdown(file: &common::MarkDownFile, config: &common::Config) -> com
             common::HeadingStyle::Setext => HeaderStyle::SetExt,
             common::HeadingStyle::Atx => HeaderStyle::Atx,
         },
-        strong_style: StrongStyle::Asterisk,
+        strong_style: match config.style.bold {
+            common::BoldStyle::Consistent => {
+                log::debug!(
+                    "Detecting bold(strong) style from the file {:#?}",
+                    &file.path
+                );
+
+                let ast =
+                    markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
+                let mut strong_els: Vec<&mdast::Strong> = vec![];
+                common::for_each(&ast, |node| {
+                    if let mdast::Node::Strong(s) = node {
+                        strong_els.push(s);
+                    }
+                });
+                if let Some(first_strong_el) = strong_els.first() {
+                    log::debug!("First bold(strong) el in a file: {:#?}", &first_strong_el);
+
+                    if is_string_underscored(first_strong_el, &file.content) {
+                        log::debug!("First bold(strong) el is underscored");
+                        StrongStyle::Underscore
+                    } else {
+                        log::debug!(
+                            "First bold(strong) not underscored, defaulting to the asterisk"
+                        );
+                        StrongStyle::Asterisk
+                    }
+                } else {
+                    log::debug!("There are no bold(strong) els in a file, defaulting to asterisk");
+                    StrongStyle::Asterisk
+                }
+            }
+            common::BoldStyle::Asterisk => StrongStyle::Asterisk,
+            common::BoldStyle::Underscore => StrongStyle::Underscore,
+        },
     };
 
     log::debug!("Formatting a file using options: {:#?}", &fmt_options);

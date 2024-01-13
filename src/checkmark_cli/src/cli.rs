@@ -116,6 +116,10 @@ pub struct Cli {
     #[arg(global = true, long, required = false)]
     pub style_unordered_lists: Option<String>,
 
+    /// Style: Type of bold element style to enforce. Possible values are: "asterisk", "underscore" or "consistent"
+    #[arg(global = true, long, required = false)]
+    pub style_bold: Option<String>,
+
     /// Sets the configuration file path. Overrides default files if set
     #[arg(global = true, long, short, action, required = false, value_name = "FILE_PATH", value_hint=clap::ValueHint::FilePath)]
     pub config: Option<String>,

@@ -102,6 +102,17 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
             log::warn!("Unknown unordered list style: {}", &style_unordered_lists);
         }
     }
+    if let Some(style_bold) = &cli.style_bold {
+        if style_bold.eq("consistent") {
+            config.style.bold = common::BoldStyle::Consistent;
+        } else if style_bold.eq("asterisk") {
+            config.style.bold = common::BoldStyle::Asterisk;
+        } else if style_bold.eq("underscore") {
+            config.style.bold = common::BoldStyle::Underscore;
+        } else {
+            log::warn!("Unknown bold style: {}", &style_bold);
+        }
+    }
     log::debug!("Config after merging with CLI: {:#?}", &config);
 
     config

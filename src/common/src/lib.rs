@@ -489,12 +489,24 @@ pub enum UnorderedListStyle {
 }
 
 #[derive(Debug, Default, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum BoldStyle {
+    #[default]
+    Consistent,
+    Asterisk,
+    Underscore,
+}
+
+#[derive(Debug, Default, serde::Deserialize)]
 pub struct StyleConfig {
     #[serde(default)]
     pub headings: HeadingStyle,
 
     #[serde(default)]
     pub unordered_lists: UnorderedListStyle,
+
+    #[serde(default)]
+    pub bold: BoldStyle,
 }
 
 #[derive(Debug, Default, serde::Deserialize)]
