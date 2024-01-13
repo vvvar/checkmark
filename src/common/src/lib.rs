@@ -405,10 +405,17 @@ pub fn activate_debug_logging() {
     if let Ok(_) = env_logger::try_init() {}
 }
 
+/// TOML config for checkmark
 #[derive(Debug, Default, serde::Deserialize)]
 pub struct Config {
     #[serde(default)]
     pub global: GlobalConfig,
+
+    #[serde(default)]
+    pub fmt: FmtConfig,
+
+    #[serde(default)]
+    pub style: StyleConfig,
 
     #[serde(default)]
     pub review: ReviewConfig,
@@ -444,7 +451,6 @@ impl Config {
     }
 }
 
-/// TOML config for checkmark
 #[derive(Debug, Default, serde::Deserialize)]
 pub struct GlobalConfig {
     #[serde(default)]
@@ -452,6 +458,30 @@ pub struct GlobalConfig {
 
     #[serde(default)]
     pub exclude_license: bool,
+}
+
+#[derive(Debug, Default, serde::Deserialize)]
+pub struct FmtConfig {
+    #[serde(default)]
+    pub check: bool,
+
+    #[serde(default)]
+    pub show_diff: bool,
+}
+
+#[derive(Debug, Default, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum HeadingStyle {
+    #[default]
+    Consistent,
+    Atx,
+    Setext,
+}
+
+#[derive(Debug, Default, serde::Deserialize)]
+pub struct StyleConfig {
+    #[serde(default)]
+    pub heading: HeadingStyle,
 }
 
 #[derive(Debug, Default, serde::Deserialize)]

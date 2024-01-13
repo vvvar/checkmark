@@ -1,34 +1,50 @@
+# This TOML file is used to configure checkmark for your project
+# Configuration is split by sections
+# Every tool has its own section + sections for options that are shared between tools
+
+# Global options shared across all tools
 [global]
-exclude = [
+# List of file glob patterns to ignore when discovering Markdown files
+exclude = [         
     "*LICENSE*",
     "*/.github/*",
     "*/tests/*",
     "*/src/*",
 ]
 
-[link_checker]
-# List of glob patterns to ignore when checking links
-ignore_wildcards = [
-    "**gffffffffffoooooogel**",
-    "/**.rs"
-]
+# Formatter-specific options   
+[fmt]
+# Check mode - when true, fmt will only print the diff without applying it
+# and exit with status code 1 if any formatting issues are found
+check = false
+# When true + "--check" flag, fmt will print the full diff 
+show_diff = true
 
+# Link checker-specific options
+[link_checker]
+# List of glob URI patterns to ignore when checking links
+ignore_wildcards=["**gffffffffffoooooogel**", "/**.rs"]
+
+# Linter-specific options
 [linter]
-# List of HTML elements to ignore when linting
+# List of HTML elements to ignore when linting, e.g. "a", "img", etc.
 allowed_html_tags = []
 
-[review]
-# When true, the review will be printed without fix suggestions
+# Review-specific options
+[review]       
+# When true, the review will be printed without fix suggestions                     
 no_suggestions=false
+# Custom prompt for the review, e.g. "Make a grammar review"
 # prompt="Make a grammar review"
 
+# Spelling-specific options
 [spelling]
 # List of words to ignore while spell checking
 words_whitelist=[
     "additnal",
     "API",
     "behavior",
-    "Checkmark",
+    "checkmark",
     "dotenv",
     "OpenAI",
     "GoogleTest",

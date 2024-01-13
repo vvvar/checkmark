@@ -45,7 +45,17 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
 
     log::debug!("Merging config with CLI options...");
     match &cli.subcommands {
-        crate::cli::Subcommands::Fmt(_) => {}
+        crate::cli::Subcommands::Fmt(fmt) => {
+            // When someone enabled these options via CLI - consider it as a force enablement.
+            // Otherwise - keep one from the config. Doing this because of ambiguity of bool in CLI args
+            // e.g. we cant normally distinguish when user provide's --check or just didn't set it at all
+            if fmt.check && !config.fmt.check {
+                config.fmt.check = true;
+            }
+            if fmt.show_diff && !config.fmt.show_diff {
+                config.fmt.show_diff = true;
+            }
+        }
         crate::cli::Subcommands::Links(links) => {
             if !links.ignore_wildcards.is_empty() {
                 config.link_checker.ignore_wildcards = links.ignore_wildcards.clone();
@@ -67,6 +77,17 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
     }
     if !cli.exclude.is_empty() {
         config.global.exclude = cli.exclude.clone();
+    }
+    if let Some(style_heading) = &cli.style_heading {
+        if style_heading.eq("consistent") {
+            config.style.heading = common::HeadingStyle::Consistent;
+        } else if style_heading.eq("atx") {
+            config.style.heading = common::HeadingStyle::Atx;
+        } else if style_heading.eq("setext") {
+            config.style.heading = common::HeadingStyle::Setext;
+        } else {
+            log::warn!("Unknown heading style: {}", &style_heading);
+        }
     }
     log::debug!("Config after merging with CLI: {:#?}", &config);
 

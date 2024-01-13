@@ -443,7 +443,10 @@ pub fn fmt_markdown(file: &common::MarkDownFile) -> common::MarkDownFile {
     }
 }
 
-pub fn check_md_format(file: &common::MarkDownFile, show_diff: bool) -> Vec<common::CheckIssue> {
+pub fn check_md_format(
+    file: &common::MarkDownFile,
+    config: &common::Config,
+) -> Vec<common::CheckIssue> {
     let mut issues: Vec<common::CheckIssue> = vec![];
     let formatted = &fmt_markdown(file);
     if !file.content.eq(&formatted.content) {
@@ -458,7 +461,7 @@ pub fn check_md_format(file: &common::MarkDownFile, show_diff: bool) -> Vec<comm
             .set_offset_start(0)
             .set_offset_end(file.content.len())
             .set_message(String::from("Formatting is incorrect"));
-        if show_diff {
+        if config.fmt.show_diff {
             issue = issue.push_fix(&format!(
                 "Detailed comparison of expected formatting and your file:\n\n{}\n\n",
                 get_diff(&file.content, &formatted.content)

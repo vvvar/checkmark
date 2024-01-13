@@ -40,12 +40,12 @@ async fn main() -> Result<(), errors::AppError> {
 
     // Analyze
     match &cli.subcommands {
-        cli::Subcommands::Fmt(fmt_cli) => match fmt_cli.check {
+        cli::Subcommands::Fmt(_) => match config.fmt.check {
             true => {
                 tui.lock().unwrap().start_spinner("Checking format...");
                 files.par_iter_mut().for_each(|file| {
                     file.issues
-                        .append(&mut checkmark_fmt::check_md_format(file, fmt_cli.show_diff));
+                        .append(&mut checkmark_fmt::check_md_format(file, &config));
                     tui.lock().unwrap().print_file_check_status(file);
                 });
             }
