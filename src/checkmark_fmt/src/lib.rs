@@ -100,6 +100,25 @@ fn render_table_heading_separator(
     buffer.push('\n');
 }
 
+/// This function escapes special characters that has a special meaning Markdown.
+/// Although there's no official specification for how to escape special characters
+/// it is better to do so to avoid any possible issues with engines.
+/// Based on discussion here: https://talk.commonmark.org/t/can-we-have-formal-escaping-rules/2624
+/// and Markdown cookbook: https://bookdown.org/yihui/rmarkdown-cookbook/special-chars.html
+/// and Perforce recommendation: https://www.perforce.com/manuals/v18.2/swarm/Content/Swarm/basics.markdown.html#:~:text=Use%20the%20backslash%20character%20%5C%20to,Exclamation%20point%20%5C!
+/// also this post: https://stackoverflow.com/a/45766624
+/// Do not escape: "-", "+", "!", "#", "{", "}", "(", ")", and "." because render engines are mostly fine with them although they have a special meaning
+fn escape_special_characters(str: &str) -> String {
+    str.replace("\\", "\\\\")
+        .replace("|", "\\|")
+        .replace("*", "\\*")
+        .replace("_", "\\_")
+        .replace("[", "\\[")
+        .replace("]", "\\]")
+        .replace(">", "\\>")
+        .replace("<", "\\<")
+}
+
 /// Render Markdown file from AST
 fn to_md(
     node: &mdast::Node,
@@ -138,21 +157,21 @@ fn to_md(
             }
         }
         Node::Text(t) => {
+            let text = escape_special_characters(&t.value);
             match context {
                 Context::BlockQuote(ctx) => buffer.push_str(
-                    &t.value
-                        .replace('\n', &format!("\n{}", "> ".repeat(ctx.depth).as_str())),
+                    &text.replace('\n', &format!("\n{}", "> ".repeat(ctx.depth).as_str())),
                 ),
                 Context::List(ctx) => {
                     // Very special case - when we have list with text that has ne lines
                     // we want to align them
                     if ctx.is_ordered {
-                        buffer.push_str(&t.value.replace(
+                        buffer.push_str(&text.replace(
                             '\n',
                             &format!("\n{}", "   ".repeat(ctx.nesting_level + 1).as_str()),
                         ));
                     } else {
-                        buffer.push_str(&t.value.replace(
+                        buffer.push_str(&text.replace(
                             '\n',
                             &format!("\n{}", "  ".repeat(ctx.nesting_level + 1).as_str()),
                         ));
@@ -163,7 +182,7 @@ fn to_md(
                     // we want to align it with list so it will be rendered
                     // by engines like a quote inside a list.
                     // Otherwise - it will be rendered outside
-                    buffer.push_str(&t.value.replace(
+                    buffer.push_str(&text.replace(
                         '\n',
                         &format!(
                             "\n{}> ",
@@ -171,7 +190,7 @@ fn to_md(
                         ),
                     ));
                 }
-                _ => buffer.push_str(&t.value),
+                _ => buffer.push_str(&text),
             }
         }
         Node::Paragraph(p) => {

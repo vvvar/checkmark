@@ -11,14 +11,14 @@ fn single_level_list_preserved() {
 fn consequent_double_level_list_preserved() {
     utils::assert_unchanged_after_formatting(
         "- First
-  - First_One
-  - First_Two
+  - First One
+  - First Two
 - Second
-  - Second_One
-  - Second_Two
-  - Second_Three
+  - Second One
+  - Second Two
+  - Second Three
 - Third
-  - Third_One
+  - Third One
 ",
     );
 }
