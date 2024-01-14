@@ -128,7 +128,7 @@ pub async fn open_ai_request(
                     },
                     OpenAIRequestDataMessage {
                         role: "user".to_string(),
-                        content: chunk.to_string(),
+                        content: format!("#{}", chunk),
                     },
                 ],
             };
