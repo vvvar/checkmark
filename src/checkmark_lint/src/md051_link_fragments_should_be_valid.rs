@@ -1,6 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
 use common::{for_each, parse, MarkDownFile};
-use markdown::mdast::{Heading, Html, Link, Node};
+use markdown::mdast::{Heading, Link, Node};
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
@@ -10,9 +10,9 @@ fn violation_builder() -> ViolationBuilder {
         .push_fix("Add missing anchor")
 }
 
-/// Get all Markdown links.
-/// All of them shall point to valid anchors.
-fn extract_anchor_links(ast: &Node) -> Vec<&Link> {
+/// Get all Markdown links that points to a document fragment.
+/// For example: [About](#about-us)
+fn extract_links_with_fragments(ast: &Node) -> Vec<&Link> {
     let mut link_nodes: Vec<&Link> = vec![];
     for_each(&ast, |node| {
         if let Node::Link(l) = node {
@@ -25,8 +25,6 @@ fn extract_anchor_links(ast: &Node) -> Vec<&Link> {
     link_nodes
 }
 
-/// Get all headings.
-/// At lease one of them shall be referenced by a link.
 fn extract_headings(ast: &Node) -> Vec<&Heading> {
     let mut heading_nodes: Vec<&Heading> = vec![];
     for_each(&ast, |node| {
@@ -38,10 +36,10 @@ fn extract_headings(ast: &Node) -> Vec<&Heading> {
     heading_nodes
 }
 
-/// Takes heading and returns anchor link to it.
+/// Takes heading and returns fragment link of it.
 /// Link element that want to jump to this header
-/// should have this anchor.
-fn heading_to_anchor(heading: &Heading) -> String {
+/// should use this fragment.
+fn heading_to_fragment(heading: &Heading) -> String {
     let mut text = "".to_string();
     for node in &heading.children {
         if let Node::Text(t) = node {
@@ -62,51 +60,55 @@ fn heading_to_anchor(heading: &Heading) -> String {
 
 /// Get all HTML links(<a/>).
 /// At least one of them shall contain an anchor.
-fn extract_html_links(ast: &Node) -> Vec<&Html> {
-    let mut html_links: Vec<&Html> = vec![];
+fn extract_html_elements(ast: &Node) -> Vec<scraper::Node> {
+    let mut html_elements: Vec<scraper::Node> = vec![];
     for_each(&ast, |node| {
         if let Node::Html(h) = node {
             let fragment = scraper::Html::parse_fragment(&h.value);
-            let a_selector = scraper::Selector::parse("a").unwrap();
-            if fragment.select(&a_selector).next().is_some() {
-                html_links.push(h);
-            }
+            html_elements.append(&mut fragment.tree.clone().into_iter().collect::<Vec<_>>())
         }
     });
-    log::debug!("[MD051] HTML links: {:#?}", &html_links);
-    html_links
+    log::debug!("[MD051] HTML elements: {:#?}", &html_elements);
+    html_elements
 }
 
+/// Takes a list of links with fragment and for each of them tries to find whether it:
+///   - has corresponding heading that is convertible to the same fragment
+///   - has any HTML el with "id" attr or <a> el with "name" attribute that is == to the same fragment
+/// For every link that does not satisfy any of these conditions, returns a violation.
 fn find_violations(
-    anchor_links: &Vec<&Link>,
+    links: &Vec<&Link>,
     headings: &Vec<&Heading>,
-    html_links: &Vec<&Html>,
+    html_els: &Vec<scraper::Node>,
 ) -> Vec<Violation> {
-    // Does anchor link point to a heading?
-    let does_anchor_points_to_header = |anchor: &Link| {
+    // Does link fragment point to a header?
+    let does_fragment_points_to_header = |anchor: &Link| {
         headings
             .iter()
-            .any(|heading| anchor.url.eq(&heading_to_anchor(&heading)))
+            .any(|heading| anchor.url.eq(&heading_to_fragment(&heading)))
     };
     // Does anchor points to any other anchor in HTML <a id="#anchor"/>?
-    let does_anchor_points_to_link = |anchor: &Link| {
-        html_links.iter().any(|html_link| {
-            let fragment = scraper::Html::parse_fragment(&html_link.value);
-            let a_selector = scraper::Selector::parse("a").unwrap();
-            if let Some(a) = fragment.select(&a_selector).next() {
-                let id = a.value().attr("id").unwrap_or("");
-                let name = a.value().attr("name").unwrap_or("");
-                anchor.url.eq(&format!("#{}", &id)) || anchor.url.eq(&format!("#{}", &name))
+    let does_fragment_points_to_html = |link: &Link| {
+        html_els.iter().any(|html_el| {
+            if let Some(el) = html_el.as_element() {
+                let id = el.attr("id").unwrap_or("");
+                if el.name().eq("a") {
+                    let name = el.attr("name").unwrap_or("");
+                    link.url.eq(&format!("#{}", &id)) || link.url.eq(&format!("#{}", &name))
+                } else {
+                    link.url.eq(&format!("#{}", &id))
+                }
             } else {
                 false
             }
         })
     };
-    let link_to_violation = |link: &Link| violation_builder().position(&link.position).build();
-    let violations = anchor_links
+    let violations = links
         .iter()
-        .filter(|link| !does_anchor_points_to_header(&link) && !does_anchor_points_to_link(&link))
-        .map(|link| link_to_violation(&link))
+        .filter(|link| {
+            !does_fragment_points_to_header(&link) && !does_fragment_points_to_html(&link)
+        })
+        .map(|link| violation_builder().position(&link.position).build())
         .collect();
     log::debug!("[MD051] Violations: {:#?}", &violations);
     violations
@@ -115,10 +117,10 @@ fn find_violations(
 pub fn md051_link_fragments_should_be_valid(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD051] File: {:#?}", &file.path);
     let ast = parse(&file.content).unwrap();
-    let anchor_links = extract_anchor_links(&ast);
+    let links = extract_links_with_fragments(&ast);
     let headings = extract_headings(&ast);
-    let html_links = extract_html_links(&ast);
-    find_violations(&anchor_links, &headings, &html_links)
+    let html_elements = extract_html_elements(&ast);
+    find_violations(&links, &headings, &html_elements)
 }
 
 #[cfg(test)]
@@ -127,47 +129,47 @@ mod tests {
     use markdown::unist::Position;
     use pretty_assertions::assert_eq;
 
-    #[test]
-    fn md051() {
+    fn lint(content: &str) -> Vec<Violation> {
         let file = MarkDownFile {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
-            content: "
-# Title
-
-- [About](#about--us)
-- [Help](#help)
-- [Contribute](#contribute)
-- [Feedback](#feedback)
-- [Normal Link](https://google.com)
-
-## About & Us
-
-This is about
-
-## Not-help
-
-This is not help
-
-## <a id='contribute' /> But this is a contribution
-
-This is a contribution
-
-## <a id='#not-contribute' /> And this is a something else
-
-Something else text with <a>random HTML</a>
-
-## <a name='feedback' /> This is a Feedback section
-
-This is a feedback section text"
-                .to_string(),
+            content: content.to_string(),
             issues: vec![],
         };
+        md051_link_fragments_should_be_valid(&file)
+    }
 
+    #[test]
+    fn md051() {
+        // Has invalid fragment
         assert_eq!(
+            lint("# Heading Name\n\n[Link](#fragment)"),
             vec![violation_builder()
-                .position(&Some(Position::new(5, 3, 34, 5, 16, 47)))
-                .build()],
-            md051_link_fragments_should_be_valid(&file)
+                .position(&Some(Position::new(3, 1, 16, 3, 18, 33)))
+                .build()]
+        );
+
+        // Valid fragment from heading name
+        assert_eq!(lint("# Section\n\n[Song](#section)"), vec![]);
+
+        // More complex case when heading name is transformed
+        assert_eq!(lint("# Seek & Destroy\n\n[Song](#seek--destroy)"), vec![]);
+
+        // Random HTML el can be used as a fragment
+        assert_eq!(
+            lint("[Link](#anywhere)\n\n<span id='anywhere'>Hello<\\span>"),
+            vec![]
+        );
+
+        // <a> tag with name attr can be used as a fragment
+        assert_eq!(
+            lint("[Link](#anywhere)\n\n<a name='anywhere'>Hello<\\a>"),
+            vec![]
+        );
+
+        // <a> tag with id attr can be used as a fragment
+        assert_eq!(
+            lint("[Link](#anywhere)\n\n<a id='anywhere'>Hello<\\a>"),
+            vec![]
         );
     }
 }
