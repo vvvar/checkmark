@@ -119,15 +119,17 @@ pub async fn ls(path: &str, exclude: &Vec<String>) -> Vec<common::MarkDownFile> 
                         log::debug!("Glob search results: {:#?}", &search_results);
                         for search_result in search_results {
                             match search_result {
-                                Ok(markdown_file_path) => match markdown_file_path.canonicalize() {
-                                    Ok(markdown_file_abs_path) => {
-                                        files.push(markdown_file_abs_path.display().to_string())
-                                    }
-                                    Err(error) => warn!(
+                                Ok(markdown_file_path) => {
+                                    match dunce::canonicalize(markdown_file_path) {
+                                        Ok(markdown_file_abs_path) => {
+                                            files.push(markdown_file_abs_path.display().to_string())
+                                        }
+                                        Err(error) => warn!(
                                         "Cannot obtain an absolute path to found file, error: {}",
                                         &error
                                     ),
-                                },
+                                    }
+                                }
                                 Err(error) => {
                                     warn!("Found a Markdown file, but it had an error: {}", &error)
                                 }
