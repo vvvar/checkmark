@@ -9,6 +9,19 @@ use utils::*;
 use markdown::mdast;
 use markdown::mdast::{AlignKind, Node};
 
+/// Parse Markdown file into an AST
+fn parse(source: &str) -> Result<Node, String> {
+    log::debug!("Parsing file to an AST");
+    let options = markdown::ParseOptions {
+        constructs: markdown::Constructs {
+            frontmatter: true,
+            ..markdown::Constructs::gfm()
+        },
+        ..markdown::ParseOptions::gfm()
+    };
+    markdown::to_mdast(&source, &options)
+}
+
 /// Takes a table, walks through it's cells, calculates max size of each column
 /// and returns a vector of sizes that represents maximum possible size of each column(per all rows)
 /// Useful to get know what is the expected size of each column to align them later
@@ -559,32 +572,26 @@ fn to_md(
             }
             buffer.push('\n');
         }
+        Node::Yaml(yaml) => {
+            buffer.push_str(&"---\n");
+            buffer.push_str(&yaml.value);
+            buffer.push_str(&"\n---\n");
+        }
         _ => panic!("Unexpected node type {node:#?}"),
     }
 }
 
 /// Return formatted Markdown file
 pub fn fmt_markdown(file: &common::MarkDownFile, config: &common::Config) -> common::MarkDownFile {
-    log::debug!(
-        "Formatting a file {:#?} using provided config {:#?}",
-        &file.path,
-        &config
-    );
-
-    log::debug!("Parsing file to an AST");
-    let ast = markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
+    log::debug!("Format {:#?} with config: {:#?}", &file.path, &config);
 
     log::debug!("Constructing formatting options");
     let fmt_options = FormattingOptions {
         list_sign_style: match config.style.unordered_lists {
             common::UnorderedListStyle::Consistent => {
-                log::debug!(
-                    "Detecting unordered list style from the file {:#?}",
-                    &file.path
-                );
+                log::debug!("Detect unordered list style in {:#?}", &file.path);
 
-                let ast =
-                    markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
+                let ast = parse(&file.content).unwrap();
                 let mut unordered_list_items: Vec<&mdast::ListItem> = vec![];
                 common::for_each(&ast, |node| {
                     if let mdast::Node::List(l) = node {
@@ -645,8 +652,7 @@ pub fn fmt_markdown(file: &common::MarkDownFile, config: &common::Config) -> com
             common::HeadingStyle::Consistent => {
                 log::debug!("Detecting heading style from the file {:#?}", &file.path);
 
-                let ast =
-                    markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
+                let ast = parse(&file.content).unwrap();
                 let mut headings: Vec<&mdast::Heading> = vec![];
                 common::for_each(&ast, |node| {
                     if let mdast::Node::Heading(h) = node {
@@ -678,8 +684,7 @@ pub fn fmt_markdown(file: &common::MarkDownFile, config: &common::Config) -> com
                     &file.path
                 );
 
-                let ast =
-                    markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
+                let ast = parse(&file.content).unwrap();
                 let mut strong_els: Vec<&mdast::Strong> = vec![];
                 common::for_each(&ast, |node| {
                     if let mdast::Node::Strong(s) = node {
@@ -707,9 +712,10 @@ pub fn fmt_markdown(file: &common::MarkDownFile, config: &common::Config) -> com
             common::BoldStyle::Underscore => StrongStyle::Underscore,
         },
     };
+    log::debug!("Formatting options: {:#?}", &fmt_options);
 
-    log::debug!("Formatting a file using options: {:#?}", &fmt_options);
     let mut buffer: String = String::from("");
+    let ast = parse(&file.content).unwrap();
     to_md(
         &ast,
         &mut buffer,

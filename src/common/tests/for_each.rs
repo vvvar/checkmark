@@ -15,8 +15,6 @@ fn for_each() {
         iterated_items.push(el.clone());
     });
 
-    dbg!(&iterated_items);
-
     assert!(false);
 }
 

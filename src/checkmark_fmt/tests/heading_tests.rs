@@ -1,3 +1,6 @@
+#[cfg(test)]
+use pretty_assertions::assert_eq;
+
 mod utils;
 
 /// Valid ATX heading is preserved
