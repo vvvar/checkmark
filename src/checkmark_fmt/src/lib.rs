@@ -199,7 +199,6 @@ fn to_md(
             buffer.push('\n');
         }
         Node::List(l) => {
-            dbg!(&l);
             let mut start = if l.start.is_some() {
                 l.start.unwrap()
             } else {
