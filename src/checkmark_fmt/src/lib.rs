@@ -348,9 +348,23 @@ fn to_md(
             buffer.push('\n');
         }
         Node::Link(l) => {
+            dbg!(&l);
             buffer.push('[');
             for child in &l.children {
-                to_md(child, buffer, context, source, options);
+                if let Node::Link(sub_link) = child {
+                    // Although not explicitly prohibited, this is kinda a blank spot in CommonMark.
+                    // Technically, it is valid to have "[http://google.com](http://github.com)".
+                    // This will result in parser creating two nested links "Link { Link { Text }, Text }".
+                    // If we'll render it as-is it will result in a broken Markdown because
+                    // it will became "[[http://google.com](http://google.com)](http://github.com)".
+                    // Every time we format it will add another layer of nesting.
+                    // We want to avoid it and render inner link as a plain text.
+                    for child in &sub_link.children {
+                        to_md(child, buffer, context, source, options);
+                    }
+                } else {
+                    to_md(child, buffer, context, source, options);
+                }
             }
             buffer.push(']');
             buffer.push_str(&format!("({}", &l.url.clone().as_str()));
