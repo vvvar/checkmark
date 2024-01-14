@@ -1,9 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, MarkDownFile};
-use markdown::{
-    mdast::{self},
-    to_mdast, ParseOptions,
-};
+use common::{for_each, parse, MarkDownFile};
+use markdown::mdast::{Html, Node};
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
@@ -19,10 +16,10 @@ pub fn md033_inline_html(file: &MarkDownFile, allowed_tags: &Vec<String>) -> Vec
         &allowed_tags
     );
 
-    let ast = to_mdast(&file.content, &ParseOptions::gfm()).unwrap();
-    let mut html_nodes: Vec<&mdast::Html> = vec![];
+    let ast = parse(&file.content).unwrap();
+    let mut html_nodes: Vec<&Html> = vec![];
     for_each(&ast, |node| {
-        if let mdast::Node::Html(t) = node {
+        if let Node::Html(t) = node {
             html_nodes.push(t);
         }
     });
@@ -73,11 +70,12 @@ pub fn md033_inline_html(file: &MarkDownFile, allowed_tags: &Vec<String>) -> Vec
 #[cfg(test)]
 mod tests {
     use super::*;
+    use markdown::unist::Position;
     use pretty_assertions::assert_eq;
 
     #[test]
     fn md003() {
-        let file = common::MarkDownFile {
+        let file = MarkDownFile {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
             content: r#"<h1 align="center">Header<\h1>\n\n"#.to_string(),
             issues: vec![],
@@ -86,7 +84,7 @@ mod tests {
         // Plain case
         assert_eq!(
             vec![violation_builder()
-                .position(&Some(markdown::unist::Position::new(1, 1, 0, 1, 35, 34)))
+                .position(&Some(Position::new(1, 1, 0, 1, 35, 34)))
                 .build()],
             md033_inline_html(&file, &vec![]),
         );
@@ -101,14 +99,14 @@ mod tests {
         assert_eq!(
             vec![
                 violation_builder()
-                    .position(&Some(markdown::unist::Position::new(1, 1, 0, 1, 18, 17)))
+                    .position(&Some(Position::new(1, 1, 0, 1, 18, 17)))
                     .build(),
                 violation_builder()
-                    .position(&Some(markdown::unist::Position::new(5, 1, 35, 5, 18, 52)))
+                    .position(&Some(Position::new(5, 1, 35, 5, 18, 52)))
                     .build(),
             ],
             md033_inline_html(
-                &common::MarkDownFile {
+                &MarkDownFile {
                     path: String::from("this/is/a/dummy/path/to/a/file.md"),
                     content: "<h1>Header 1<\\h1>\n\nSome paragraph\n\n<h1>Header 2<\\h1>"
                         .to_string(),

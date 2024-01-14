@@ -535,3 +535,16 @@ pub struct SpellingConfig {
     #[serde(default)]
     pub words_whitelist: Vec<String>,
 }
+
+/// Parse Markdown file into an AST
+pub fn parse(source: &str) -> Result<markdown::mdast::Node, String> {
+    log::debug!("Parsing file to an AST");
+    let options = markdown::ParseOptions {
+        constructs: markdown::Constructs {
+            frontmatter: true,
+            ..markdown::Constructs::gfm()
+        },
+        ..markdown::ParseOptions::gfm()
+    };
+    markdown::to_mdast(&source, &options)
+}

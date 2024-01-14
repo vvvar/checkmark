@@ -1,9 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, MarkDownFile};
-use markdown::{
-    mdast::{self},
-    to_mdast, ParseOptions,
-};
+use common::{for_each, parse, MarkDownFile};
+use markdown::mdast::{Heading, Html, Link, Node};
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
@@ -16,12 +13,12 @@ fn violation_builder() -> ViolationBuilder {
 pub fn md051_link_fragments_should_be_valid(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD051] File: {:#?}", &file.path);
 
-    let ast = to_mdast(&file.content, &ParseOptions::gfm()).unwrap();
+    let ast = parse(&file.content).unwrap();
 
     // Get all Markdown links. All of them shall point to valid anchors.
-    let mut link_nodes: Vec<&mdast::Link> = vec![];
+    let mut link_nodes: Vec<&Link> = vec![];
     for_each(&ast, |node| {
-        if let mdast::Node::Link(l) = node {
+        if let Node::Link(l) = node {
             if l.url.starts_with("#") {
                 link_nodes.push(l);
             }
@@ -30,18 +27,18 @@ pub fn md051_link_fragments_should_be_valid(file: &MarkDownFile) -> Vec<Violatio
     log::debug!("[MD051] Link nodes: {:#?}", &link_nodes);
 
     // Get all headings. At lease one of them shall be referenced by a link.
-    let mut heading_nodes: Vec<&mdast::Heading> = vec![];
+    let mut heading_nodes: Vec<&Heading> = vec![];
     for_each(&ast, |node| {
-        if let mdast::Node::Heading(h) = node {
+        if let Node::Heading(h) = node {
             heading_nodes.push(h);
         }
     });
     log::debug!("[MD051] Heading nodes: {:#?}", &heading_nodes);
 
     // Get all HTML links(<a/>). At least one of them shall contain an anchor.
-    let mut html_links: Vec<&mdast::Html> = vec![];
+    let mut html_links: Vec<&Html> = vec![];
     for_each(&ast, |node| {
-        if let mdast::Node::Html(h) = node {
+        if let Node::Html(h) = node {
             let fragment = scraper::Html::parse_fragment(&h.value);
             let a_selector = scraper::Selector::parse("a").unwrap();
             if fragment.select(&a_selector).next().is_some() {
@@ -51,10 +48,10 @@ pub fn md051_link_fragments_should_be_valid(file: &MarkDownFile) -> Vec<Violatio
     });
     log::debug!("[MD051] HTML links: {:#?}", &heading_nodes);
 
-    let heading_to_anchor = |heading: &mdast::Heading| -> String {
+    let heading_to_anchor = |heading: &Heading| -> String {
         let mut text = "".to_string();
         for node in &heading.children {
-            if let mdast::Node::Text(t) = node {
+            if let Node::Text(t) = node {
                 text = format!("{}{}", &text, &t.value);
             }
         }
@@ -100,11 +97,12 @@ pub fn md051_link_fragments_should_be_valid(file: &MarkDownFile) -> Vec<Violatio
 #[cfg(test)]
 mod tests {
     use super::*;
+    use markdown::unist::Position;
     use pretty_assertions::assert_eq;
 
     #[test]
     fn md051() {
-        let file = common::MarkDownFile {
+        let file = MarkDownFile {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
             content: "
 # Title
@@ -135,7 +133,7 @@ Something else text with <a>random HTML</a>"
 
         assert_eq!(
             vec![violation_builder()
-                .position(&Some(markdown::unist::Position::new(5, 3, 34, 5, 16, 47)))
+                .position(&Some(Position::new(5, 3, 34, 5, 16, 47)))
                 .build()],
             md051_link_fragments_should_be_valid(&file)
         );

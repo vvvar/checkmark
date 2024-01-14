@@ -1,9 +1,7 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, MarkDownFile};
-use markdown::{
-    mdast::{self},
-    to_mdast, ParseOptions,
-};
+use common::{for_each, parse, MarkDownFile};
+use markdown::mdast::{BlockQuote, Node};
+use markdown::unist::Position;
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
@@ -17,12 +15,12 @@ fn violation_builder() -> ViolationBuilder {
 pub fn md028_blank_line_inside_block_quote(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD028] File: {:#?}", &file.path);
 
-    let ast = to_mdast(&file.content, &ParseOptions::gfm()).unwrap();
+    let ast = parse(&file.content).unwrap();
 
     // Get all block quotes
-    let mut block_quotes: Vec<&mdast::BlockQuote> = vec![];
+    let mut block_quotes: Vec<&BlockQuote> = vec![];
     for_each(&ast, |node| {
-        if let mdast::Node::BlockQuote(bq) = node {
+        if let Node::BlockQuote(bq) = node {
             block_quotes.push(bq);
         }
     });
@@ -46,7 +44,7 @@ pub fn md028_blank_line_inside_block_quote(file: &MarkDownFile) -> Vec<Violation
             {
                 violations.push(
                     violation_builder()
-                        .position(&Some(markdown::unist::Position::new(
+                        .position(&Some(Position::new(
                             current_block_quote.position.as_ref().unwrap().end.line + 1,
                             1,
                             current_block_quote_end_offset + 1,
@@ -71,7 +69,7 @@ mod tests {
 
     #[test]
     fn md028() {
-        let file = common::MarkDownFile {
+        let file = MarkDownFile {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
             content: "
 > Block quote 1
@@ -92,10 +90,10 @@ Here some text
         assert_eq!(
             vec![
                 violation_builder()
-                    .position(&Some(markdown::unist::Position::new(4, 1, 37, 4, 1, 41)))
+                    .position(&Some(Position::new(4, 1, 37, 4, 1, 41)))
                     .build(),
                 violation_builder()
-                    .position(&Some(markdown::unist::Position::new(6, 1, 58, 7, 1, 59)))
+                    .position(&Some(Position::new(6, 1, 58, 7, 1, 59)))
                     .build()
             ],
             md028_blank_line_inside_block_quote(&file)

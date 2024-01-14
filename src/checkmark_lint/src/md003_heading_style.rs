@@ -1,9 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, MarkDownFile};
-use markdown::{
-    mdast::{self},
-    to_mdast, ParseOptions,
-};
+use common::{for_each, parse, MarkDownFile};
+use markdown::mdast::{Heading, Node};
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
@@ -32,18 +29,18 @@ impl HeadingStyle {
 pub fn md003_heading_style(file: &MarkDownFile, style: &HeadingStyle) -> Vec<Violation> {
     log::debug!("[MD003] File: {:#?}, style: {:#?}", &file.path, &style);
 
-    let ast = to_mdast(&file.content, &ParseOptions::gfm()).unwrap();
+    let ast = parse(&file.content).unwrap();
 
     // Get all headings
-    let mut headings: Vec<&mdast::Heading> = vec![];
+    let mut headings: Vec<&Heading> = vec![];
     for_each(&ast, |node| {
-        if let mdast::Node::Heading(h) = node {
+        if let Node::Heading(h) = node {
             headings.push(h);
         }
     });
     log::debug!("[MD003] Headings: {:#?}", &headings);
 
-    let get_heading_style = |h: &mdast::Heading, source: &str| -> HeadingStyle {
+    let get_heading_style = |h: &Heading, source: &str| -> HeadingStyle {
         let offset_start = h.position.as_ref().unwrap().start.offset;
         let offset_end = h.position.as_ref().unwrap().end.offset;
         let text = source.get(offset_start..offset_end).unwrap_or("");
@@ -107,11 +104,12 @@ pub fn md003_heading_style(file: &MarkDownFile, style: &HeadingStyle) -> Vec<Vio
 #[cfg(test)]
 mod tests {
     use super::*;
+    use markdown::unist::Position;
     use pretty_assertions::assert_eq;
 
     #[test]
     fn md003() {
-        let mut file = common::MarkDownFile {
+        let mut file = MarkDownFile {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
             content: "# H1
         
@@ -124,12 +122,12 @@ H2
         assert_eq!(
             vec![violation_builder()
                 .message("Inconsistent headings style. First heading in this file is \"ATX\", but this one is \"SetExt\"")
-                .position(&Some(markdown::unist::Position::new(3, 1, 14, 4, 6, 22)))
+                .position(&Some(Position::new(3, 1, 14, 4, 6, 22)))
                 .build()],
             md003_heading_style(&file, &HeadingStyle::Consistent),
         );
 
-        file = common::MarkDownFile {
+        file = MarkDownFile {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
             content: "# H1".to_string(),
             issues: vec![],
@@ -138,12 +136,12 @@ H2
         assert_eq!(
             vec![violation_builder()
                 .message("Wrong heading style. Expected \"setext\", got \"ATX\"")
-                .position(&Some(markdown::unist::Position::new(1, 1, 0, 1, 5, 4)))
+                .position(&Some(Position::new(1, 1, 0, 1, 5, 4)))
                 .build()],
             md003_heading_style(&file, &HeadingStyle::SetExt),
         );
 
-        file = common::MarkDownFile {
+        file = MarkDownFile {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
             content: "H1
 ==========="
@@ -154,7 +152,7 @@ H2
         assert_eq!(
             vec![violation_builder()
                 .message("Wrong heading style. Expected \"atx\", got \"SetExt\"")
-                .position(&Some(markdown::unist::Position::new(1, 1, 0, 2, 12, 14)))
+                .position(&Some(Position::new(1, 1, 0, 2, 12, 14)))
                 .build()],
             md003_heading_style(&file, &HeadingStyle::Atx),
         );

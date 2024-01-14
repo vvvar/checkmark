@@ -1,3 +1,7 @@
+use common::{
+    filter_text_nodes, find_index, parse, CheckIssue, CheckIssueBuilder, IssueCategory,
+    IssueSeverity, MarkDownFile,
+};
 use rayon::prelude::*;
 use symspell::{AsciiStringStrategy, SymSpell, Verbosity};
 
@@ -68,15 +72,12 @@ fn remove_all_special_characters(word: &str, lowercase: bool) -> String {
 /// For the details of library & algo see:
 /// https://github.com/reneklacan/symspell
 /// https://github.com/wolfgarbe/SymSpell
-pub fn spell_check(
-    file: &common::MarkDownFile,
-    whitelist: &Vec<String>,
-) -> Vec<common::CheckIssue> {
+pub fn spell_check(file: &MarkDownFile, whitelist: &Vec<String>) -> Vec<CheckIssue> {
     log::debug!("Checking spelling for file {:#?}", &file);
 
     // Thread-safe vector of issues
     // because we're parallelizing with Rayon
-    let issues: std::sync::Mutex<Vec<common::CheckIssue>> = std::sync::Mutex::new(vec![]);
+    let issues: std::sync::Mutex<Vec<CheckIssue>> = std::sync::Mutex::new(vec![]);
 
     // Initialize SymSpell
 
@@ -126,12 +127,9 @@ pub fn spell_check(
         );
     }
 
-    // Parse MD to AST
-    let ast = markdown::to_mdast(&file.content, &markdown::ParseOptions::gfm()).unwrap();
-    log::debug!("Parsed AST: {:#?}", &ast);
     // Filter only Text nodes
     // Do a spell check in parallel
-    common::filter_text_nodes(&ast).par_iter().for_each(|text_node| {
+    filter_text_nodes(&parse(&file.content).unwrap()).par_iter().for_each(|text_node| {
         log::debug!("Spell checking text node: {:#?}", &text_node);
         // Split text into the words because spellcheck checks words, not sentences
         let words = text_node.value.split_ascii_whitespace().collect::<Vec<_>>();
@@ -168,13 +166,12 @@ pub fn spell_check(
                         col_num_start = position.start.column;
                         col_num_end = position.end.column;
                         // Calculate offset based on offset of text node + index of word
-                        offset_start = position.start.offset
-                            + common::find_index(&text_node.value, word).start;
+                        offset_start = position.start.offset + find_index(&text_node.value, word).start;
                         offset_end = offset_start + word.len();
                     }
-                    let mut issue = common::CheckIssueBuilder::default()
-                        .set_category(common::IssueCategory::Spelling)
-                        .set_severity(common::IssueSeverity::Warning)
+                    let mut issue = CheckIssueBuilder::default()
+                        .set_category(IssueCategory::Spelling)
+                        .set_severity(IssueSeverity::Warning)
                         .set_file_path(file.path.clone())
                         .set_row_num_start(row_num_start)
                         .set_row_num_end(row_num_end)

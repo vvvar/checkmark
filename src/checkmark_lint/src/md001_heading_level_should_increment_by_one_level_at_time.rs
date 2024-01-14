@@ -1,9 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, MarkDownFile};
-use markdown::{
-    mdast::{self},
-    to_mdast, ParseOptions,
-};
+use common::{for_each, parse, MarkDownFile};
+use markdown::mdast::{Heading, Node};
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
@@ -16,12 +13,12 @@ pub fn md001_heading_level_should_increment_by_one_level_at_time(
 ) -> Vec<Violation> {
     log::debug!("[MD001] File: {:#?}", &file.path);
 
-    let ast = to_mdast(&file.content, &ParseOptions::gfm()).unwrap();
+    let ast = parse(&file.content).unwrap();
 
     // Get all headings
-    let mut headings: Vec<&mdast::Heading> = vec![];
+    let mut headings: Vec<&Heading> = vec![];
     for_each(&ast, |node| {
-        if let mdast::Node::Heading(h) = node {
+        if let Node::Heading(h) = node {
             headings.push(h);
         }
     });
@@ -41,11 +38,12 @@ pub fn md001_heading_level_should_increment_by_one_level_at_time(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use markdown::unist::Position;
     use pretty_assertions::assert_eq;
 
     #[test]
     fn md001() {
-        let file = common::MarkDownFile {
+        let file = MarkDownFile {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
             content: "# H1
         
@@ -65,7 +63,7 @@ mod tests {
         assert_eq!(
             vec![violation_builder()
                 .message("Heading level incremented by more then one level at a time. Expected \"###\" or less, got \"####\"")
-                .position(&Some(markdown::unist::Position::new(5, 1, 21, 5, 8, 28)))
+                .position(&Some(Position::new(5, 1, 21, 5, 8, 28)))
                 .build()],
             md001_heading_level_should_increment_by_one_level_at_time(&file),
         );

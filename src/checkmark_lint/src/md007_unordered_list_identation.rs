@@ -1,9 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::MarkDownFile;
-use markdown::{
-    mdast::{self},
-    to_mdast, ParseOptions,
-};
+use common::{parse, MarkDownFile};
+use markdown::mdast::Node;
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
@@ -36,13 +33,13 @@ fn calculate_ident(line: &str) -> usize {
 /// considering depth and indentation
 fn analyze_list(
     violations: &mut Vec<Violation>,
-    node: &markdown::mdast::Node,
+    node: &Node,
     nesting_level: usize,
     file: &MarkDownFile,
     expected_indent_per_level: usize,
 ) {
     match node {
-        mdast::Node::ListItem(li) => {
+        Node::ListItem(li) => {
             let num_line = li.position.as_ref().unwrap().start.line;
             if let Some(line) = file.content.lines().nth(num_line - 1) {
                 let expected_ident = (nesting_level - 1) * expected_indent_per_level;
@@ -70,7 +67,7 @@ fn analyze_list(
                 }
             }
         }
-        mdast::Node::List(l) => {
+        Node::List(l) => {
             for child in &l.children {
                 analyze_list(
                     violations,
@@ -100,14 +97,14 @@ fn analyze_list(
 pub fn md007_unordered_list_indentation(file: &MarkDownFile, indent: usize) -> Vec<Violation> {
     log::debug!("[MD007] File: {:#?}", &file.path);
 
-    let ast = to_mdast(&file.content, &ParseOptions::gfm()).unwrap();
+    let ast = parse(&file.content).unwrap();
 
     // Extract all root-level lists
-    let mut top_level_lists: Vec<&markdown::mdast::Node> = vec![];
-    let mut stack: Vec<&markdown::mdast::Node> = vec![];
+    let mut top_level_lists: Vec<&Node> = vec![];
+    let mut stack: Vec<&Node> = vec![];
     stack.push(&ast);
     while let Some(current) = stack.pop() {
-        if let mdast::Node::List(_) = current {
+        if let Node::List(_) = current {
             top_level_lists.push(current);
         } else if let Some(children) = current.children() {
             for child in children.iter().rev() {
@@ -127,11 +124,12 @@ pub fn md007_unordered_list_indentation(file: &MarkDownFile, indent: usize) -> V
 #[cfg(test)]
 mod tests {
     use super::*;
+    use markdown::unist::Position;
     use pretty_assertions::assert_eq;
 
     #[test]
     fn md007() {
-        let file = common::MarkDownFile {
+        let file = MarkDownFile {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
             content: "# Wrong List Item Indentation
 
@@ -176,31 +174,25 @@ mod tests {
                     .message(
                         "Wrong indentation of unordered list item. Expected 4 spaces, got 5 spaces"
                     )
-                    .position(&Some(markdown::unist::Position::new(9, 5, 93, 9, 19, 107)))
+                    .position(&Some(Position::new(9, 5, 93, 9, 19, 107)))
                     .build(),
                 violation_builder()
                     .message(
                         "Wrong indentation of unordered list item. Expected 0 spaces, got 1 spaces"
                     )
-                    .position(&Some(markdown::unist::Position::new(
-                        20, 3, 217, 20, 14, 228
-                    )))
+                    .position(&Some(Position::new(20, 3, 217, 20, 14, 228)))
                     .build(),
                 violation_builder()
                     .message(
                         "Wrong indentation of unordered list item. Expected 0 spaces, got 1 spaces"
                     )
-                    .position(&Some(markdown::unist::Position::new(
-                        26, 3, 286, 26, 13, 296
-                    )))
+                    .position(&Some(Position::new(26, 3, 286, 26, 13, 296)))
                     .build(),
                 violation_builder()
                     .message(
                         "Wrong indentation of unordered list item. Expected 0 spaces, got 1 spaces"
                     )
-                    .position(&Some(markdown::unist::Position::new(
-                        30, 5, 331, 30, 15, 341
-                    )))
+                    .position(&Some(Position::new(30, 5, 331, 30, 15, 341)))
                     .build()
             ],
             md007_unordered_list_indentation(&file, 2)

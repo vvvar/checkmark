@@ -1,9 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, MarkDownFile};
-use markdown::{
-    mdast::{self},
-    to_mdast, ParseOptions,
-};
+use common::{for_each, parse, MarkDownFile};
+use markdown::mdast::{Code, Node};
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
@@ -32,19 +29,19 @@ impl CodeBlockStyle {
 pub fn md046_code_block_style(file: &MarkDownFile, style: &CodeBlockStyle) -> Vec<Violation> {
     log::debug!("[MD046] File: {:#?}, style: {:#?}", &file.path, &style);
 
-    let ast = to_mdast(&file.content, &ParseOptions::gfm()).unwrap();
+    let ast = parse(&file.content).unwrap();
 
     // Get all code blocks
-    let mut code_blocks: Vec<&mdast::Code> = vec![];
+    let mut code_blocks: Vec<&Code> = vec![];
     for_each(&ast, |node| {
-        if let mdast::Node::Code(c) = node {
+        if let Node::Code(c) = node {
             code_blocks.push(c);
         }
     });
     log::debug!("[MD046] Code blocks: {:#?}", &code_blocks);
 
     // Take code node and original file and determine which style it is.
-    let get_code_block_style = |c: &mdast::Code, source: &str| -> CodeBlockStyle {
+    let get_code_block_style = |c: &Code, source: &str| -> CodeBlockStyle {
         let offset_start = c.position.as_ref().unwrap().start.offset;
         let offset_end = c.position.as_ref().unwrap().end.offset;
         let text = source.get(offset_start..offset_end).unwrap_or("");
@@ -86,12 +83,13 @@ pub fn md046_code_block_style(file: &MarkDownFile, style: &CodeBlockStyle) -> Ve
 #[cfg(test)]
 mod tests {
     use super::*;
+    use markdown::unist::Position;
     use pretty_assertions::assert_eq;
 
     #[test]
     fn md046() {
         // Consistent code block checks
-        let file = common::MarkDownFile {
+        let file = MarkDownFile {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
             content: "# Test document
 
@@ -118,15 +116,11 @@ echo 'Hello World'
             vec![
                 violation_builder()
                     .message("Wrong code block style. Expected fenced, got indented")
-                    .position(&Some(markdown::unist::Position::new(
-                        11, 1, 85, 11, 23, 107
-                    )))
+                    .position(&Some(Position::new(11, 1, 85, 11, 23, 107)))
                     .build(),
                 violation_builder()
                     .message("Wrong code block style. Expected fenced, got indented")
-                    .position(&Some(markdown::unist::Position::new(
-                        15, 1, 132, 15, 23, 154
-                    )))
+                    .position(&Some(Position::new(15, 1, 132, 15, 23, 154)))
                     .build(),
             ],
             md046_code_block_style(&file, &CodeBlockStyle::Consistent)
@@ -137,15 +131,11 @@ echo 'Hello World'
             vec![
                 violation_builder()
                     .message("Wrong code block style. Expected fenced, got indented")
-                    .position(&Some(markdown::unist::Position::new(
-                        11, 1, 85, 11, 23, 107
-                    )))
+                    .position(&Some(Position::new(11, 1, 85, 11, 23, 107)))
                     .build(),
                 violation_builder()
                     .message("Wrong code block style. Expected fenced, got indented")
-                    .position(&Some(markdown::unist::Position::new(
-                        15, 1, 132, 15, 23, 154
-                    )))
+                    .position(&Some(Position::new(15, 1, 132, 15, 23, 154)))
                     .build(),
             ],
             md046_code_block_style(&file, &CodeBlockStyle::Fenced)
@@ -155,7 +145,7 @@ echo 'Hello World'
         assert_eq!(
             vec![violation_builder()
                 .message("Wrong code block style. Expected indented, got fenced")
-                .position(&Some(markdown::unist::Position::new(5, 1, 34, 7, 4, 64)))
+                .position(&Some(Position::new(5, 1, 34, 7, 4, 64)))
                 .build()],
             md046_code_block_style(&file, &CodeBlockStyle::Indented)
         );

@@ -1,9 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, MarkDownFile};
-use markdown::{
-    mdast::{self},
-    to_mdast, ParseOptions,
-};
+use common::{for_each, parse, MarkDownFile};
+use markdown::mdast::{ListItem, Node};
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
@@ -42,15 +39,15 @@ pub fn md004_unordered_list_style(
 ) -> Vec<Violation> {
     log::debug!("[MD004] File: {:#?}", &file.path);
 
-    let ast = to_mdast(&file.content, &ParseOptions::gfm()).unwrap();
+    let ast = parse(&file.content).unwrap();
 
     // Get all unordered list items
-    let mut unordered_list_items: Vec<&mdast::ListItem> = vec![];
+    let mut unordered_list_items: Vec<&ListItem> = vec![];
     for_each(&ast, |node| {
-        if let mdast::Node::List(l) = node {
+        if let Node::List(l) = node {
             if !l.ordered {
                 for child in &l.children {
-                    if let mdast::Node::ListItem(li) = child {
+                    if let Node::ListItem(li) = child {
                         unordered_list_items.push(li);
                     }
                 }
@@ -60,7 +57,7 @@ pub fn md004_unordered_list_style(
     log::debug!("[MD004] Unordered list items: {:#?}", &unordered_list_items);
 
     // Get style of unordered list item
-    let get_list_item_style = |li: &mdast::ListItem, source: &str| -> UnorderedListStyle {
+    let get_list_item_style = |li: &ListItem, source: &str| -> UnorderedListStyle {
         let offset_start = li.position.as_ref().unwrap().start.offset;
         let offset_end = li.position.as_ref().unwrap().end.offset;
         let text = source
@@ -113,11 +110,12 @@ pub fn md004_unordered_list_style(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use markdown::unist::Position;
     use pretty_assertions::assert_eq;
 
     #[test]
     fn md001() {
-        let file = common::MarkDownFile {
+        let file = MarkDownFile {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
             content: "# Inconsistent List Styles
 
@@ -148,55 +146,47 @@ mod tests {
             vec![
                 violation_builder()
                     .message("Wrong unordered list item style. Expected \"*\", got \"-\"")
-                    .position(&Some(markdown::unist::Position::new(4, 1, 37, 4, 9, 45)))
+                    .position(&Some(Position::new(4, 1, 37, 4, 9, 45)))
                     .build(),
                 violation_builder()
                     .message("Wrong unordered list item style. Expected \"*\", got \"+\"")
-                    .position(&Some(markdown::unist::Position::new(5, 1, 46, 6, 1, 55)))
+                    .position(&Some(Position::new(5, 1, 46, 6, 1, 55)))
                     .build(),
                 violation_builder()
                     .message("Wrong unordered list item style. Expected \"*\", got \"-\"")
-                    .position(&Some(markdown::unist::Position::new(7, 1, 56, 7, 9, 64)))
+                    .position(&Some(Position::new(7, 1, 56, 7, 9, 64)))
                     .build(),
                 violation_builder()
                     .message("Wrong unordered list item style. Expected \"*\", got \"-\"")
-                    .position(&Some(markdown::unist::Position::new(8, 1, 65, 8, 9, 73)))
+                    .position(&Some(Position::new(8, 1, 65, 8, 9, 73)))
                     .build(),
                 violation_builder()
                     .message("Wrong unordered list item style. Expected \"*\", got \"-\"")
-                    .position(&Some(markdown::unist::Position::new(9, 1, 74, 10, 1, 83)))
+                    .position(&Some(Position::new(9, 1, 74, 10, 1, 83)))
                     .build(),
                 violation_builder()
                     .message("Wrong unordered list item style. Expected \"*\", got \"+\"")
-                    .position(&Some(markdown::unist::Position::new(11, 1, 84, 11, 9, 92)))
+                    .position(&Some(Position::new(11, 1, 84, 11, 9, 92)))
                     .build(),
                 violation_builder()
                     .message("Wrong unordered list item style. Expected \"*\", got \"+\"")
-                    .position(&Some(markdown::unist::Position::new(12, 1, 93, 12, 9, 101)))
+                    .position(&Some(Position::new(12, 1, 93, 12, 9, 101)))
                     .build(),
                 violation_builder()
                     .message("Wrong unordered list item style. Expected \"*\", got \"+\"")
-                    .position(&Some(markdown::unist::Position::new(
-                        13, 1, 102, 14, 1, 111
-                    )))
+                    .position(&Some(Position::new(13, 1, 102, 14, 1, 111)))
                     .build(),
                 violation_builder()
                     .message("Wrong unordered list item style. Expected \"*\", got \"-\"")
-                    .position(&Some(markdown::unist::Position::new(
-                        19, 1, 140, 19, 9, 148
-                    )))
+                    .position(&Some(Position::new(19, 1, 140, 19, 9, 148)))
                     .build(),
                 violation_builder()
                     .message("Wrong unordered list item style. Expected \"*\", got \"+\"")
-                    .position(&Some(markdown::unist::Position::new(
-                        20, 1, 149, 20, 9, 157
-                    )))
+                    .position(&Some(Position::new(20, 1, 149, 20, 9, 157)))
                     .build(),
                 violation_builder()
                     .message("Wrong unordered list item style. Expected \"*\", got \"-\"")
-                    .position(&Some(markdown::unist::Position::new(
-                        21, 1, 158, 21, 9, 166
-                    )))
+                    .position(&Some(Position::new(21, 1, 158, 21, 9, 166)))
                     .build()
             ],
             md004_unordered_list_style(&file, &UnorderedListStyle::Consistent)

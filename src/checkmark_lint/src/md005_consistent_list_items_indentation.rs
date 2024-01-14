@@ -1,9 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, MarkDownFile};
-use markdown::{
-    mdast::{self},
-    to_mdast, ParseOptions,
-};
+use common::{for_each, parse, MarkDownFile};
+use markdown::mdast::{List, ListItem, Node};
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
@@ -15,16 +12,16 @@ fn violation_builder() -> ViolationBuilder {
 pub fn md005_consistent_list_items_indentation(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD005] File: {:#?}", &file.path);
 
-    let ast = to_mdast(&file.content, &ParseOptions::gfm()).unwrap();
+    let ast = parse(&file.content).unwrap();
 
-    let mut lists: Vec<&mdast::List> = vec![];
+    let mut lists: Vec<&List> = vec![];
     for_each(&ast, |node| {
-        if let mdast::Node::List(l) = node {
+        if let Node::List(l) = node {
             lists.push(l);
         }
     });
 
-    let get_list_item_alignment = |li: &mdast::ListItem, source: &str| -> usize {
+    let get_list_item_alignment = |li: &ListItem, source: &str| -> usize {
         let mut padding: usize = 0;
         let num_line = li.position.as_ref().unwrap().start.line;
         if let Some(line) = source.lines().nth(num_line - 1) {
@@ -41,10 +38,10 @@ pub fn md005_consistent_list_items_indentation(file: &MarkDownFile) -> Vec<Viola
 
     // Take List, find first List Item and return
     // with huw many space symbols it is aligned
-    let first_list_item_alignment = |l: &mdast::List, source: &str| -> usize {
+    let first_list_item_alignment = |l: &List, source: &str| -> usize {
         let mut padding: usize = 0;
         for child in &l.children {
-            if let mdast::Node::ListItem(li) = child {
+            if let Node::ListItem(li) = child {
                 padding = get_list_item_alignment(&li, source);
                 break;
             }
@@ -52,23 +49,23 @@ pub fn md005_consistent_list_items_indentation(file: &MarkDownFile) -> Vec<Viola
         padding
     };
 
-    let get_max_num_item = |l: &mdast::List| -> usize {
+    let get_max_num_item = |l: &List| -> usize {
         let mut num_item: usize = l.start.unwrap_or(1) as usize;
         for child in &l.children {
-            if let mdast::Node::ListItem(_) = child {
+            if let Node::ListItem(_) = child {
                 num_item += 1;
             }
         }
         num_item
     };
 
-    let get_miss_aligned_items = |l: &mdast::List| -> Vec<mdast::ListItem> {
+    let get_miss_aligned_items = |l: &List| -> Vec<ListItem> {
         let expected_alignment = &first_list_item_alignment(&l, &file.content);
-        let mut miss_indented_items: Vec<mdast::ListItem> = vec![];
+        let mut miss_indented_items: Vec<ListItem> = vec![];
         let max_num_item = get_max_num_item(&l);
         let mut num_item: usize = l.start.unwrap_or(1) as usize;
         for child in &l.children {
-            if let mdast::Node::ListItem(li) = child {
+            if let Node::ListItem(li) = child {
                 let actual_alignment = get_list_item_alignment(&li, &file.content);
                 if l.ordered && first_list_item_alignment(&l, &file.content) > 0 {
                     let digits_in_max_item = max_num_item.checked_ilog10().unwrap_or(0) as usize;
@@ -114,6 +111,7 @@ pub fn md005_consistent_list_items_indentation(file: &MarkDownFile) -> Vec<Viola
 #[cfg(test)]
 mod tests {
     use super::*;
+    use markdown::unist::Position;
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -165,15 +163,15 @@ mod tests {
             vec![
                 violation_builder()
                     .message("Inconsistent indentation for list items at the same level. Expected 2 spaces, got 3 spaces")
-                    .position(&Some(markdown::unist::Position::new(8, 3, 109, 9, 1, 130)))
+                    .position(&Some(Position::new(8, 3, 109, 9, 1, 130)))
                     .build(),
                 violation_builder()
                     .message("Inconsistent indentation for list items at the same level. Expected 1 spaces, got 0 spaces")
-                    .position(&Some(markdown::unist::Position::new(30, 1, 328, 30, 21, 348)))
+                    .position(&Some(Position::new(30, 1, 328, 30, 21, 348)))
                     .build(),
                 violation_builder()
                     .message("Inconsistent indentation for list items at the same level. Expected 1 spaces, got 0 spaces")
-                    .position(&Some(markdown::unist::Position::new(33, 1, 367, 33, 27, 393)))
+                    .position(&Some(Position::new(33, 1, 367, 33, 27, 393)))
                     .build()
             ],
             md005_consistent_list_items_indentation(&file)
