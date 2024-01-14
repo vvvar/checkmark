@@ -10,12 +10,9 @@ fn violation_builder() -> ViolationBuilder {
         .push_fix("Add missing anchor")
 }
 
-pub fn md051_link_fragments_should_be_valid(file: &MarkDownFile) -> Vec<Violation> {
-    log::debug!("[MD051] File: {:#?}", &file.path);
-
-    let ast = parse(&file.content).unwrap();
-
-    // Get all Markdown links. All of them shall point to valid anchors.
+/// Get all Markdown links.
+/// All of them shall point to valid anchors.
+fn extract_anchor_links(ast: &Node) -> Vec<&Link> {
     let mut link_nodes: Vec<&Link> = vec![];
     for_each(&ast, |node| {
         if let Node::Link(l) = node {
@@ -25,8 +22,12 @@ pub fn md051_link_fragments_should_be_valid(file: &MarkDownFile) -> Vec<Violatio
         }
     });
     log::debug!("[MD051] Link nodes: {:#?}", &link_nodes);
+    link_nodes
+}
 
-    // Get all headings. At lease one of them shall be referenced by a link.
+/// Get all headings.
+/// At lease one of them shall be referenced by a link.
+fn extract_headings(ast: &Node) -> Vec<&Heading> {
     let mut heading_nodes: Vec<&Heading> = vec![];
     for_each(&ast, |node| {
         if let Node::Heading(h) = node {
@@ -34,8 +35,34 @@ pub fn md051_link_fragments_should_be_valid(file: &MarkDownFile) -> Vec<Violatio
         }
     });
     log::debug!("[MD051] Heading nodes: {:#?}", &heading_nodes);
+    heading_nodes
+}
 
-    // Get all HTML links(<a/>). At least one of them shall contain an anchor.
+/// Takes heading and returns anchor link to it.
+/// Link element that want to jump to this header
+/// should have this anchor.
+fn heading_to_anchor(heading: &Heading) -> String {
+    let mut text = "".to_string();
+    for node in &heading.children {
+        if let Node::Text(t) = node {
+            text = format!("{}{}", &text, &t.value);
+        }
+    }
+    text = format!(
+        "#{}",
+        &text
+            .to_lowercase()
+            .replace(",", "")
+            .replace(".", "")
+            .replace("&", "")
+            .replace(" ", "-")
+    );
+    text
+}
+
+/// Get all HTML links(<a/>).
+/// At least one of them shall contain an anchor.
+fn extract_html_links(ast: &Node) -> Vec<&Html> {
     let mut html_links: Vec<&Html> = vec![];
     for_each(&ast, |node| {
         if let Node::Html(h) = node {
@@ -46,52 +73,51 @@ pub fn md051_link_fragments_should_be_valid(file: &MarkDownFile) -> Vec<Violatio
             }
         }
     });
-    log::debug!("[MD051] HTML links: {:#?}", &heading_nodes);
+    log::debug!("[MD051] HTML links: {:#?}", &html_links);
+    html_links
+}
 
-    let heading_to_anchor = |heading: &Heading| -> String {
-        let mut text = "".to_string();
-        for node in &heading.children {
-            if let Node::Text(t) = node {
-                text = format!("{}{}", &text, &t.value);
-            }
-        }
-        text = format!(
-            "#{}",
-            &text
-                .to_lowercase()
-                .replace(",", "")
-                .replace(".", "")
-                .replace("&", "")
-                .replace(" ", "-")
-        );
-        text
+fn find_violations(
+    anchor_links: &Vec<&Link>,
+    headings: &Vec<&Heading>,
+    html_links: &Vec<&Html>,
+) -> Vec<Violation> {
+    // Does anchor link point to a heading?
+    let does_anchor_points_to_header = |anchor: &Link| {
+        headings
+            .iter()
+            .any(|heading| anchor.url.eq(&heading_to_anchor(&heading)))
     };
-
-    let violations = link_nodes
-        .iter()
-        .filter(|link| {
-            // Does this link point to a heading?
-            !heading_nodes
-                .iter()
-                .any(|heading| link.url.eq(&heading_to_anchor(&heading))) &&
-            // Or to any anchor in HTML <a id="#anchor"/>?
-            !html_links.iter()
-                .any(|html_link| {
-                    let fragment = scraper::Html::parse_fragment(&html_link.value);
-                    let a_selector = scraper::Selector::parse("a").unwrap();
-                    if let Some(a) = fragment.select(&a_selector).next() {
-                        let id = a.value().attr("id").unwrap_or("");
-                        link.url.eq(&format!("#{}", &id))
-                    } else {
-                        false
-                    }
-                })
+    // Does anchor points to any other anchor in HTML <a id="#anchor"/>?
+    let does_anchor_points_to_link = |anchor: &Link| {
+        html_links.iter().any(|html_link| {
+            let fragment = scraper::Html::parse_fragment(&html_link.value);
+            let a_selector = scraper::Selector::parse("a").unwrap();
+            if let Some(a) = fragment.select(&a_selector).next() {
+                let id = a.value().attr("id").unwrap_or("");
+                anchor.url.eq(&format!("#{}", &id))
+            } else {
+                false
+            }
         })
-        .map(|node| violation_builder().position(&node.position).build())
+    };
+    let link_to_violation = |link: &Link| violation_builder().position(&link.position).build();
+    let violations = anchor_links
+        .iter()
+        .filter(|link| !does_anchor_points_to_header(&link) && !does_anchor_points_to_link(&link))
+        .map(|link| link_to_violation(&link))
         .collect();
     log::debug!("[MD051] Violations: {:#?}", &violations);
-
     violations
+}
+
+pub fn md051_link_fragments_should_be_valid(file: &MarkDownFile) -> Vec<Violation> {
+    log::debug!("[MD051] File: {:#?}", &file.path);
+    let ast = parse(&file.content).unwrap();
+    let anchor_links = extract_anchor_links(&ast);
+    let headings = extract_headings(&ast);
+    let html_links = extract_html_links(&ast);
+    find_violations(&anchor_links, &headings, &html_links)
 }
 
 #[cfg(test)]
