@@ -107,12 +107,11 @@ fn render_table_heading_separator(
 /// and Markdown cookbook: https://bookdown.org/yihui/rmarkdown-cookbook/special-chars.html
 /// and Perforce recommendation: https://www.perforce.com/manuals/v18.2/swarm/Content/Swarm/basics.markdown.html#:~:text=Use%20the%20backslash%20character%20%5C%20to,Exclamation%20point%20%5C!
 /// also this post: https://stackoverflow.com/a/45766624
-/// Do not escape: "-", "+", "!", "#", "{", "}", "(", ")", and "." because render engines are mostly fine with them although they have a special meaning
+/// Do not escape: "-", "+", "!", "#", "{", "}", "(", ")", "_", and "." because render engines are mostly fine with them although they have a special meaning
 fn escape_special_characters(str: &str) -> String {
     str.replace("\\", "\\\\")
         .replace("|", "\\|")
         .replace("*", "\\*")
-        .replace("_", "\\_")
         .replace("[", "\\[")
         .replace("]", "\\]")
         .replace(">", "\\>")
@@ -348,7 +347,6 @@ fn to_md(
             buffer.push('\n');
         }
         Node::Link(l) => {
-            dbg!(&l);
             buffer.push('[');
             for child in &l.children {
                 if let Node::Link(sub_link) = child {
