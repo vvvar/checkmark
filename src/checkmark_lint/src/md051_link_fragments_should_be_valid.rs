@@ -95,7 +95,8 @@ fn find_violations(
             let a_selector = scraper::Selector::parse("a").unwrap();
             if let Some(a) = fragment.select(&a_selector).next() {
                 let id = a.value().attr("id").unwrap_or("");
-                anchor.url.eq(&format!("#{}", &id))
+                let name = a.value().attr("name").unwrap_or("");
+                anchor.url.eq(&format!("#{}", &id)) || anchor.url.eq(&format!("#{}", &name))
             } else {
                 false
             }
@@ -136,6 +137,7 @@ mod tests {
 - [About](#about--us)
 - [Help](#help)
 - [Contribute](#contribute)
+- [Feedback](#feedback)
 - [Normal Link](https://google.com)
 
 ## About & Us
@@ -150,9 +152,13 @@ This is not help
 
 This is a contribution
 
-## <a href='#not-contribute' /> And this is a something else
+## <a id='#not-contribute' /> And this is a something else
 
-Something else text with <a>random HTML</a>"
+Something else text with <a>random HTML</a>
+
+## <a name='feedback' /> This is a Feedback section
+
+This is a feedback section text"
                 .to_string(),
             issues: vec![],
         };
