@@ -249,11 +249,15 @@ Avoid additional commentary.
 "#;
     let role_prompt = match &prompt {
         Some(prompt) => format!("{}{}", prompt, response_format_prompt),
-        None => format!("{}{}", "
-Review this Markdown project documentation for grammar, inconsistencies, inaccuracies, or unclear content.
-Ignore style or formatting. Provide a summary and improvement suggestions.
+        None => format!(
+            "{}{}",
+            "
+Review this project documentation for grammar, readability and clarity of the content.
+Provide a summary and improvement suggestions.
 Each suggestion should identify the issue, its location, and a proposed fix.
-Each suggestion should have 'description', 'original', and 'replacement'.", response_format_prompt),
+Each suggestion should have 'description', 'original', and 'replacement'.",
+            response_format_prompt
+        ),
     };
     return match open_ai_request(&role_prompt, &file.content, "json_object").await {
         Ok(response) => {
