@@ -4,6 +4,7 @@ pub struct ListContext {
     pub nesting_level: usize,
     pub is_ordered: bool,
     pub num_item: u32,
+    pub spread: bool,
 }
 
 /// Represents the context of a block quote in a markdown document.

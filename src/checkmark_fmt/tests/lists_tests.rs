@@ -107,6 +107,33 @@ fn mix_ordered_list_with_unordered() {
     );
 }
 
+/// Ordered lists can be mixed with unordered
+#[test]
+fn ordered_list_contains_unordered() {
+    // Spread
+    utils::assert_unchanged_after_formatting(
+        "1. One
+
+2. Two
+
+   - Two One
+   - Two Two
+
+3. Three
+",
+    );
+
+    // Tight
+    utils::assert_unchanged_after_formatting(
+        "1. One
+2. Two
+   - Two One
+   - Two Two
+3. Three
+",
+    );
+}
+
 #[test]
 fn list_with_multiple_paragraphs() {
     utils::assert_unchanged_after_formatting(

@@ -214,6 +214,14 @@ fn to_md(
                         buffer.push_str("> ");
                     }
                 }
+                if let Context::List(ctx) = context {
+                    if ctx.is_ordered {
+                        if ctx.spread && child == l.children.first().unwrap() {
+                            buffer.push('\n');
+                        }
+                        buffer.push(' ');
+                    }
+                }
                 to_md(
                     child,
                     buffer,
@@ -221,6 +229,7 @@ fn to_md(
                         nesting_level,
                         is_ordered: l.ordered,
                         num_item: start,
+                        spread: l.spread,
                     }),
                     source,
                     options,
@@ -403,6 +412,7 @@ fn to_md(
                                 nesting_level: ctx.nesting_level,
                                 is_ordered: ctx.is_ordered,
                                 num_item: ctx.num_item,
+                                spread: ctx.spread,
                             },
                             block_quote_ctx: BlockQuoteContext { depth: 1 },
                         }),
@@ -417,6 +427,7 @@ fn to_md(
                                 nesting_level: ctx.list_ctx.nesting_level,
                                 is_ordered: ctx.list_ctx.is_ordered,
                                 num_item: ctx.list_ctx.num_item,
+                                spread: ctx.list_ctx.spread,
                             },
                             block_quote_ctx: BlockQuoteContext {
                                 depth: ctx.block_quote_ctx.depth + 1,
