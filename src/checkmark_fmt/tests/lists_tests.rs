@@ -147,6 +147,19 @@ fn list_with_multiple_paragraphs() {
 }
 
 #[test]
+fn list_with_empty_list_item() {
+    utils::assert_unchanged_after_formatting(
+        "# List with empty list item
+
+- One
+- 
+- <b>Three</b>
+- <span>Four
+",
+    );
+}
+
+#[test]
 fn list_with_multiple_text_lines() {
     utils::assert_changed_after_formatting(
         "- __[pica](https://nodeca.github.io/pica/demo/)__ - high quality and fast image

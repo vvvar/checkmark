@@ -199,6 +199,7 @@ fn to_md(
             buffer.push('\n');
         }
         Node::List(l) => {
+            dbg!(&l);
             let mut start = if l.start.is_some() {
                 l.start.unwrap()
             } else {
@@ -258,6 +259,16 @@ fn to_md(
                         false => buffer.push_str("[ ] "),
                     },
                     _ => {}
+                }
+                if li.children.is_empty() {
+                    // Special case when there's a list item without content
+                    // e.g.:
+                    //   - First
+                    //   -
+                    //   - Third
+                    // Since we're relying on "\n" to be in the Paragraph node
+                    // and there's none we have to add it manually here
+                    buffer.push('\n');
                 }
                 for child in &li.children {
                     // When there's 2+ paragraphs in a list item
