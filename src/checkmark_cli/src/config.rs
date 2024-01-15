@@ -37,6 +37,12 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
         for file_path in default_locations.iter() {
             if let Some(cfg) = common::Config::from_file(file_path) {
                 config = cfg; // Replace default config with config from file
+                config.location = Some(
+                    dunce::canonicalize(file_path.to_string())
+                        .unwrap()
+                        .display()
+                        .to_string(),
+                ); // Remember where we found it
                 break;
             }
         }

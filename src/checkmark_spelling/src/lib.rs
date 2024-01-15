@@ -72,7 +72,7 @@ fn remove_all_special_characters(word: &str, lowercase: bool) -> String {
 /// For the details of library & algo see:
 /// https://github.com/reneklacan/symspell
 /// https://github.com/wolfgarbe/SymSpell
-pub fn spell_check(file: &MarkDownFile, whitelist: &Vec<String>) -> Vec<CheckIssue> {
+pub fn spell_check(file: &MarkDownFile, config: &common::Config) -> Vec<CheckIssue> {
     log::debug!("Checking spelling for file {:#?}", &file);
 
     // Thread-safe vector of issues
@@ -114,9 +114,9 @@ pub fn spell_check(file: &MarkDownFile, whitelist: &Vec<String>) -> Vec<CheckIss
 
     log::debug!(
         "Loading words from the whitelist to the dictionary: {:#?}",
-        &whitelist
+        &config.spelling.words_whitelist
     );
-    for word in whitelist {
+    for word in &config.spelling.words_whitelist {
         log::debug!("Loading whitelisted word: {:#?}", &word);
         symspell.load_dictionary_line(&format!("{} 10956800", &word.to_lowercase()), 0, 1, " ");
         symspell.load_bigram_dictionary_line(
@@ -194,8 +194,12 @@ pub fn spell_check(file: &MarkDownFile, whitelist: &Vec<String>) -> Vec<CheckIss
                             ));
                         }
                     }
-                    issue = issue.push_fix("If you're sure that this word is correct - add it to the spellcheck dictionary(TBD)");
-
+                    if let Some(location) = &config.location {
+                        let suggestion = format!("You can white list this word by adding it to your config file: {:#?}. Put it into the \"words_whitelist\" property in \"[spelling]\" section", &location);
+                        issue = issue.push_fix(&suggestion);
+                    } else {
+                        issue = issue.push_fix("You can white list this word by adding it to the \"words_whitelist\" property in the config file or by passing it with the --words-whitelist argument");
+                    }
                     issues.lock().unwrap().push(issue.build());
                 }
             }

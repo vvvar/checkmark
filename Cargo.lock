@@ -661,6 +661,7 @@ dependencies = [
  "codespan-reporting",
  "colored",
  "common",
+ "dunce",
  "env_logger",
  "futures",
  "log",

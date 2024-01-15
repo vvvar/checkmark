@@ -408,6 +408,8 @@ pub fn activate_debug_logging() {
 /// TOML config for checkmark
 #[derive(Debug, Default, serde::Deserialize)]
 pub struct Config {
+    pub location: Option<String>,
+
     #[serde(default)]
     pub global: GlobalConfig,
 

@@ -11,7 +11,16 @@ fn assert_has_issues(content: &str, whitelist: &Vec<String>, issues: &Vec<common
         issues: vec![],
     };
     assert_eq!(
-        &checkmark_spelling::spell_check(&markdown, &whitelist),
+        &checkmark_spelling::spell_check(
+            &markdown,
+            &common::Config {
+                spelling: common::SpellingConfig {
+                    words_whitelist: whitelist.clone(),
+                    ..common::SpellingConfig::default()
+                },
+                ..common::Config::default()
+            }
+        ),
         issues
     );
 }
@@ -38,7 +47,7 @@ fn spelling_plain_misspelled_word() {
             message: "Word \"headr\" is unknown or miss-spelled".to_string(),
             fixes: vec![
                 "Consider changing \"headr\" to \"head\"".to_string(),
-                "If you're sure that this word is correct - add it to the spellcheck dictionary(TBD)".to_string(),
+                "You can white list this word by adding it to the \"words_whitelist\" property in the config file or by passing it with the --words-whitelist argument".to_string(),
             ],
         },
     ]);
@@ -60,7 +69,7 @@ fn spelling_several_misspelled_words() {
             message: "Word \"sommm\" is unknown or miss-spelled".to_string(),
             fixes: vec![
                 "Consider changing \"sommm\" to \"somme\"".to_string(),
-                "If you're sure that this word is correct - add it to the spellcheck dictionary(TBD)".to_string(),
+                "You can white list this word by adding it to the \"words_whitelist\" property in the config file or by passing it with the --words-whitelist argument".to_string(),
             ],
         },
         common::CheckIssue {
@@ -76,7 +85,7 @@ fn spelling_several_misspelled_words() {
             message: "Word \"additnal\" is unknown or miss-spelled".to_string(),
             fixes: vec![
                 "Consider changing \"additnal\" to \"additional\"".to_string(),
-                "If you're sure that this word is correct - add it to the spellcheck dictionary(TBD)".to_string(),
+                "You can white list this word by adding it to the \"words_whitelist\" property in the config file or by passing it with the --words-whitelist argument".to_string(),
             ],
         }
     ]);
@@ -120,7 +129,7 @@ fn spelling_gibberish_handled() {
         message: "Word \"fdssryyukiuu's\" is unknown or miss-spelled".to_string(),
         fixes: vec![
             "Cannot find any suggestion for word \"fdssryyukiuu\"".to_string(),
-            "If you're sure that this word is correct - add it to the spellcheck dictionary(TBD)".to_string(),
+            "You can white list this word by adding it to the \"words_whitelist\" property in the config file or by passing it with the --words-whitelist argument".to_string(),
         ],
     },]);
 }
