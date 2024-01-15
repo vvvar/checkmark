@@ -39,7 +39,7 @@ impl CheckProgressTUI {
             spinner.stop_with_message("".to_owned());
         }
         self.spinner = Some(spinners::Spinner::new(
-            spinners::Spinners::Line,
+            spinners::Spinners::Point,
             format!("{}", &title.dimmed()),
         ));
     }
