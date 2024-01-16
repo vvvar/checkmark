@@ -518,6 +518,9 @@ pub struct ReviewConfig {
 
     #[serde(default)]
     pub prompt: Option<String>,
+
+    #[serde(default)]
+    pub creativity: Option<u8>,
 }
 
 #[derive(Debug, Default, serde::Deserialize)]

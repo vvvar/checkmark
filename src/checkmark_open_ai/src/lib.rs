@@ -1,47 +1,15 @@
 pub mod open_ai;
 
-pub async fn check_grammar(
-    file: &common::MarkDownFile,
-) -> Result<Vec<common::CheckIssue>, open_ai::OpenAIError> {
-    let mut issues: Vec<common::CheckIssue> = vec![];
-    if let Ok(review) = open_ai::get_open_ai_grammar_suggestion(&file.content).await {
-        for suggestion in review.suggestions {
-            let row_num_start = 0;
-            let row_num_end = 0;
-            let col_num_start = 0;
-            let col_num_end = 0;
-            let offset = common::find_index(&file.content, &suggestion.original);
-            issues.push(
-                common::CheckIssueBuilder::default()
-                    .set_category(common::IssueCategory::Grammar)
-                    .set_severity(common::IssueSeverity::Warning)
-                    .set_file_path(file.path.clone())
-                    .set_row_num_start(row_num_start)
-                    .set_row_num_end(row_num_end)
-                    .set_col_num_start(col_num_start)
-                    .set_col_num_end(col_num_end)
-                    .set_offset_start(offset.start)
-                    .set_offset_end(offset.end)
-                    .set_message(suggestion.description)
-                    .push_fix(&format!(
-                        "Consider changing {:?} to: \n{:?}",
-                        suggestion.original, suggestion.replacement
-                    ))
-                    .build(),
-            );
-        }
-    }
-    Ok(issues)
-}
-
 pub async fn make_a_review(
     file: &common::MarkDownFile,
-    suggestions: bool,
-    prompt: &Option<String>,
+    config: &common::Config,
 ) -> Result<Vec<common::CheckIssue>, open_ai::OpenAIError> {
     let mut issues: Vec<common::CheckIssue> = vec![];
-
-    match open_ai::get_open_ai_review(file, prompt).await {
+    let creativity = match config.review.creativity {
+        Some(value) => value,
+        None => 10,
+    };
+    match open_ai::get_open_ai_review(file, &config.review.prompt, creativity).await {
         Ok(review) => {
             for suggestion in &review.suggestions {
                 let offset = common::find_index(&file.content, &suggestion.original);
@@ -56,7 +24,7 @@ pub async fn make_a_review(
                     .set_offset_start(offset.start)
                     .set_offset_end(offset.end)
                     .set_message(suggestion.description.clone());
-                if suggestions {
+                if !config.review.no_suggestions {
                     issue = issue.push_fix(&format!(
                         "Consider following change: \n{}",
                         &suggestion.replacement
@@ -93,7 +61,7 @@ Avoid additional commentary.";
         ),
         None => base_role_prompt.to_string(),
     };
-    return match open_ai::open_ai_request(&role_prompt, &prompt, "text").await {
+    return match open_ai::open_ai_request(&role_prompt, &prompt, "text", 20).await {
         Ok(response) => {
             if let Some(choice) = response.choices.first() {
                 Ok(choice.message.content.clone())

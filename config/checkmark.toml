@@ -23,6 +23,7 @@ allowed_html_tags = []
 
 [review]                          
 no_suggestions=false
+creativity=10
 
 [spelling]
 words_whitelist=[

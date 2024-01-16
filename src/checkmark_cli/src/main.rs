@@ -71,13 +71,9 @@ async fn main() -> Result<(), errors::AppError> {
             tui.lock().unwrap().start_spinner("Reviewing...");
             for file in files.iter_mut() {
                 file.issues.append(
-                    &mut checkmark_open_ai::make_a_review(
-                        file,
-                        !config.review.no_suggestions,
-                        &config.review.prompt,
-                    )
-                    .await
-                    .unwrap(),
+                    &mut checkmark_open_ai::make_a_review(file, &config)
+                        .await
+                        .unwrap(),
                 );
                 tui.lock().unwrap().print_file_check_status(file);
             }

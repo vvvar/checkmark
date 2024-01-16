@@ -107,6 +107,12 @@ This will:
         - **CI mode**: Turns off interactive prompts and outputs reports in a format suitable for CI/CD pipelines. This mode is designed to facilitate integration with CI/CD processes.
     ```
 
+You can control the level of creativity of an AI with(values between 0 and 100 are accepted):
+
+```sh
+checkmark review . --creativity 80
+```
+
 You can provide a custom prompt for Open.AI with:
 
 ```sh

@@ -38,6 +38,10 @@ pub struct ReviewCommand {
     /// Provide custom prompt for OpenAI's API(will replace the default prompt)
     #[arg(long, action, required = false)]
     pub prompt: Option<String>,
+
+    /// Controls the creativity of generated text. Higher value means more temperature and randomness. Must be between 0 and 100
+    #[arg(long)]
+    pub creativity: Option<u8>,
 }
 
 #[derive(Debug, clap::Parser)]

@@ -79,6 +79,13 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
             if let Some(prompt) = &review.prompt {
                 config.review.prompt = Some(prompt.clone());
             }
+            if let Some(creativity) = review.creativity {
+                if creativity > 100 {
+                    log::warn!("Creativity value must be between 0 and 100! Ignoring this setting and using default value");
+                } else {
+                    config.review.creativity = Some(creativity);
+                }
+            }
         }
         crate::cli::Subcommands::Compose(_) => {}
         crate::cli::Subcommands::Spellcheck(_) => {}

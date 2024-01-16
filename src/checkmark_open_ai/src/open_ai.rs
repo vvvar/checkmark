@@ -109,6 +109,7 @@ pub async fn open_ai_request(
     ai_role: &str,
     user_input: &str,
     response_format: &str,
+    creativity: u8,
 ) -> Result<OpenAIResponse, OpenAIError> {
     let requests = user_input
         .split("\n\n#")
@@ -116,8 +117,7 @@ pub async fn open_ai_request(
             let request_data = OpenAIRequestData {
                 model: "gpt-3.5-turbo-1106".to_string(),
                 n: 1,
-                // seed: 12345,
-                temperature: 0.2,
+                temperature: (creativity as f32 / 100.0) * 2.0,
                 response_format: OpenAIRequestDataResponseFormat {
                     response_type: response_format.to_string(),
                 },
@@ -184,53 +184,12 @@ fn is_false_positive_review_suggestion(suggestion_description: &str) -> bool {
     suggestion_description.contains("a space after the colon")
 }
 
-/// Get a grammar correction suggestion from the Open AI.
-pub async fn get_open_ai_grammar_suggestion(text: &str) -> Result<OpenAIReview, OpenAIError> {
-    let role_prompt = "This is a project documentation written in Markdown split by sections. 
-It includes various sections such as Introduction, Installation, Usage, API Reference, and more.
-Find all grammatical errors in it.
-Ignore text inside code blocks.
-The result must be in JSON. It shall have two properties - summary and suggestions.
-Suggestions is a list of suggestions that shows where is the problem and provides grammatically correct replacement.
-Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary:
-{
-    \"summary\": \"string\",
-    \"suggestions\": [
-        { \"description\": \"string\", \"original\": \"string\", \"replacement\": \"string\" }
-    ]
-}";
-    return match open_ai_request(role_prompt, text, "json_object").await {
-        Ok(response) => {
-            match response
-                .choices
-                .iter()
-                .map(|choice| serde_json::from_str::<OpenAIReview>(&choice.message.content))
-                .take_while(|e| e.is_ok())
-                .map(|e| e.unwrap())
-                .reduce(|mut acc, r| {
-                    let mut review = OpenAIReview {
-                        summary: r.summary,
-                        suggestions: vec![],
-                    };
-                    review.suggestions.append(&mut r.suggestions.clone());
-                    review.suggestions.append(&mut acc.suggestions);
-                    review
-                }) {
-                Some(review) => Ok(review),
-                None => Err(OpenAIError {
-                    message: "OpenAI haven't provided any suggestion".to_string(),
-                }),
-            }
-        }
-        Err(err) => Err(err),
-    };
-}
-
 /// Makes a review of provided markdown file with OpenAI.
 /// Returns string with suggestions.
 pub async fn get_open_ai_review(
     file: &common::MarkDownFile,
     prompt: &Option<String>,
+    creativity: u8,
 ) -> Result<OpenAIReview, OpenAIError> {
     let response_format_prompt = r#"
 Output should be in JSON format with 'summary' and 'suggestions'.
@@ -259,7 +218,7 @@ Each suggestion should have 'description', 'original', and 'replacement'.",
             response_format_prompt
         ),
     };
-    return match open_ai_request(&role_prompt, &file.content, "json_object").await {
+    return match open_ai_request(&role_prompt, &file.content, "json_object", creativity).await {
         Ok(response) => {
             match response
                 .choices
