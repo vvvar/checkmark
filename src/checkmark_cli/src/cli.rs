@@ -23,7 +23,6 @@ pub struct FmtCommand {
     /// Check mode: Reviews formatting issues without fixing them. Returns 0 if no issues, 1 otherwise
     #[arg(long, action)]
     pub check: bool,
-
     /// Display a detailed comparison if formatting issues are detected
     #[arg(long, action, requires = "check")]
     pub show_diff: bool,
@@ -38,7 +37,6 @@ pub struct ReviewCommand {
     /// Provide custom prompt for OpenAI's API(will replace the default prompt)
     #[arg(long, action, required = false)]
     pub prompt: Option<String>,
-
     /// Controls the creativity of generated text. Higher value means more temperature and randomness. Must be between 0 and 100
     #[arg(long)]
     pub creativity: Option<u8>,
@@ -56,6 +54,9 @@ pub struct ComposeCommand {
     /// Use this file as a context to generate the text
     #[arg(long, action, required = false, value_name = "FILE_PATH", value_hint=clap::ValueHint::FilePath)]
     pub context: Option<String>,
+    /// Controls the creativity of generated text. Higher value means more temperature and randomness. Must be between 0 and 100
+    #[arg(long)]
+    pub creativity: Option<u8>,
 }
 
 #[derive(Debug, clap::Parser)]
@@ -117,39 +118,30 @@ pub struct Cli {
     /// Defaults to the current directory if not specified
     #[arg(global = true, value_hint=clap::ValueHint::AnyPath, default_value=".")]
     pub project_root: String,
-
     /// List of files(wildcards) to exclude from scanning
     #[arg(global = true, long, required = false, num_args = 1.., value_delimiter = ' ', value_hint=clap::ValueHint::AnyPath)]
     pub exclude: Vec<String>,
-
     /// Style: Type of heading style to enforce. Possible values are: "atx", "setext" or "consistent"
     #[arg(global = true, long, required = false)]
     pub style_headings: Option<String>,
-
     /// Style: Type of unordered list style to enforce. Possible values are: "dash", "asterisk", "plus" or "consistent"
     #[arg(global = true, long, required = false)]
     pub style_unordered_lists: Option<String>,
-
     /// Style: Type of bold element style to enforce. Possible values are: "asterisk", "underscore" or "consistent"
     #[arg(global = true, long, required = false)]
     pub style_bold: Option<String>,
-
     /// Sets the configuration file path. Overrides default files if set
     #[arg(global = true, long, short, action, required = false, value_name = "FILE_PATH", value_hint=clap::ValueHint::FilePath)]
     pub config: Option<String>,
-
     /// CI Mode: Turns off interactive prompts and outputs report in a format suitable for CI/CD pipelines
     #[arg(global = true, long, required = false, action)]
     pub ci: bool,
-
     /// Saves the report in SARIF format to a given file or defaults to './report.sarif' if no file is specified
     #[arg(global = true, long, action, required = false, value_name = "FILE_PATH", value_hint=clap::ValueHint::FilePath, default_missing_value="./report.sarif", num_args=0..=1)]
     pub sarif: Option<String>,
-
     /// Verbose logging: Provides detailed tool activity, useful for debugging
     #[arg(global = true, long, required = false, action)]
     pub verbose: bool,
-
     /// Specifies the individual tools or commands to run.
     /// This is required and allows you to run specific checks or operations
     #[command(subcommand)]

@@ -49,6 +49,7 @@ pub async fn make_a_review(
 pub async fn compose_markdown(
     prompt: &str,
     context: &Option<String>,
+    config: &common::Config,
 ) -> Result<String, open_ai::OpenAIError> {
     let base_role_prompt = "You will be provided with user prompt.
 Your task is to compose a file in Markdown format based on it.
@@ -61,7 +62,11 @@ Avoid additional commentary.";
         ),
         None => base_role_prompt.to_string(),
     };
-    return match open_ai::open_ai_request(&role_prompt, &prompt, "text", 20).await {
+    let creativity = match config.compose.creativity {
+        Some(value) => value,
+        None => 10,
+    };
+    return match open_ai::open_ai_request(&role_prompt, &prompt, "text", creativity).await {
         Ok(response) => {
             if let Some(choice) = response.choices.first() {
                 Ok(choice.message.content.clone())

@@ -423,6 +423,9 @@ pub struct Config {
     pub review: ReviewConfig,
 
     #[serde(default)]
+    pub compose: ComposeConfig,
+
+    #[serde(default)]
     pub link_checker: LinkCheckerConfig,
 
     #[serde(default)]
@@ -519,6 +522,12 @@ pub struct ReviewConfig {
     #[serde(default)]
     pub prompt: Option<String>,
 
+    #[serde(default)]
+    pub creativity: Option<u8>,
+}
+
+#[derive(Debug, Default, serde::Deserialize)]
+pub struct ComposeConfig {
     #[serde(default)]
     pub creativity: Option<u8>,
 }

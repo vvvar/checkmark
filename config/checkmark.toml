@@ -25,6 +25,9 @@ allowed_html_tags = []
 no_suggestions=false
 creativity=10
 
+[compose]
+creativity=80
+
 [spelling]
 words_whitelist=[
     "additnal",

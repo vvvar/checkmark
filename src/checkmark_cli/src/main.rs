@@ -94,7 +94,7 @@ async fn main() -> Result<(), errors::AppError> {
                     .bold()
                     .to_string(),
             );
-            let text = checkmark_open_ai::compose_markdown(&compose_cmd.prompt, &context)
+            let text = checkmark_open_ai::compose_markdown(&compose_cmd.prompt, &context, &config)
                 .await
                 .unwrap();
             std::fs::write(&output_file, &text).unwrap();

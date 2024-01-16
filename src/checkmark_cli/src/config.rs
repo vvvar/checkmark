@@ -87,7 +87,15 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
                 }
             }
         }
-        crate::cli::Subcommands::Compose(_) => {}
+        crate::cli::Subcommands::Compose(compose) => {
+            if let Some(creativity) = compose.creativity {
+                if creativity > 100 {
+                    log::warn!("Creativity value must be between 0 and 100! Ignoring this setting and using default value");
+                } else {
+                    config.compose.creativity = Some(creativity);
+                }
+            }
+        }
         crate::cli::Subcommands::Spellcheck(_) => {}
         crate::cli::Subcommands::GenerateConfig(_) => {}
     }

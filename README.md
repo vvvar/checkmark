@@ -135,6 +135,12 @@ checkmark compose --prompt "Write me a dummy documentation" --output DOCUMENT.MD
 
 This will generate a file `DOCUMENT.MD` with content generated using your prompt.
 
+You can control the level of creativity of an AI with(values between 0 and 100 are accepted):
+
+```sh
+checkmark review . --creativity 80
+```
+
 Additionally, you can provide a file and ask `checkmark` to use it as an additional context for your prompt. For example:
 
 ```sh
