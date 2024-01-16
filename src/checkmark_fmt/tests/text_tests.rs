@@ -13,3 +13,12 @@ fn text_with_special_chars() {
 "#,
     );
 }
+
+#[test]
+fn hard_tabs() {
+    // Converted to the 2 spaces
+    utils::assert_changed_after_formatting(
+        "# Text\twith\t\thard tabs\n",
+        "# Text with  hard tabs\n",
+    );
+}

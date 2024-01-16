@@ -109,7 +109,8 @@ fn render_table_heading_separator(
 /// also this post: https://stackoverflow.com/a/45766624
 /// Do not escape: "-", "+", "!", "#", "{", "}", "(", ")", "_", and "." because render engines are mostly fine with them although they have a special meaning
 fn escape_special_characters(str: &str) -> String {
-    str.replace("\\", "\\\\")
+    str.replace('\t', " ")
+        .replace("\\", "\\\\")
         .replace("|", "\\|")
         .replace("*", "\\*")
         .replace("[", "\\[")
