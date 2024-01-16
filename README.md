@@ -182,18 +182,18 @@ Run this command to see a full list of linter options:
 checkmark lint --help
 ```
 
-### `spelling`
+### `spellcheck`
 
 Recursively spell-check all Markdown files inside the current directory with:
 
 ```sh
-checkmark spelling .
+checkmark spellcheck .
 ```
 
 This will check all Markdown files for spelling errors. If you need to white-list words:
 
 ```sh
-checkmark spelling . --words-whitelist checkmark,OPEN_AI_API_KEY
+checkmark spellcheck . --words-whitelist checkmark,OPEN_AI_API_KEY
 ```
 
 This will not print spelling errors for the words "checkmark" and "OPEN_AI_API_KEY" anymore.
@@ -201,7 +201,7 @@ This will not print spelling errors for the words "checkmark" and "OPEN_AI_API_K
 Run this command to see a full list of review options:
 
 ```sh
-checkmark spelling --help
+checkmark spellcheck --help
 ```
 
 ### `generate-config`

@@ -72,7 +72,7 @@ pub struct LintCommand {
 
 #[derive(Debug, clap::Parser)]
 #[command(long_about = None)]
-pub struct SpellingCommand {
+pub struct SpellcheckCommand {
     /// List of words that should be ignored by spell checker
     #[arg(long, short)]
     pub words_whitelist: Vec<String>,
@@ -99,7 +99,7 @@ pub enum Subcommands {
     /// Compose a file in Markdown format from a prompt
     Compose(ComposeCommand),
     /// Checks the document for spelling errors(offline)
-    Spelling(SpellingCommand),
+    Spellcheck(SpellcheckCommand),
     /// Generate default configuration file
     GenerateConfig(GenerateConfigCommand),
 }

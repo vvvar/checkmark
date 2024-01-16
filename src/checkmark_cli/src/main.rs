@@ -125,7 +125,7 @@ async fn main() -> Result<(), errors::AppError> {
                 tui.lock().unwrap().print_file_check_status(file);
             });
         }
-        cli::Subcommands::Spelling(_) => {
+        cli::Subcommands::Spellcheck(_) => {
             tui.lock().unwrap().start_spinner("Checking spelling...");
             files.par_iter_mut().for_each(|file| {
                 file.issues

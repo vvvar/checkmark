@@ -81,7 +81,7 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
             }
         }
         crate::cli::Subcommands::Compose(_) => {}
-        crate::cli::Subcommands::Spelling(_) => {}
+        crate::cli::Subcommands::Spellcheck(_) => {}
         crate::cli::Subcommands::GenerateConfig(_) => {}
     }
     if !cli.exclude.is_empty() {
