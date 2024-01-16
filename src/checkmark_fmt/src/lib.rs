@@ -181,13 +181,24 @@ fn to_md(
                     // we want to align it with list so it will be rendered
                     // by engines like a quote inside a list.
                     // Otherwise - it will be rendered outside
-                    buffer.push_str(&text.replace(
-                        '\n',
-                        &format!(
-                            "\n{}> ",
-                            "  ".repeat(ctx.list_ctx.nesting_level + 1).as_str()
-                        ),
-                    ));
+                    if ctx.list_ctx.is_ordered {
+                        // The only difference is in additional space
+                        buffer.push_str(&text.replace(
+                            '\n',
+                            &format!(
+                                "\n{} > ",
+                                "  ".repeat(ctx.list_ctx.nesting_level + 1).as_str()
+                            ),
+                        ));
+                    } else {
+                        buffer.push_str(&text.replace(
+                            '\n',
+                            &format!(
+                                "\n{}> ",
+                                "  ".repeat(ctx.list_ctx.nesting_level + 1).as_str()
+                            ),
+                        ));
+                    }
                 }
                 _ => buffer.push_str(&text),
             }

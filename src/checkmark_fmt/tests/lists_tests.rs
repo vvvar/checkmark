@@ -263,3 +263,24 @@ fn list_with_checkboxes() {
 ",
     );
 }
+
+#[test]
+fn ordered_list_with_block_quote() {
+    utils::assert_unchanged_after_formatting(
+        "This will:
+
+1. one
+2. two
+3. three:
+   > This
+   > is
+   > a
+   > block quote
+4. Four
+
+    ```txt
+    This is a text
+    ```
+",
+    );
+}
