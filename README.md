@@ -143,19 +143,19 @@ Run this command to see a full list of review options:
 checkmark compose --help
 ```
 
-### `links`
+### `linkcheck`
 
 Recursively check all links in Markdown files inside the current directory with:
 
 ```sh
-checkmark links .
+checkmark linkcheck .
 ```
 
 This will extract all hyperlinks, file links(for e.x. `\[File\]\(./image.png\)`), and e-mails and check whether they are reachable or not.
 If you want to ignore some links, use:
 
 ```sh
-checkmark links . --ignore-wildcards "**example.com**"
+checkmark linkcheck . --ignore-wildcards "**example.com**"
 ```
 
 This will tell the `checkmark` to avoid checking all links that match a `**example.com**` pattern. You can use this to ignore files as well.
@@ -163,7 +163,7 @@ This will tell the `checkmark` to avoid checking all links that match a `**examp
 Run this command to see a full list of link checker options:
 
 ```sh
-checkmark links --help
+checkmark linkcheck --help
 ```
 
 ### `lint`

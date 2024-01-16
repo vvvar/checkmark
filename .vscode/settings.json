@@ -1,11 +1,12 @@
 {
     "cSpell.words": [
         "checkmark",
+        "Linkcheck",
         "marklint",
+        "mdast",
         "reqwest",
         "sorensen",
-        "strsim",
-        "mdast"
+        "strsim"
     ],
     "rust-analyzer.linkedProjects": [
         "./Cargo.toml"

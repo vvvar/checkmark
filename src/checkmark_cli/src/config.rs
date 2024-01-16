@@ -64,7 +64,7 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
                 config.fmt.show_diff = true;
             }
         }
-        crate::cli::Subcommands::Links(links) => {
+        crate::cli::Subcommands::Linkcheck(links) => {
             if !links.ignore_wildcards.is_empty() {
                 config.link_checker.ignore_wildcards = links.ignore_wildcards.clone();
             }

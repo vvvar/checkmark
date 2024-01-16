@@ -110,7 +110,7 @@ async fn main() -> Result<(), errors::AppError> {
                     issues: vec![],
                 });
         }
-        cli::Subcommands::Links(_) => {
+        cli::Subcommands::Linkcheck(_) => {
             tui.lock().unwrap().start_spinner("Checking links...");
             for file in files.iter_mut() {
                 checkmark_link_checker::check_links(file, &config.link_checker.ignore_wildcards)

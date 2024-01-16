@@ -56,7 +56,7 @@ pub struct ComposeCommand {
 
 #[derive(Debug, clap::Parser)]
 #[command(long_about = None)]
-pub struct LinksCommand {
+pub struct LinkcheckCommand {
     /// List of wildcard URI patterns to ignore(both files and web links)
     #[arg(long, short)]
     pub ignore_wildcards: Vec<String>,
@@ -88,11 +88,11 @@ pub struct GenerateConfigCommand {
 
 #[derive(Debug, clap::Subcommand)]
 pub enum Subcommands {
-    /// Formats all Markdown files in the project. This will fix common formatting issues such as trailing whitespace, inconsistent line endings, and more
+    /// Formats Markdown files. This will fix common formatting issues such as trailing whitespace, inconsistent line endings, and more
     Fmt(FmtCommand),
-    /// Checks the document for broken links(both web and local)
-    Links(LinksCommand),
-    /// Run linter
+    /// Checks the Markdown document for broken links(both web and local)
+    Linkcheck(LinkcheckCommand),
+    /// Checks document for common Markdown linting issues
     Lint(LintCommand),
     /// Reviews the document using OpenAI's API. Requires internet connection and OPEN_AI_API_KEY environment variable(.dotenv file is supported)
     Review(ReviewCommand),
@@ -100,7 +100,7 @@ pub enum Subcommands {
     Compose(ComposeCommand),
     /// Checks the document for spelling errors(offline)
     Spellcheck(SpellcheckCommand),
-    /// Generate default configuration file
+    /// Generates default configuration file
     GenerateConfig(GenerateConfigCommand),
 }
 
