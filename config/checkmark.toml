@@ -12,8 +12,8 @@ unordered_lists = "consistent"
 bold = "consistent"
 
 [fmt]
-check = true
-show_diff = true
+check = false
+show_diff = false
 
 [link_checker]
 ignore_wildcards=["**gffffffffffoooooogel**", "/**.rs"]

@@ -8,7 +8,7 @@ Checkmark offers a range of commands to help maintain high-quality Markdown docu
 
 - **fmt**: Auto-formats all Markdown files in the project, fixing common formatting issues such as trailing whitespace and inconsistent line endings.
 - **links**: Check broken links in your documents, covering both web and local file links.
-- **lint**: Runs a linter (port of [markdownlint](https://github.com/DavidAnson/markdownlint), see [Roadmap](#roadmap) section for details) to ensure your Markdown files adhere to best practices.
+- **lint**: Runs a linter (partial port of [markdownlint](https://github.com/DavidAnson/markdownlint)) to ensure your Markdown files adhere to best practices.
 - **review**: Uses OpenAI's API to review your documents, providing AI-assisted insights and suggestions. Requires OpenAI API key.
 - **compose**: Assists in composing new Markdown documents from a prompt in a context of an existing document. Powered by OpenAI. Requires OpenAI API key.
 - **spelling**: Check your documents for spelling errors.
@@ -22,7 +22,7 @@ Make sure you install the latest [Cargo](https://doc.rust-lang.org/cargo/getting
 cargo install --git https://github.com/vvvar/checkmark.git
 ```
 
-> **NOTE**: Pre-built as well as installation from crates.io is planned. See [Roadmap](#roadmap) section for details.
+> **NOTE**: Pre-built as well as installation from crates.io is planned
 
 You can verify the installation with the following command:
 
@@ -62,7 +62,7 @@ checkmark links --help
 
 ### `review`
 
-`checkmark` is capable of reviewing your documentation using [Open.AI](https://openai.com). First, you need to provide an OpenAI API Key. You can do it either via environment variable:
+`checkmark` is capable of reviewing your documentation using [Open AI](https://openai.com). First, you need to provide an OpenAI API Key. You can do it either via environment variable:
 
 ```sh
 export OPEN_AI_API_KEY=<YOUR_API_KEY>
@@ -96,7 +96,7 @@ This will:
       │
       = Consider following change: 
         - **spelling**: Checks documents for spelling errors.
-
+    
     note[Review]: Consider adding a brief explanation of the CI mode and its purpose.
       ┌─ /Users/vvoinov/Documents/repos/md-checker/README.md:15:1
       │
