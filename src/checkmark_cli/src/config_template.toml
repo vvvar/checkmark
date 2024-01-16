@@ -1,0 +1,71 @@
+# This TOML file is used to configure checkmark for your project.
+# Configuration is split by sections. Every tool has its own section
+# + sections for options that are shared between tools
+
+
+##############################  Global  #############################
+[global]
+# List of file patterns to ignore when discovering Markdown files.
+# Example: ["*LICENSE*", "*/.github/*"]  
+exclude = []
+
+
+##############################  Style  ##############################
+# Configure Markdown code style. Affects fmt and linter. When not
+# specified then style is inferred from the first element in a file
+[style]
+# Heading.
+# Possible values are: "atx", "setext" or "consistent"
+# Reference: https://www.markdownguide.org/basic-syntax/#headings
+headings = "consistent"
+# Unordered list.
+# Possible values are: "asterisk", "plus", "dash" or "consistent"
+# Reference: https://www.markdownguide.org/basic-syntax/#lists-1
+unordered_lists = "consistent"
+# Bold(string) emphasis.
+# Possible values are: "asterisk", "underscore" or "consistent"
+# Reference: https://www.markdownguide.org/basic-syntax/#bold
+bold = "consistent"
+
+
+############################  Formatter  ############################
+[fmt]
+# Enables check mode. When enabled then fmt will only print the diff
+# without applying it. Exit with status code "1" if any formatting
+# issues are found and "0" otherwise
+check = false
+# When used with check then fmt will print the full diff instead of
+# a summary. Use it to see how your file is going to be formatted
+# before applying the changes
+show_diff = false
+
+
+##########################  Link Checker  ###########################
+[link_checker]
+# List of glob URI patterns to ignore when checking links
+# Can be used for both hyperlinks and file links
+# Example: ["**this-host-will-be-ignored**", "/**.rs"]
+ignore_wildcards=[]
+
+
+#############################  Linter  ##############################
+[linter]
+# List of HTML elements to ignore when linting, e.g. "a", "img", etc.
+# Example: ["a", "img"]
+allowed_html_tags = []
+
+
+#############################  Review  ##############################
+[review]       
+# When true, the review will be printed without fix suggestions                     
+no_suggestions=false
+# Custom prompt for the review
+# Example: "Make a grammar review"
+# prompt="Make a grammar review"
+
+
+########################## Spell Checker  ###########################
+[spelling]
+# List of words to ignore while spell checking
+# Example: ["checkmark", "CLI", "SARIF", "OPEN_AI_API_KEY"]
+words_whitelist=[]

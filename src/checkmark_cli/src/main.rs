@@ -133,6 +133,13 @@ async fn main() -> Result<(), errors::AppError> {
                 tui.lock().unwrap().print_file_check_status(file);
             });
         }
+        cli::Subcommands::GenerateConfig(generate_config) => {
+            let path = dunce::canonicalize(&generate_config.path)
+                .unwrap()
+                .join("checkmark.toml");
+            std::fs::write(path, include_str!("config_template.toml"))
+                .expect("Unable to write a file");
+        }
     }
 
     // Print all collected check issues

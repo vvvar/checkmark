@@ -18,59 +18,213 @@ Checkmark offers a range of commands to help maintain high-quality Markdown docu
 
 Make sure you install the latest [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) version. If you are using Windows, ensure that Perl is installed and added to the system's `PATH`. You may consider using [Strawberry Perl](https://strawberryperl.com) for this purpose. Next, run the following command:
 
-```bash
+```sh
 cargo install --git https://github.com/vvvar/checkmark.git
 ```
 
 > **NOTE**: Pre-built as well as installation from crates.io is planned. See [Roadmap](#roadmap) section for details.
 
-## Usage
+You can verify the installation with the following command:
 
-Checkmark is a set of tools. Each tool has its command. Tools are:
-
-- `fmt` - Opinionated auto-formatter and format checker.
-- `links` - Link checker. Finds broken hyperlinks and mail addresses.
-- `lint` - Port of [markdownlint](https://github.com/DavidAnson/markdownlint).
-- `review` - AI review assistant. Reviews your documents using OpenAI's API to highlight areas that could be improved. Requires an internet connection and the OPEN_AI_API_KEY environment variable (supports .env file).
-- `compose` - AI Markdown document generator. Generates a Markdown document based on user prompts and an optional context file. Requires an internet connection and the OPEN_AI_API_KEY environment variable (supports .env file).
-- `spelling` - Spell checker.
-
-Full list of commands can be displayed by running:
-
-```bash
-$ checkmark --help
-
-A CLI tool that helps maintain high-quality Markdown documentation by checking for formatting, grammatical, and spelling errors, as well as broken links
-
-Usage: checkmark [OPTIONS] [PROJECT_ROOT] <COMMAND>
-
-Commands:
-  fmt       Formats all Markdown files in the project. This will fix common formatting issues such as trailing whitespace, inconsistent line endings, and more
-  links     Checks the document for broken links(both web and local)
-  lint      Run linter
-  review    Reviews the document using OpenAI's API. Requires internet connection and OPEN_AI_API_KEY environment variable(.dotenv file is supported)
-  compose   Compose a file in Markdown format from a prompt
-  spelling  Checks the document for spelling errors(offline)
-  help      Print this message or the help of the given subcommand(s)
-
-Arguments:
-  [PROJECT_ROOT]  Sets the project root, file, or web URL for scanning Markdown files. Can also accept a Git repository. Defaults to the current directory if not specified [default: .]
-
-Options:
-      --exclude <EXCLUDE>...  List of files(wildcards) to exclude from scanning
-  -c, --config <FILE_PATH>    Sets the configuration file path. Overrides default files if set
-      --ci                    CI Mode: Turns off interactive prompts and outputs report in a format suitable for CI/CD pipelines
-      --sarif [<FILE_PATH>]   Saves the report in SARIF format to a given file or defaults to './report.sarif' if no file is specified
-      --verbose               Verbose logging: Provides detailed tool activity, useful for debugging
-  -h, --help                  Print help
-  -V, --version               Print version
+```sh
+checkmark --version
 ```
 
-## Roadmap
+## Getting started
 
-- [ ] Port remaining markdownlint rules.
-- [ ] Provide a package via crates.io.
-- [ ] Provide pre-built packages via `brew`, `choco` and `apt`.
+Checkmark has a bunch of different commands. Each serves its purpose. Below you will find descriptions of all available commands.
+
+### `fmt`
+
+Recursively auto-format all Markdown files inside the current directory with:
+
+```sh
+checkmark fmt .
+```
+
+Verify that all Markdown files have been formatted with:
+
+```sh
+checkmark fmt . --check
+```
+
+Additionally, you can print a diff to see what exactly will be re-formatted:
+
+```sh
+checkmark fmt . --check --show-diff
+```
+
+Run this command to see a full list of formatting options:
+
+```sh
+checkmark links --help
+```
+
+### `review`
+
+`checkmark` is capable of reviewing your documentation using [Open.AI](https://openai.com). First, you need to provide an OpenAI API Key. You can do it either via environment variable:
+
+```sh
+export OPEN_AI_API_KEY=<YOUR_API_KEY>
+```
+
+or by creating a `.env` file with it(see [this](https://github.com/motdotla/dotenv) if you're not familiar). See [here](https://help.openai.com/en/articles/4936850-where-do-i-find-my-api-key) how to find an API key.
+
+They, you can recursively review all your Markdown documents with:
+
+```sh
+checkmark review .
+```
+
+This will:
+
+1. take all your Markdown files
+2. split them in chunks(by headings)
+3. one by one send them to Open.AI for review with the following prompt:
+   > Review this project documentation for grammar, readability and clarity of the content.
+   > Provide a summary and improvement suggestions.
+   > Each suggestion should identify the issue, its location, and a proposed fix.
+   > Each suggestion should have 'description', 'original', and 'replacement'
+4. collect results and show them to you in the form of suggestions. For example:
+
+    ```txt
+    note[Review]: Add a brief description for each command to provide more context for users.
+      ┌─ /Users/vvoinov/Documents/repos/md-checker/README.md:14:1
+      │
+    14 │ - **spelling**: Check your documents for spelling errors.
+      │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      │
+      = Consider following change: 
+        - **spelling**: Checks documents for spelling errors.
+
+    note[Review]: Consider adding a brief explanation of the CI mode and its purpose.
+      ┌─ /Users/vvoinov/Documents/repos/md-checker/README.md:15:1
+      │
+    15 │ - **CI mode**: Turns off interactive prompts and outputs reports in a format suitable for CI/CD pipelines.
+      │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      │
+      = Consider following change: 
+        - **CI mode**: Turns off interactive prompts and outputs reports in a format suitable for CI/CD pipelines. This mode is designed to facilitate integration with CI/CD processes.
+    ```
+
+You can provide a custom prompt for Open.AI with:
+
+```sh
+checkmark review . --prompt "Review grammar"
+```
+
+Run this command to see a full list of review options:
+
+```sh
+checkmark review --help
+```
+
+### `compose`
+
+`checkmark` is capable of composing documentation using [Open.AI](https://openai.com) based on your prompts with:
+
+```sh
+checkmark compose --prompt "Write me a dummy documentation" --output DOCUMENT.MD
+```
+
+This will generate a file `DOCUMENT.MD` with content generated using your prompt.
+
+Additionally, you can provide a file and ask `checkmark` to use it as an additional context for your prompt. For example:
+
+```sh
+checkmark compose --context README.md --prompt "Re-write this file in a manner of pirates" --output DOCUMENT.MD
+```
+
+This will take `README.md`, rewrite it using your prompt and store it in `DOCUMENT.MD`.
+
+Run this command to see a full list of review options:
+
+```sh
+checkmark compose --help
+```
+
+### `links`
+
+Recursively check all links in Markdown files inside the current directory with:
+
+```sh
+checkmark links .
+```
+
+This will extract all hyperlinks, file links(for e.x. `\[File\]\(./image.png\)`), and e-mails and check whether they are reachable or not.
+If you want to ignore some links, use:
+
+```sh
+checkmark links . --ignore-wildcards "**example.com**"
+```
+
+This will tell the `checkmark` to avoid checking all links that match a `**example.com**` pattern. You can use this to ignore files as well.
+
+Run this command to see a full list of link checker options:
+
+```sh
+checkmark links --help
+```
+
+### `lint`
+
+Recursively lint all Markdown files inside the current directory with:
+
+```sh
+checkmark lint .
+```
+
+This will test all your files against linting rules. Linting rules are ported from [markdownlint](https://github.com/DavidAnson/markdownlint)(work in progress).
+
+Run this command to see a full list of linter options:
+
+```sh
+checkmark lint --help
+```
+
+### `spelling`
+
+Recursively spell-check all Markdown files inside the current directory with:
+
+```sh
+checkmark spelling .
+```
+
+This will check all Markdown files for spelling errors. If you need to white-list words:
+
+```sh
+checkmark spelling . --words-whitelist checkmark,OPEN_AI_API_KEY
+```
+
+This will not print spelling errors for the words "checkmark" and "OPEN_AI_API_KEY" anymore.
+
+Run this command to see a full list of review options:
+
+```sh
+checkmark spelling --help
+```
+
+### `generate-config`
+
+`checkmark` can be controlled via CLI and config file. Although it is completely fine to use CLI, when setting up a `checkmark` in a project it is useful to have all settings under version control. `checkmark` has a command that can generate a default config file for you:
+
+```sh
+checkmark generate-config
+```
+
+This will generate a file called `checkmark.toml` in the same folder you're in. Every line in it is documented. Adjust it to your needs. You can store this file in the following folders(lookup will be done exactly in this order, the first match is picked up):
+
+1. project root
+2. `config`
+3. `conf`
+4. `cfg`
+5. `.github`
+
+In these folders, `checkmark` will look for either a file called `checkmark.toml` or `.checkmark.toml`. Choose the location and name that fits best your needs. If none of these locations or names fits you, then you can provide a path to your config file via the command line:
+
+```sh
+checkmark <command> --config "/path/to/your/config.toml"
+```
 
 ## Contributing
 
@@ -78,4 +232,4 @@ For information about contribution, please refer to the [CONTRIBUTING.md](./docs
 
 ## Support
 
-For information about support, please refer to the [SUPPORT.md](./docs/SUPPORT.md) file.
+For support information, please refer to the [SUPPORT.md](./docs/SUPPORT.md) file.

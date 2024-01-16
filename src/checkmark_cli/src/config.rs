@@ -25,10 +25,12 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
             ".checkmark.toml",
             "config/checkmark.toml",
             "config/.checkmark.toml",
-            "cfg/checkmark.toml",
-            "cfg/.checkmark.toml",
             "conf/checkmark.toml",
             "conf/.checkmark.toml",
+            "cfg/checkmark.toml",
+            "cfg/.checkmark.toml",
+            ".github/checkmark.toml",
+            ".github/.checkmark.toml",
         ];
         log::debug!(
             "Trying to read config from default locations {:#?}...",
@@ -80,6 +82,7 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
         }
         crate::cli::Subcommands::Compose(_) => {}
         crate::cli::Subcommands::Spelling(_) => {}
+        crate::cli::Subcommands::GenerateConfig(_) => {}
     }
     if !cli.exclude.is_empty() {
         config.global.exclude = cli.exclude.clone();

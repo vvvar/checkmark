@@ -78,6 +78,14 @@ pub struct SpellingCommand {
     pub words_whitelist: Vec<String>,
 }
 
+#[derive(Debug, clap::Parser)]
+#[command(long_about = None)]
+pub struct GenerateConfigCommand {
+    /// Path where config file should be saved
+    #[arg(global = true, value_hint=clap::ValueHint::AnyPath, default_value=".")]
+    pub path: String,
+}
+
 #[derive(Debug, clap::Subcommand)]
 pub enum Subcommands {
     /// Formats all Markdown files in the project. This will fix common formatting issues such as trailing whitespace, inconsistent line endings, and more
@@ -92,6 +100,8 @@ pub enum Subcommands {
     Compose(ComposeCommand),
     /// Checks the document for spelling errors(offline)
     Spelling(SpellingCommand),
+    /// Generate default configuration file
+    GenerateConfig(GenerateConfigCommand),
 }
 
 #[derive(Debug, clap::Parser)]
