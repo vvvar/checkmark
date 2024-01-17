@@ -31,27 +31,43 @@ fn calculate_ident(line: &str) -> usize {
 
 /// Recursively analyze a list and all its children
 /// considering depth and indentation
+/// violations - list of violations. This will be filled by this function
+/// node - the node to analyze(recursively)
+/// is_ordered - whether the current list is ordered or not
+/// nesting_level - the nesting level of the current list
+/// num_ordered_lists - the number of ordered lists in the current list
+/// file - file source to analyze
+/// expected_indent_per_level - the expected indent per nesting level
 fn analyze_list(
     violations: &mut Vec<Violation>,
     node: &Node,
+    is_ordered: bool,
     nesting_level: usize,
+    num_ordered_lists: usize,
     file: &MarkDownFile,
     expected_indent_per_level: usize,
 ) {
     match node {
         Node::ListItem(li) => {
             let num_line = li.position.as_ref().unwrap().start.line;
-            if let Some(line) = file.content.lines().nth(num_line - 1) {
-                let expected_ident = (nesting_level - 1) * expected_indent_per_level;
+            if let (Some(line), true) = (file.content.lines().nth(num_line - 1), !is_ordered) {
+                let additional_ordered_list_indent = if num_ordered_lists > 0 {
+                    num_ordered_lists - 1
+                } else {
+                    0
+                };
+                let expected_ident = ((nesting_level - 1) * expected_indent_per_level)
+                    + additional_ordered_list_indent;
                 let actual_ident = calculate_ident(line);
+                dbg!(&line);
+                dbg!(&num_ordered_lists);
+                dbg!(&expected_ident);
+                dbg!(&actual_ident);
+                dbg!("================================");
                 if actual_ident.ne(&expected_ident) {
                     violations.push(
                         violation_builder()
-                            .message(&format!(
-                                "Wrong indentation of unordered list item. Expected {} spaces, got {} spaces",
-                                expected_ident,
-                                actual_ident
-                            ))
+                            .message(&format!("Wrong indentation of unordered list item. Expected {} spaces, got {} spaces", expected_ident, actual_ident))
                             .position(&li.position)
                             .build(),
                     );
@@ -60,7 +76,9 @@ fn analyze_list(
                     analyze_list(
                         violations,
                         child,
+                        is_ordered,
                         nesting_level,
+                        num_ordered_lists,
                         file,
                         expected_indent_per_level,
                     );
@@ -72,7 +90,12 @@ fn analyze_list(
                 analyze_list(
                     violations,
                     child,
+                    l.ordered,
                     nesting_level + 1,
+                    match l.ordered {
+                        true => num_ordered_lists + 1,
+                        false => num_ordered_lists,
+                    },
                     file,
                     expected_indent_per_level,
                 );
@@ -84,7 +107,9 @@ fn analyze_list(
                     analyze_list(
                         violations,
                         child,
+                        is_ordered,
                         nesting_level,
+                        num_ordered_lists,
                         file,
                         expected_indent_per_level,
                     );
@@ -115,7 +140,12 @@ pub fn md007_unordered_list_indentation(file: &MarkDownFile, indent: usize) -> V
 
     let mut violations: Vec<Violation> = vec![];
     for list in top_level_lists {
-        analyze_list(&mut violations, list, 0, file, indent);
+        let is_ordered = if let Node::List(l) = list {
+            l.ordered
+        } else {
+            false
+        };
+        analyze_list(&mut violations, list, is_ordered, 0, 0, file, indent);
     }
 
     violations
@@ -133,7 +163,7 @@ mod tests {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
             content: "# Wrong List Item Indentation
 
-## Plain nested list
+## Unordered nested list
 
 - One
 - Two
@@ -143,7 +173,7 @@ mod tests {
     - Two-Two-Two
 - Three
 
-## Nested list in block quote
+## Unordered nested list in block quote
 
 > - One
 > - Two
@@ -152,7 +182,7 @@ mod tests {
 > - Four
 >  - Four-One
 
-## Nested list in nested block quote
+## Unordered nested list in nested block quote
 
 > - One
 > - Two
@@ -162,6 +192,15 @@ mod tests {
 > > - Two
 > >  - Two-One
 > > - Three
+
+## Ordered nested list in unordered list
+
+- One
+- Two
+  1. Two-One
+  2. Two-Two
+      1. Two-Two-One
+     2. Two-Two-Two
 
 "
             .to_string(),
@@ -174,26 +213,26 @@ mod tests {
                     .message(
                         "Wrong indentation of unordered list item. Expected 4 spaces, got 5 spaces"
                     )
-                    .position(&Some(Position::new(9, 5, 93, 9, 19, 107)))
+                    .position(&Some(Position::new(9, 5, 97, 9, 19, 111)))
                     .build(),
                 violation_builder()
                     .message(
                         "Wrong indentation of unordered list item. Expected 0 spaces, got 1 spaces"
                     )
-                    .position(&Some(Position::new(20, 3, 217, 20, 14, 228)))
+                    .position(&Some(Position::new(20, 3, 231, 20, 14, 242)))
                     .build(),
                 violation_builder()
                     .message(
                         "Wrong indentation of unordered list item. Expected 0 spaces, got 1 spaces"
                     )
-                    .position(&Some(Position::new(26, 3, 286, 26, 13, 296)))
+                    .position(&Some(Position::new(26, 3, 310, 26, 13, 320)))
                     .build(),
                 violation_builder()
                     .message(
                         "Wrong indentation of unordered list item. Expected 0 spaces, got 1 spaces"
                     )
-                    .position(&Some(Position::new(30, 5, 331, 30, 15, 341)))
-                    .build()
+                    .position(&Some(Position::new(30, 5, 355, 30, 15, 365)))
+                    .build(),
             ],
             md007_unordered_list_indentation(&file, 2)
         );
