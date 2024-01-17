@@ -9,7 +9,7 @@ fn violation_builder() -> ViolationBuilder {
         .message("Blank line inside block quote")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md028.md")
         .push_fix("If you want to have a single block quote - remove blank line")
-        .push_fix("If you want to have block quotes split - add any text between them")
+        .push_fix("If you want to have block quotes split - add any text between them, for example an empty comment \"<!--  -->\"")
 }
 
 pub fn md028_blank_line_inside_block_quote(file: &MarkDownFile) -> Vec<Violation> {
