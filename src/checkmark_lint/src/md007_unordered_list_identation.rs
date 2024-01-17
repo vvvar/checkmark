@@ -59,11 +59,6 @@ fn analyze_list(
                 let expected_ident = ((nesting_level - 1) * expected_indent_per_level)
                     + additional_ordered_list_indent;
                 let actual_ident = calculate_ident(line);
-                dbg!(&line);
-                dbg!(&num_ordered_lists);
-                dbg!(&expected_ident);
-                dbg!(&actual_ident);
-                dbg!("================================");
                 if actual_ident.ne(&expected_ident) {
                     violations.push(
                         violation_builder()
@@ -202,6 +197,12 @@ mod tests {
       1. Two-Two-One
      2. Two-Two-Two
 
+## Unordered nested list in ordered list
+
+1. One
+2. Two
+  - Two-One
+
 "
             .to_string(),
             issues: vec![],
@@ -232,6 +233,12 @@ mod tests {
                         "Wrong indentation of unordered list item. Expected 0 spaces, got 1 spaces"
                     )
                     .position(&Some(Position::new(30, 5, 355, 30, 15, 365)))
+                    .build(),
+                violation_builder()
+                    .message(
+                        "Wrong indentation of unordered list item. Expected 0 spaces, got 2 spaces"
+                    )
+                    .position(&Some(Position::new(46, 1, 557, 47, 1, 569)))
                     .build(),
             ],
             md007_unordered_list_indentation(&file, 2)
