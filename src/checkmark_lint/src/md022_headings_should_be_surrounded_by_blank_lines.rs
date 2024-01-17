@@ -25,13 +25,17 @@ pub fn md022_headings_should_be_surrounded_by_blank_lines(file: &MarkDownFile) -
 
     headings
         .iter()
-        .filter(|h| {
+        .enumerate()
+        .filter(|(i, h)| {
             let offset_start = h.position.as_ref().unwrap().start.offset;
             let offset_end = h.position.as_ref().unwrap().end.offset;
             let text_after_heading = file.content.get(offset_end..offset_end + 2).unwrap_or("");
-            if h.depth == 1 {
+            // When it is a first heading in document.
+            if i.eq(&0) {
+                // Only check if there is a blank line after
                 !text_after_heading.eq("\n\n")
             } else {
+                // Otherwise, check both before and after
                 let text_before_heading = if offset_start >= 1 {
                     file.content
                         .get(offset_start - 2..offset_start)
@@ -42,16 +46,16 @@ pub fn md022_headings_should_be_surrounded_by_blank_lines(file: &MarkDownFile) -
                 !text_before_heading.eq("\n\n") || !text_after_heading.eq("\n\n")
             }
         })
-        .map(|h| {
+        .map(|(i, h)| {
             let mut violation = violation_builder().position(&h.position);
-            if h.depth == 1 {
+            if i.eq(&0) {
                 violation = violation
                     .message("Heading is not followed by blank line")
-                    .push_fix("Add blank line after the header");
+                    .push_fix("Add a blank line after the the header");
             } else {
                 violation = violation
                     .message("Heading is not surrounded by blank lines")
-                    .push_fix("Add blank line before and after the header");
+                    .push_fix("Add a blank line before and after the header");
             }
             violation.build()
         })
@@ -64,37 +68,39 @@ mod tests {
     use markdown::unist::Position;
     use pretty_assertions::assert_eq;
 
+    fn markdown_file(content: &str) -> MarkDownFile {
+        MarkDownFile {
+            path: String::from("this/is/a/dummy/path/to/a/file.md"),
+            content: content.to_string(),
+            issues: vec![],
+        }
+    }
+
     #[test]
     fn md022() {
-        let file = MarkDownFile {
-            path: String::from("this/is/a/dummy/path/to/a/file.md"),
-            content: "# H1
-Text directly after H1
-## H2
-
-Here all fine
-
-## H2 - All good here as well"
-                .to_string(),
-            issues: vec![],
-        };
-
+        let headings_in_order =
+            markdown_file("# Heading 1\nSome text\n\nSome more text\n\n## Heading 2");
         assert_eq!(
             vec![
                 violation_builder()
                     .message("Heading is not followed by blank line")
-                    .position(&Some(Position::new(1, 1, 0, 1, 5, 4)))
+                    .position(&Some(Position::new(1, 1, 0, 1, 12, 11)))
                     .build(),
                 violation_builder()
                     .message("Heading is not surrounded by blank lines")
-                    .position(&Some(Position::new(3, 1, 28, 3, 6, 33)))
+                    .position(&Some(Position::new(6, 1, 39, 6, 13, 51)))
                     .build(),
-                violation_builder()
-                    .message("Heading is not surrounded by blank lines")
-                    .position(&Some(Position::new(7, 1, 50, 7, 30, 79)))
-                    .build()
             ],
-            md022_headings_should_be_surrounded_by_blank_lines(&file)
+            md022_headings_should_be_surrounded_by_blank_lines(&headings_in_order)
+        );
+
+        let headings_not_in_order = markdown_file("## H2\n\n# H1\n");
+        assert_eq!(
+            vec![violation_builder()
+                .message("Heading is not surrounded by blank lines")
+                .position(&Some(Position::new(3, 1, 7, 3, 5, 11)))
+                .build(),],
+            md022_headings_should_be_surrounded_by_blank_lines(&headings_not_in_order)
         );
     }
 }
