@@ -12,10 +12,20 @@ fn violation_builder() -> ViolationBuilder {
 
 pub fn md009_trailing_spaces(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD009] File: {:#?}", &file.path);
+    let mut is_code_block = false;
     file.content
         .lines()
         .enumerate()
-        .filter(|(_, line)| line.ends_with(" "))
+        .filter(|(_, line)| {
+            if is_code_block {
+                false
+            } else if line.starts_with("```") {
+                is_code_block = !is_code_block;
+                false
+            } else {
+                line.ends_with(" ")
+            }
+        })
         .map(|(i, line)| {
             log::debug!("[MD009] Problematic line {:#?}: {:#?}", i + 1, &line);
             violation_builder()
@@ -41,24 +51,26 @@ mod tests {
     pub fn md009() {
         let file = common::MarkDownFile {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
-            content: "# H1 
-    
-## H2 "
-                .to_string(),
+            content: "# H1
+   
+## H2 
+
+```text
+This is a code block    
+```
+"
+            .to_string(),
             issues: vec![],
         };
 
         assert_eq!(
             vec![
                 violation_builder()
-                    .position(&Some(markdown::unist::Position::new(0, 4, 4, 0, 5, 5)))
+                    .position(&Some(markdown::unist::Position::new(1, 2, 7, 1, 3, 8)))
                     .build(),
                 violation_builder()
-                    .position(&Some(markdown::unist::Position::new(1, 3, 9, 1, 4, 10)))
+                    .position(&Some(markdown::unist::Position::new(2, 5, 14, 2, 6, 15)))
                     .build(),
-                violation_builder()
-                    .position(&Some(markdown::unist::Position::new(2, 5, 16, 2, 6, 17)))
-                    .build()
             ],
             md009_trailing_spaces(&file)
         );
