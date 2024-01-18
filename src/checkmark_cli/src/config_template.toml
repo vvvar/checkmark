@@ -8,7 +8,13 @@
 # List of file patterns to ignore when discovering Markdown files.
 # Example: ["*LICENSE*", "*/.github/*"]  
 exclude = []
-
+# Set proxy for all HTTP(s) requests.
+# Will set both HTTP_PROXY and HTTPS_PROXY environment variables
+proxy = ""
+# Exclude traffic destined to certain hosts from using the proxy
+# Will set NO_PROXY environment variable
+# Example: "localhost"
+no_proxy = ""
 
 ##############################  Style  ##############################
 # Configure Markdown code style. Affects fmt and linter. When not

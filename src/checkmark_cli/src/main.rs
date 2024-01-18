@@ -37,6 +37,19 @@ async fn main() -> Result<(), errors::AppError> {
     // Read config
     let config = config::read_config(&cli);
 
+    // Setup proxy(when needed)
+    if let Some(proxy) = &config.global.proxy {
+        if !proxy.is_empty() {
+            std::env::set_var("HTTP_PROXY", proxy);
+            std::env::set_var("HTTPS_PROXY", proxy);
+        }
+    }
+    if let Some(no_proxy) = &config.global.no_proxy {
+        if !no_proxy.is_empty() {
+            std::env::set_var("NO_PROXY", no_proxy);
+        }
+    }
+
     // Read all MD files
     let mut files = checkmark_ls::ls(&cli.project_root, &config.global.exclude).await;
 
