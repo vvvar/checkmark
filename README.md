@@ -1,4 +1,4 @@
-# Checkmark
+# checkmark
 
 Checkmark is a CLI tool designed to streamline your Markdown workflow. It provides a suite of features including auto-formatting, linting, AI-assisted document review, link checking, spell checking, and AI-assisted document composition.
 
