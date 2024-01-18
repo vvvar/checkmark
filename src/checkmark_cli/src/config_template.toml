@@ -55,6 +55,15 @@ ignore_wildcards=[]
 allowed_html_tags = []
 
 
+#############################  Open AI  #############################
+[open_ai]
+# Use this to provide Open AI API key.
+# You can get it from https://platform.openai.com/account/api-keys
+# WARN: This option is meant to be used just for testing
+#       Do not ever commit your API key to your repo
+#       Use environment variables or .env files instead
+# api_key = ""
+
 #############################  Review  ##############################
 [review]       
 # When true, the review will be printed without fix suggestions                     
@@ -66,6 +75,7 @@ creativity=10
 # Custom prompt for the review
 # Example: "Make a grammar review"
 # prompt="Make a grammar review"
+
 
 ############################  Compose  ##############################
 [compose]

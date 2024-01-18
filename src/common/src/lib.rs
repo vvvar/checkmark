@@ -408,31 +408,34 @@ pub fn activate_debug_logging() {
 /// TOML config for checkmark
 #[derive(Debug, Default, serde::Deserialize)]
 pub struct Config {
-    pub location: Option<String>,
-
     #[serde(default)]
-    pub global: GlobalConfig,
+    pub compose: ComposeConfig,
 
     #[serde(default)]
     pub fmt: FmtConfig,
 
     #[serde(default)]
-    pub style: StyleConfig,
-
-    #[serde(default)]
-    pub review: ReviewConfig,
-
-    #[serde(default)]
-    pub compose: ComposeConfig,
+    pub global: GlobalConfig,
 
     #[serde(default)]
     pub link_checker: LinkCheckerConfig,
+
+    pub location: Option<String>,
 
     #[serde(default)]
     pub linter: LinterConfig,
 
     #[serde(default)]
+    pub open_ai: OpenAiConfig,
+
+    #[serde(default)]
+    pub review: ReviewConfig,
+
+    #[serde(default)]
     pub spelling: SpellingConfig,
+
+    #[serde(default)]
+    pub style: StyleConfig,
 }
 
 impl Config {
@@ -440,9 +443,12 @@ impl Config {
     pub fn from_file(path: &str) -> Option<Self> {
         log::debug!("Trying to build config from file: {}", &path);
         if let Ok(file) = std::fs::read_to_string(path) {
-            match toml::from_str(&file) {
+            match toml::from_str::<Self>(&file) {
                 Ok(cfg) => {
                     log::debug!("Config file found in {}: {:#?}", &path, &cfg);
+                    if cfg.open_ai.api_key.is_some() {
+                        log::warn!("OpenAI API key was set in a config file. Please use it only for testing purpose and never commit this file. Use either OPEN_AI_API_KEY environment variable or put it into the \".env\" file instead.");
+                    }
                     Some(cfg)
                 }
                 Err(err) => {
@@ -548,6 +554,12 @@ pub struct LinterConfig {
 pub struct SpellingConfig {
     #[serde(default)]
     pub words_whitelist: Vec<String>,
+}
+
+#[derive(Debug, Default, serde::Deserialize)]
+pub struct OpenAiConfig {
+    #[serde(default)]
+    pub api_key: Option<String>,
 }
 
 /// Parse Markdown file into an AST

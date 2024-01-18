@@ -101,41 +101,72 @@ fn read_open_ai_api_key() -> Result<String, OpenAIError> {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct OpenAiRequestParameters {
+    pub role_prompt: String,
+    pub user_prompt: String,
+    pub response_format: String,
+    pub creativity: u8,
+    pub api_key: String,
+}
+
+impl OpenAiRequestParameters {
+    pub fn new(
+        role: &str,
+        input: &str,
+        resp_format: &str,
+        creativity: &Option<u8>,
+        api_key: &Option<String>,
+    ) -> Self {
+        Self {
+            role_prompt: role.to_string(),
+            user_prompt: input.to_string(),
+            response_format: resp_format.to_string(),
+            creativity: match creativity {
+                Some(c) => c.clone(),
+                None => 10,
+            },
+            api_key: match api_key {
+                Some(k) => k.clone(),
+                None => read_open_ai_api_key().expect("Unable to read Open AI API key"),
+            },
+        }
+    }
+}
+
 /// Make a request to the OpenAI.
 /// Use ai_role to describe the role that OpenAI assistant shall take.
 /// Use user_input as a prompt from user, OpenAI will perform analysis of it.
 /// response_format - https://platform.openai.com/docs/api-reference/chat/create#chat-create-response_format
 pub async fn open_ai_request(
-    ai_role: &str,
-    user_input: &str,
-    response_format: &str,
-    creativity: u8,
+    params: &OpenAiRequestParameters,
 ) -> Result<OpenAIResponse, OpenAIError> {
-    let requests = user_input
+    let requests = params
+        .user_prompt
         .split("\n\n#")
         .map(|chunk| {
             let request_data = OpenAIRequestData {
                 model: "gpt-3.5-turbo-1106".to_string(),
                 n: 1,
-                temperature: (creativity as f32 / 100.0) * 2.0,
+                temperature: (params.creativity as f32 / 100.0) * 2.0,
                 response_format: OpenAIRequestDataResponseFormat {
-                    response_type: response_format.to_string(),
+                    response_type: params.response_format.clone(),
                 },
                 messages: vec![
                     OpenAIRequestDataMessage {
                         role: "system".to_string(),
-                        content: ai_role.to_string(),
+                        content: params.role_prompt.clone(),
                     },
                     OpenAIRequestDataMessage {
                         role: "user".to_string(),
-                        content: format!("#{}", chunk),
+                        content: format!("#{chunk}"),
                     },
                 ],
             };
             log::debug!("Sending OpenAI request with data:\n{:#?}", &request_data);
             reqwest::Client::new()
                 .post("https://api.openai.com/v1/chat/completions")
-                .bearer_auth(read_open_ai_api_key().unwrap())
+                .bearer_auth(&params.api_key)
                 .json(&request_data)
                 .send()
         })
@@ -170,86 +201,8 @@ pub async fn open_ai_request(
             }
             Err(err) => {
                 log::error!("Error sending request to OpenAI:{:#?}", &err);
-                // return Err(OpenAIError {
-                //     message: "Error sending request to OpenAI".to_string(),
-                // });
             }
         }
     }
-
     Ok(open_ai_response)
-}
-
-fn is_false_positive_review_suggestion(suggestion_description: &str) -> bool {
-    suggestion_description.contains("a space after the colon")
-}
-
-/// Makes a review of provided markdown file with OpenAI.
-/// Returns string with suggestions.
-pub async fn get_open_ai_review(
-    file: &common::MarkDownFile,
-    prompt: &Option<String>,
-    creativity: u8,
-) -> Result<OpenAIReview, OpenAIError> {
-    let response_format_prompt = r#"
-Output should be in JSON format with 'summary' and 'suggestions'.
-Format your response as follows:
-{
-    "summary": "<summary of the review>",
-    "suggestions": [
-        { 
-            "description": "<description of the issue>", 
-            "original": "<original text>", 
-            "replacement": "<suggested fix>" 
-        }
-    ]
-}
-Avoid additional commentary.
-"#;
-    let role_prompt = match &prompt {
-        Some(prompt) => format!("{}{}", prompt, response_format_prompt),
-        None => format!(
-            "{}{}",
-            "
-Review this project documentation for grammar, readability and clarity of the content.
-Provide a summary and improvement suggestions.
-Each suggestion should identify the issue, its location, and a proposed fix.
-Each suggestion should have 'description', 'original', and 'replacement'.",
-            response_format_prompt
-        ),
-    };
-    return match open_ai_request(&role_prompt, &file.content, "json_object", creativity).await {
-        Ok(response) => {
-            match response
-                .choices
-                .iter()
-                .map(|choice| serde_json::from_str::<OpenAIReview>(&choice.message.content))
-                .take_while(|e| e.is_ok())
-                .map(|e| e.unwrap())
-                .reduce(|mut acc, r| {
-                    let mut review = OpenAIReview {
-                        summary: r.summary,
-                        suggestions: vec![],
-                    };
-                    review.suggestions.append(&mut r.suggestions.clone());
-                    review.suggestions.append(&mut acc.suggestions);
-                    review
-                }) {
-                Some(review) => Ok(OpenAIReview {
-                    summary: review.summary,
-                    suggestions: review
-                        .suggestions
-                        .into_iter()
-                        .filter(|suggestion| {
-                            !is_false_positive_review_suggestion(&suggestion.description)
-                        })
-                        .collect(),
-                }),
-                None => Err(OpenAIError {
-                    message: "OpenAI haven't provided any suggestion".to_string(),
-                }),
-            }
-        }
-        Err(err) => Err(err),
-    };
 }

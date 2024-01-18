@@ -1,0 +1,13 @@
+The output should be in JSON format with 'summary' and 'suggestions'.
+Format your response as follows:
+{
+    "summary": "<summary of the review>",
+    "suggestions": [
+        { 
+            "description": "<description of the issue>", 
+            "original": "<original text>", 
+            "replacement": "<suggested fix>" 
+        }
+    ]
+}
+Avoid additional commentary.

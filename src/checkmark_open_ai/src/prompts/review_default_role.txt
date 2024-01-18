@@ -1,0 +1,4 @@
+Review this project documentation for grammar, readability and clarity of the content.
+Provide a summary and improvement suggestions.
+Each suggestion should identify the issue, its location, and a proposed fix.
+Each suggestion should have a 'description', 'original', and 'replacement'.
