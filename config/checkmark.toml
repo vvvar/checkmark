@@ -16,7 +16,8 @@ check = false
 show_diff = false
 
 [link_checker]
-ignore_wildcards=["**gffffffffffoooooogel**", "/**.rs"]
+ignore_wildcards = ["**gffffffffffoooooogel**", "/**.rs"]
+timeout = 30
 
 [linter]
 allowed_html_tags = []

@@ -68,6 +68,9 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
             if !links.ignore_wildcards.is_empty() {
                 config.link_checker.ignore_wildcards = links.ignore_wildcards.clone();
             }
+            if let Some(timeout) = links.timeout {
+                config.link_checker.timeout = Some(timeout);
+            }
         }
         crate::cli::Subcommands::Lint(lint) => {
             if !lint.allowed_html_tags.is_empty() {

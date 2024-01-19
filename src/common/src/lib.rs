@@ -548,6 +548,9 @@ pub struct ComposeConfig {
 pub struct LinkCheckerConfig {
     #[serde(default)]
     pub ignore_wildcards: Vec<String>,
+
+    #[serde(default)]
+    pub timeout: Option<u8>,
 }
 
 #[derive(Debug, Default, serde::Deserialize)]
