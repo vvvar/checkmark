@@ -551,6 +551,9 @@ pub struct LinkCheckerConfig {
 
     #[serde(default)]
     pub timeout: Option<u8>,
+
+    #[serde(default)]
+    pub max_retries: Option<u8>,
 }
 
 #[derive(Debug, Default, serde::Deserialize)]

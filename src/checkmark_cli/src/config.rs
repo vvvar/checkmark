@@ -71,6 +71,9 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
             if let Some(timeout) = links.timeout {
                 config.link_checker.timeout = Some(timeout);
             }
+            if let Some(max_retries) = links.max_retries {
+                config.link_checker.max_retries = Some(max_retries);
+            }
         }
         crate::cli::Subcommands::Lint(lint) => {
             if !lint.allowed_html_tags.is_empty() {

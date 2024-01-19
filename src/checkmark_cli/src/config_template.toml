@@ -7,14 +7,14 @@
 [global]
 # List of file patterns to ignore when discovering Markdown files.
 # Example: ["*LICENSE*", "*/.github/*"]  
-exclude = []
+exclude=[]
 # Set proxy for all HTTP(s) requests.
 # Will set both HTTP_PROXY and HTTPS_PROXY environment variables
-proxy = ""
+proxy=""
 # Exclude traffic destined to certain hosts from using the proxy
 # Will set NO_PROXY environment variable
 # Example: "localhost"
-no_proxy = ""
+no_proxy=""
 
 ##############################  Style  ##############################
 # Configure Markdown code style. Affects fmt and linter. When not
@@ -23,15 +23,15 @@ no_proxy = ""
 # Heading.
 # Possible values are: "atx", "setext" or "consistent"
 # Reference: https://www.markdownguide.org/basic-syntax/#headings
-headings = "consistent"
+headings="consistent"
 # Unordered list.
 # Possible values are: "asterisk", "plus", "dash" or "consistent"
 # Reference: https://www.markdownguide.org/basic-syntax/#lists-1
-unordered_lists = "consistent"
+unordered_lists="consistent"
 # Bold(string) emphasis.
 # Possible values are: "asterisk", "underscore" or "consistent"
 # Reference: https://www.markdownguide.org/basic-syntax/#bold
-bold = "consistent"
+bold="consistent"
 
 
 ############################  Formatter  ############################
@@ -39,11 +39,11 @@ bold = "consistent"
 # Enables check mode. When enabled then fmt will only print the diff
 # without applying it. Exit with status code "1" if any formatting
 # issues are found and "0" otherwise
-check = false
+check=false
 # When used with check then fmt will print the full diff instead of
 # a summary. Use it to see how your file is going to be formatted
 # before applying the changes
-show_diff = false
+show_diff=false
 
 
 ##########################  Link Checker  ###########################
@@ -52,15 +52,17 @@ show_diff = false
 # Can be used for both hyperlinks and file links
 # Example: ["**this-host-will-be-ignored**", "/**.rs"]
 ignore_wildcards=[]
-# Timeout in seconds for HTTP requests
+# Timeout in seconds for HTTP requests before giving up
 timeout=30
+# Maximum number of retries for HTTP requests before giving up
+max_retries=3
 
 
 #############################  Linter  ##############################
 [linter]
 # List of HTML elements to ignore when linting, e.g. "a", "img", etc.
 # Example: ["a", "img"]
-allowed_html_tags = []
+allowed_html_tags=[]
 
 
 #############################  Open AI  #############################

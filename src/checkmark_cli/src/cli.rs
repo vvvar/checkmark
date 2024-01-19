@@ -65,10 +65,12 @@ pub struct LinkcheckCommand {
     /// List of wildcard URI patterns to ignore(both files and web links)
     #[arg(long, short)]
     pub ignore_wildcards: Vec<String>,
-
     /// Request timeout in seconds
     #[arg(long)]
     pub timeout: Option<u8>,
+    /// How many times to retry a request before giving up
+    #[arg(long)]
+    pub max_retries: Option<u8>,
 }
 
 #[derive(Debug, clap::Parser)]

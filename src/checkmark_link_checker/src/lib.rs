@@ -29,6 +29,7 @@ pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
         .await
         .unwrap();
     let timeout = config.link_checker.timeout.unwrap_or(30) as u64;
+    let max_retries = config.link_checker.max_retries.unwrap_or(1) as u64;
     let requests = links.iter().map(|(uri, request)| {
         debug!("Checking {:#?}", &uri);
         let mut uri = uri.clone();
@@ -41,7 +42,7 @@ pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
         let request = request.clone();
         let client = ClientBuilder::builder()
             .timeout(Duration::from_secs(timeout))
-            .max_retries(1 as u64)
+            .max_retries(max_retries)
             .build()
             .client()
             .unwrap();
@@ -61,25 +62,31 @@ pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
                         debug!("{uri} respond with network error: {error}");
 
                         for offset in find_all_links_in_file(file, &uri) {
-                            file.issues.push(
-                                CheckIssueBuilder::default()
-                                    .set_category(IssueCategory::LinkChecking)
-                                    .set_severity(IssueSeverity::Warning)
-                                    .set_file_path(file.path.clone())
-                                    .set_row_num_start(1)
-                                    .set_row_num_end(file.content.lines().count())
-                                    .set_col_num_start(1)
-                                    .set_col_num_end(1)
-                                    .set_offset_start(offset.start)
-                                    .set_offset_end(offset.end)
-                                    .set_message(format!("{error}"))
-                                    .set_fixes(vec![
-                                        "Can you open this link in a browser? If no then perhaps its broken".to_string(),
-                                        "Is there internet connection?".to_string(),
-                                        "Are you using proxy? Consider setting HTTP_PROXY and/or HTTPS_PROXY env variables".to_string()
-                                    ])
-                                    .build()
-                            );
+                            let mut issue = CheckIssueBuilder::default()
+                                .set_category(IssueCategory::LinkChecking)
+                                .set_severity(IssueSeverity::Warning)
+                                .set_file_path(file.path.clone())
+                                .set_row_num_start(1)
+                                .set_row_num_end(file.content.lines().count())
+                                .set_col_num_start(1)
+                                .set_col_num_end(1)
+                                .set_offset_start(offset.start)
+                                .set_offset_end(offset.end)
+                                .set_message(format!("{error}"))
+                                .set_fixes(vec![
+                                    format!("Can you open this link in a browser? If no then perhaps its broken"),
+                                    format!("Is there internet connection?"),
+                                    format!("Are you using proxy? Consider setting HTTP_PROXY and/or HTTPS_PROXY env variables"),
+                                ]);
+                            if let Some(proxy) = &config.global.proxy {
+                                issue = issue.push_fix(&format!("It seems you are using proxy \"{proxy}\". Consider checking is it correct or does it work at all"));
+                            } else {
+                                issue = issue.push_fix(&format!("If your network requires proxy, consider setting it via HTTP_PROXY/HTTPS_PROXY env variables or configure proxy in config file"));
+                            }
+                            issue =
+                                issue.push_fix(&format!("Consider checking internet connection"));
+                            issue = issue.push_fix(&format!("Can you open this link in a browser? If no then perhaps its just broken"));
+                            file.issues.push(issue.build());
                         }
                     }
                     // Cannot read the body of the received response
@@ -276,16 +283,17 @@ pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
                         .set_message(format!("Request timeout for url {uri}"))
                         .set_fixes(vec![
                             format!("Consider increasing timeout in config file, currently its set to {timeout} seconds"),
-                            format!("Can you open this link in a browser? If no then perhaps its broken"),
-                            format!("Is there internet connection?")
+                            format!("Consider increasing maximum amount of retried in config file, currently its set to {max_retries} seconds"),
                         ]);
                     if let Some(proxy) = &config.global.proxy {
-                        issue = issue.push_fix(&format!(
-                            "It seems you are using proxy \"{proxy}\", is it configured correctly?"
-                        ));
+                        issue = issue.push_fix(&format!("It seems you are using proxy \"{proxy}\". Consider checking is it correct or does it work at all"));
                     } else {
-                        issue = issue.push_fix(&format!("Are you using proxy? Consider setting HTTP_PROXY and/or HTTPS_PROXY env variables or configure proxy in config file"));
+                        issue = issue.push_fix(&format!("If your network requires proxy, consider setting it via HTTP_PROXY/HTTPS_PROXY env variables or configure proxy in config file"));
                     }
+                    issue = issue.push_fix(&format!("Consider checking internet connection"));
+                    issue = issue.push_fix(&format!(
+                        "Can you open this link in a browser? If no then perhaps its just broken"
+                    ));
                     file.issues.push(issue.build());
                 }
             }
