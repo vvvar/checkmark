@@ -52,6 +52,8 @@ show_diff = false
 # Can be used for both hyperlinks and file links
 # Example: ["**this-host-will-be-ignored**", "/**.rs"]
 ignore_wildcards=[]
+# Timeout in seconds for HTTP requests
+timeout=30
 
 
 #############################  Linter  ##############################
