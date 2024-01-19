@@ -71,6 +71,9 @@ pub struct LinkcheckCommand {
     /// How many times to retry a request before giving up
     #[arg(long)]
     pub max_retries: Option<u8>,
+    /// List of accepted HTTP status codes for valid links.
+    #[arg(long)]
+    pub accept: Vec<u16>,
 }
 
 #[derive(Debug, clap::Parser)]

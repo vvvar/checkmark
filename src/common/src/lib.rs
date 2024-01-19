@@ -554,6 +554,9 @@ pub struct LinkCheckerConfig {
 
     #[serde(default)]
     pub max_retries: Option<u8>,
+
+    #[serde(default)]
+    pub accept: Vec<u16>,
 }
 
 #[derive(Debug, Default, serde::Deserialize)]

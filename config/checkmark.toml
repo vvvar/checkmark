@@ -7,20 +7,21 @@ exclude = [
 ]
 
 [style]
-headings = "consistent"
-unordered_lists = "consistent"
-bold = "consistent"
+headings="consistent"
+unordered_lists="consistent"
+bold="consistent"
 
 [fmt]
-check = false
-show_diff = false
+check=false
+show_diff=false
 
 [link_checker]
-ignore_wildcards = ["**gffffffffffoooooogel**", "/**.rs"]
-timeout = 30
+ignore_wildcards=["**gffffffffffoooooogel**", "/**.rs"]
+timeout=10
+max_retries=1
 
 [linter]
-allowed_html_tags = []
+allowed_html_tags =[]
 
 [review]                          
 no_suggestions=false

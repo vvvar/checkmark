@@ -5,6 +5,8 @@ use futures::future::join_all;
 use link_collector::*;
 use log::debug;
 use lychee_lib::{ClientBuilder, ErrorKind, Status};
+use reqwest::StatusCode;
+use std::collections::HashSet;
 use std::ops::Range;
 use std::path::Path;
 use std::time::Duration;
@@ -28,6 +30,12 @@ pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
     let links = collect_links(&file.path, &config.link_checker.ignore_wildcards)
         .await
         .unwrap();
+    let accepted_status_codes = config
+        .link_checker
+        .accept
+        .iter()
+        .map(|code| StatusCode::from_u16(*code).unwrap())
+        .collect::<Vec<StatusCode>>();
     let timeout = config.link_checker.timeout.unwrap_or(30) as u64;
     let max_retries = config.link_checker.max_retries.unwrap_or(1) as u64;
     let requests = links.iter().map(|(uri, request)| {
@@ -42,6 +50,9 @@ pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
         let request = request.clone();
         let client = ClientBuilder::builder()
             .timeout(Duration::from_secs(timeout))
+            .accepted(HashSet::from_iter(
+                accepted_status_codes.clone().into_iter(),
+            ))
             .max_retries(max_retries)
             .build()
             .client()

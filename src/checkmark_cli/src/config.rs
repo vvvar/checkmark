@@ -74,6 +74,9 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
             if let Some(max_retries) = links.max_retries {
                 config.link_checker.max_retries = Some(max_retries);
             }
+            if !links.accept.is_empty() {
+                config.link_checker.accept = links.accept.clone();
+            }
         }
         crate::cli::Subcommands::Lint(lint) => {
             if !lint.allowed_html_tags.is_empty() {
