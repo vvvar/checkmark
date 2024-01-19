@@ -557,6 +557,9 @@ pub struct LinkCheckerConfig {
 
     #[serde(default)]
     pub accept: Vec<u16>,
+
+    #[serde(default)]
+    pub github_token: Option<String>,
 }
 
 #[derive(Debug, Default, serde::Deserialize)]

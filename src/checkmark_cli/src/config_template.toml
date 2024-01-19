@@ -59,6 +59,9 @@ accept=[200, 301, 302, 307, 308]
 timeout=10
 # Maximum number of retries for HTTP requests before giving up
 max_retries=2
+# Optional GitHub token used for GitHub links.
+# This allows much more request before getting rate-limited
+# github_token=""
 
 
 #############################  Linter  ##############################

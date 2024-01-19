@@ -48,12 +48,17 @@ pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
             uri = _uri.to_string();
         };
         let request = request.clone();
+        let github_token = match &config.link_checker.github_token {
+            Some(token) => Some(secrecy::SecretString::from(token.clone())),
+            None => None,
+        };
         let client = ClientBuilder::builder()
             .timeout(Duration::from_secs(timeout))
             .accepted(HashSet::from_iter(
                 accepted_status_codes.clone().into_iter(),
             ))
             .max_retries(max_retries)
+            .github_token(github_token)
             .build()
             .client()
             .unwrap();
