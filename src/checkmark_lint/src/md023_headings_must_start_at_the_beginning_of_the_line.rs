@@ -15,9 +15,8 @@ fn violation_builder() -> ViolationBuilder {
 /// Check is heading matches on these patters:
 /// "    # Heading" or ">   # Heading"
 fn heading_is_indented(h: &Heading, source: &str) -> bool {
-    let offset_start = h.position.as_ref().unwrap().start.offset;
-    let offset_end = h.position.as_ref().unwrap().end.offset;
-    let heading = source.get(offset_start..offset_end).unwrap_or("");
+    let line = h.position.as_ref().unwrap().start.line;
+    let heading = source.lines().nth(line - 1).unwrap_or("");
     // Pattern #1: String starts with one or more whitespace followed by one or more hash characters
     // Pattern #2: String starts with block quote followed by one space followed by one or more another whitespace
     //             and followed by one or more hash characters

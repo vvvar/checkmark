@@ -14,6 +14,7 @@ mod md020_no_space_inside_hashes_on_closed_atx_heading;
 mod md021_multiple_spaces_inside_hashes_on_closed_atx_heading;
 mod md022_headings_should_be_surrounded_by_blank_lines;
 mod md023_headings_must_start_at_the_beginning_of_the_line;
+mod md024_multiple_headings_with_the_same_content;
 mod md028_blank_line_inside_block_quote;
 mod md033_inline_html;
 mod md046_code_block_style;
@@ -37,6 +38,7 @@ use md020_no_space_inside_hashes_on_closed_atx_heading::*;
 use md021_multiple_spaces_inside_hashes_on_closed_atx_heading::*;
 use md022_headings_should_be_surrounded_by_blank_lines::*;
 use md023_headings_must_start_at_the_beginning_of_the_line::*;
+use md024_multiple_headings_with_the_same_content::*;
 use md028_blank_line_inside_block_quote::*;
 use md033_inline_html::*;
 use md046_code_block_style::*;
@@ -77,6 +79,7 @@ pub fn lint(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
         md021_multiple_spaces_inside_hashes_on_closed_atx_heading(&file),
         md022_headings_should_be_surrounded_by_blank_lines(&file),
         md023_headings_must_start_at_the_beginning_of_the_line(&file),
+        md024_multiple_headings_with_the_same_content(&file),
         md028_blank_line_inside_block_quote(&file),
         md033_inline_html(&file, &config.linter.allowed_html_tags),
         md046_code_block_style(&file, &CodeBlockStyle::Consistent),

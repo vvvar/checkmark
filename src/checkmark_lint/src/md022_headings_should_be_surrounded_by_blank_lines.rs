@@ -9,6 +9,37 @@ fn violation_builder() -> ViolationBuilder {
         .is_fmt_fixable(true)
 }
 
+fn surrounded_by_blank_lines(line: &usize, h: &Heading, source: &str) -> bool {
+    let h_line_end = h.position.as_ref().unwrap().end.line;
+    // nth == end line of header because nth is 0-indexed while lines are not
+    let text_after_heading = source.lines().nth(h_line_end).unwrap_or("");
+    // When it is a first heading in document.
+    if line.eq(&0) {
+        // Only check if there is a blank line after
+        text_after_heading.is_empty()
+    } else {
+        // Otherwise, check both before and after
+        // nth == start line of header because nth is 0-indexed while lines are not
+        let h_line_start = h.position.as_ref().unwrap().start.line;
+        let text_before_heading = source.lines().nth(h_line_start - 2).unwrap_or("");
+        text_before_heading.is_empty() && text_after_heading.is_empty()
+    }
+}
+
+fn to_violation(i: usize, h: &Heading) -> Violation {
+    let mut violation = violation_builder().position(&h.position);
+    if i.eq(&0) {
+        violation = violation
+            .message("Heading is not followed by blank line")
+            .push_fix("Add a blank line after the the header");
+    } else {
+        violation = violation
+            .message("Heading is not surrounded by blank lines")
+            .push_fix("Add a blank line before and after the header");
+    }
+    violation.build()
+}
+
 pub fn md022_headings_should_be_surrounded_by_blank_lines(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD022] File: {:#?}", &file.path);
 
@@ -26,39 +57,8 @@ pub fn md022_headings_should_be_surrounded_by_blank_lines(file: &MarkDownFile) -
     headings
         .iter()
         .enumerate()
-        .filter(|(i, h)| {
-            let offset_start = h.position.as_ref().unwrap().start.offset;
-            let offset_end = h.position.as_ref().unwrap().end.offset;
-            let text_after_heading = file.content.get(offset_end..offset_end + 2).unwrap_or("");
-            // When it is a first heading in document.
-            if i.eq(&0) {
-                // Only check if there is a blank line after
-                !text_after_heading.eq("\n\n")
-            } else {
-                // Otherwise, check both before and after
-                let text_before_heading = if offset_start >= 1 {
-                    file.content
-                        .get(offset_start - 2..offset_start)
-                        .unwrap_or("")
-                } else {
-                    file.content.get(offset_start..offset_start).unwrap_or("")
-                };
-                !text_before_heading.eq("\n\n") || !text_after_heading.eq("\n\n")
-            }
-        })
-        .map(|(i, h)| {
-            let mut violation = violation_builder().position(&h.position);
-            if i.eq(&0) {
-                violation = violation
-                    .message("Heading is not followed by blank line")
-                    .push_fix("Add a blank line after the the header");
-            } else {
-                violation = violation
-                    .message("Heading is not surrounded by blank lines")
-                    .push_fix("Add a blank line before and after the header");
-            }
-            violation.build()
-        })
+        .filter(|(i, h)| !surrounded_by_blank_lines(i, h, &file.content))
+        .map(|(i, h)| to_violation(i, h))
         .collect::<Vec<Violation>>()
 }
 
@@ -78,8 +78,9 @@ mod tests {
 
     #[test]
     fn md022() {
-        let headings_in_order =
-            markdown_file("# Heading 1\nSome text\n\nSome more text\n\n## Heading 2");
+        let headings_in_order = markdown_file(
+            "# Heading 1\nSome text\n\nSome more text\n\n  ## Heading 2\n\nSome text\n## Heading 3",
+        );
         assert_eq!(
             vec![
                 violation_builder()
@@ -88,7 +89,7 @@ mod tests {
                     .build(),
                 violation_builder()
                     .message("Heading is not surrounded by blank lines")
-                    .position(&Some(Position::new(6, 1, 39, 6, 13, 51)))
+                    .position(&Some(Position::new(9, 1, 65, 9, 13, 77)))
                     .build(),
             ],
             md022_headings_should_be_surrounded_by_blank_lines(&headings_in_order)
@@ -96,10 +97,7 @@ mod tests {
 
         let headings_not_in_order = markdown_file("## H2\n\n# H1\n");
         assert_eq!(
-            vec![violation_builder()
-                .message("Heading is not surrounded by blank lines")
-                .position(&Some(Position::new(3, 1, 7, 3, 5, 11)))
-                .build(),],
+            Vec::<Violation>::new(),
             md022_headings_should_be_surrounded_by_blank_lines(&headings_not_in_order)
         );
     }
