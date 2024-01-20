@@ -14,16 +14,17 @@ fn violation_builder() -> ViolationBuilder {
 // Returns true if the line ends
 // with atx heading without one
 // space before hash symbol
-// Example: "## this_will_return_true##"
+// Example: "## Heading##"
 fn ends_with_atx_heading_without_space(text: &str) -> bool {
     // Pattern: start of the line followed by one or more hash
     //          characters followed by on or more of any characters
     //          that ens with non-whitespace character followed by
     //          one or more hash characters
-    Regex::new(r"^#+.+\S#+").unwrap().is_match(text)
+    Regex::new(r"^#+.+\S#.").unwrap().is_match(text)
 }
 
 fn to_issue(line_number: usize, line: &str, file: &str) -> Violation {
+    // +/- 1 whitespace
     let offset_start =
         find_offset_by_line_number(file, line_number) + line.rfind(' ').unwrap_or(0) + 1;
     let offset_end = find_offset_by_line_number(file, line_number + 1) - 1;
