@@ -78,7 +78,7 @@ pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
                         debug!("{uri} respond with network error: {error}");
 
                         for offset in find_all_links_in_file(file, &uri) {
-                            let mut issue = CheckIssueBuilder::default()
+                            let issue = CheckIssueBuilder::default()
                                 .set_category(IssueCategory::LinkChecking)
                                 .set_severity(IssueSeverity::Warning)
                                 .set_file_path(file.path.clone())
@@ -91,17 +91,9 @@ pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
                                 .set_message(format!("{error}"))
                                 .set_fixes(vec![
                                     format!("Can you open this link in a browser? If no then perhaps its broken"),
-                                    format!("Is there internet connection?"),
-                                    format!("Are you using proxy? Consider setting HTTP_PROXY and/or HTTPS_PROXY env variables"),
+                                    format!("If your network requires proxy, consider setting it via HTTP_PROXY/HTTPS_PROXY env variables"),
+                                    format!("Consider checking your internet connection"),
                                 ]);
-                            if let Some(proxy) = &config.global.proxy {
-                                issue = issue.push_fix(&format!("It seems you are using proxy \"{proxy}\". Consider checking is it correct or does it work at all"));
-                            } else {
-                                issue = issue.push_fix(&format!("If your network requires proxy, consider setting it via HTTP_PROXY/HTTPS_PROXY env variables or configure proxy in config file"));
-                            }
-                            issue =
-                                issue.push_fix(&format!("Consider checking internet connection"));
-                            issue = issue.push_fix(&format!("Can you open this link in a browser? If no then perhaps its just broken"));
                             file.issues.push(issue.build());
                         }
                     }
@@ -286,7 +278,7 @@ pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
                 debug!("{uri} request timeout");
 
                 for offset in find_all_links_in_file(file, &uri) {
-                    let mut issue = CheckIssueBuilder::default()
+                    let issue = CheckIssueBuilder::default()
                         .set_category(IssueCategory::LinkChecking)
                         .set_severity(IssueSeverity::Warning)
                         .set_file_path(file.path.clone())
@@ -300,16 +292,9 @@ pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
                         .set_fixes(vec![
                             format!("Consider increasing timeout in config file, currently its set to {timeout} seconds"),
                             format!("Consider increasing maximum amount of retried in config file, currently its set to {max_retries} seconds"),
+                            format!("If your network requires proxy, consider setting it via HTTP_PROXY/HTTPS_PROXY env variables or configure proxy in config file"),
+                            format!("Consider checking your internet connection"),
                         ]);
-                    if let Some(proxy) = &config.global.proxy {
-                        issue = issue.push_fix(&format!("It seems you are using proxy \"{proxy}\". Consider checking is it correct or does it work at all"));
-                    } else {
-                        issue = issue.push_fix(&format!("If your network requires proxy, consider setting it via HTTP_PROXY/HTTPS_PROXY env variables or configure proxy in config file"));
-                    }
-                    issue = issue.push_fix(&format!("Consider checking internet connection"));
-                    issue = issue.push_fix(&format!(
-                        "Can you open this link in a browser? If no then perhaps its just broken"
-                    ));
                     file.issues.push(issue.build());
                 }
             }

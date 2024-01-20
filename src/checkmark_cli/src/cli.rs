@@ -145,12 +145,6 @@ pub struct Cli {
     /// Sets the configuration file path. Overrides default files if set
     #[arg(global = true, long, short, action, required = false, value_name = "FILE_PATH", value_hint=clap::ValueHint::FilePath)]
     pub config: Option<String>,
-    /// Set HTTP(s) proxy to use for all requests
-    #[arg(global = true, long, required = false)]
-    pub proxy: Option<String>,
-    /// Exclude traffic destined to certain hosts from using the proxy
-    #[arg(global = true, long, required = false)]
-    pub no_proxy: Option<String>,
     /// CI Mode: Turns off interactive prompts and outputs report in a format suitable for CI/CD pipelines
     #[arg(global = true, long, required = false, action)]
     pub ci: bool,

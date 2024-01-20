@@ -469,12 +469,6 @@ pub struct GlobalConfig {
 
     #[serde(default)]
     pub exclude_license: bool,
-
-    #[serde(default)]
-    pub proxy: Option<String>,
-
-    #[serde(default)]
-    pub no_proxy: Option<String>,
 }
 
 #[derive(Debug, Default, serde::Deserialize)]

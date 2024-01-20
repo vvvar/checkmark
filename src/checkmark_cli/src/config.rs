@@ -114,12 +114,6 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
     if !cli.exclude.is_empty() {
         config.global.exclude = cli.exclude.clone();
     }
-    if let Some(proxy) = &cli.proxy {
-        config.global.proxy = Some(proxy.clone());
-    }
-    if let Some(no_proxy) = &cli.no_proxy {
-        config.global.proxy = Some(no_proxy.clone());
-    }
     if let Some(style_headings) = &cli.style_headings {
         if style_headings.eq("consistent") {
             config.style.headings = common::HeadingStyle::Consistent;
