@@ -4,10 +4,6 @@ Checkmark is a CLI tool designed to streamline your Markdown workflow. It provid
 
 ## Features
 
-#  Heading 1  #
-
-##  Heading 2  ##
-
 Checkmark offers a range of commands to help maintain high-quality Markdown documentation:
 
 - **fmt**: Auto-formats all Markdown files in the project, fixing common formatting issues such as trailing whitespace and inconsistent line endings.
