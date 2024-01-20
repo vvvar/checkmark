@@ -2,6 +2,8 @@
 
 Checkmark is a CLI tool designed to streamline your Markdown workflow. It provides a suite of features including auto-formatting, linting, AI-assisted document review, link checking, spell checking, and AI-assisted document composition.
 
+![main](./assets/fmt.svg)
+
 ## Features
 
 Checkmark offers a range of commands to help maintain high-quality Markdown documentation:
@@ -68,7 +70,7 @@ checkmark links --help
 export OPEN_AI_API_KEY=<YOUR_API_KEY>
 ```
 
-or by creating a `.env` file with it(see [this](https://github.com/motdotla/dotenv) if you're not familiar). See [here](https://help.openai.com/en/articles/4936850-where-do-i-find-my-api-key) how to find an API key.
+or by creating a `.env` file with it(see [this](https://github.com/motdotla/dotenv) if you're not familiar). See [here](https://openai.com/blog/openai-api) how to find an API key.
 
 They, you can recursively review all your Markdown documents with:
 
