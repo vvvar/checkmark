@@ -40,7 +40,7 @@ pub fn md024_multiple_headings_with_the_same_content(file: &MarkDownFile) -> Vec
             headings.push(h);
         }
     });
-    log::debug!("[MD023] Headings: {:#?}", &headings);
+    log::debug!("[MD024] Headings: {:#?}", &headings);
 
     headings
         .iter()
