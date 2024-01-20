@@ -65,7 +65,7 @@ mod tests {
 
         assert_eq!(
             vec![violation_builder()
-                .position(&Some(markdown::unist::Position::new(0, 1, 12, 0, 1, 15)))
+                .position(&Some(markdown::unist::Position::new(0, 1, 14, 0, 1, 17)))
                 .build(),],
             md021_multiple_spaces_inside_hashes_on_closed_atx_heading(&file)
         );

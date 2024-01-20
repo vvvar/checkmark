@@ -1,6 +1,7 @@
 use crate::violation::{Violation, ViolationBuilder};
 use common::{for_each, parse, MarkDownFile};
 use markdown::mdast::{Heading, Node};
+use regex::Regex;
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
@@ -43,8 +44,10 @@ pub fn md003_heading_style(file: &MarkDownFile, style: &HeadingStyle) -> Vec<Vio
     let get_heading_style = |h: &Heading, source: &str| -> HeadingStyle {
         let offset_start = h.position.as_ref().unwrap().start.offset;
         let offset_end = h.position.as_ref().unwrap().end.offset;
-        let text = source.get(offset_start..offset_end).unwrap_or("");
-        if text.starts_with("#") {
+        let heading = source.get(offset_start..offset_end).unwrap_or("");
+        // Pattern: starts with zero or more whitespace followed by one or more hash characters
+        // This shall capture ATX headings on root and nested level
+        if Regex::new(r"\s*#+").unwrap().is_match(heading) {
             HeadingStyle::Atx
         } else {
             HeadingStyle::SetExt
