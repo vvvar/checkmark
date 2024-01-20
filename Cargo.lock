@@ -714,6 +714,7 @@ dependencies = [
  "markdown",
  "once_cell",
  "pretty_assertions",
+ "rayon",
  "regex",
  "scraper",
  "serde-sarif",

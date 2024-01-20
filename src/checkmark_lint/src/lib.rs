@@ -41,6 +41,7 @@ use md028_blank_line_inside_block_quote::*;
 use md033_inline_html::*;
 use md046_code_block_style::*;
 use md051_link_fragments_should_be_valid::*;
+use rayon::prelude::*;
 
 /// Return formatted Markdown file
 pub fn lint(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
@@ -81,7 +82,7 @@ pub fn lint(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
         md046_code_block_style(&file, &CodeBlockStyle::Consistent),
         md051_link_fragments_should_be_valid(&file),
     ]
-    .into_iter()
+    .into_par_iter()
     .flatten()
     .map(|violation| {
         let mut issue = common::CheckIssueBuilder::default()
