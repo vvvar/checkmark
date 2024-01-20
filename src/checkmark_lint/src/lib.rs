@@ -8,6 +8,7 @@ mod md010_hard_tabs;
 mod md011_reversed_link_syntax;
 mod md012_multiple_blank_lines;
 mod md014_dollar_sign_before_command_without_output;
+mod md018_no_space_after_has_in_atx_heading;
 mod md022_headings_should_be_surrounded_by_blank_lines;
 mod md028_blank_line_inside_block_quote;
 mod md033_inline_html;
@@ -26,6 +27,7 @@ use md010_hard_tabs::*;
 use md011_reversed_link_syntax::*;
 use md012_multiple_blank_lines::*;
 use md014_dollar_sign_before_command_without_output::*;
+use md018_no_space_after_has_in_atx_heading::*;
 use md022_headings_should_be_surrounded_by_blank_lines::*;
 use md028_blank_line_inside_block_quote::*;
 use md033_inline_html::*;
@@ -60,6 +62,7 @@ pub fn lint(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
         md011_reversed_link_syntax(&file),
         md012_multiple_blank_lines(&file),
         md014_dollar_sign_before_command_without_output(&file),
+        md018_no_space_after_has_in_atx_heading(&file),
         md022_headings_should_be_surrounded_by_blank_lines(&file),
         md028_blank_line_inside_block_quote(&file),
         md033_inline_html(&file, &config.linter.allowed_html_tags),
