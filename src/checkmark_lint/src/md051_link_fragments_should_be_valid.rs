@@ -52,6 +52,7 @@ fn heading_to_fragment(heading: &Heading) -> String {
             .to_lowercase()
             .replace(",", "")
             .replace(".", "")
+            .replace("+", "")
             .replace("&", "")
             .replace(" ", "-")
     );
@@ -171,5 +172,8 @@ mod tests {
             lint("[Link](#anywhere)\n\n<a id='anywhere'>Hello<\\a>"),
             vec![]
         );
+
+        // "+" symbol considered
+        assert_eq!(lint("# C++ and C code\n\n[Code](#c-and-c-code)"), vec![]);
     }
 }
