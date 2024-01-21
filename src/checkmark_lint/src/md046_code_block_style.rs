@@ -26,6 +26,21 @@ impl CodeBlockStyle {
     }
 }
 
+// Return true when code block is fenced and indented at the same time. Example:
+//
+// # Document
+//
+//   ```sh
+//   echo Hello
+//   ```
+//
+fn code_block_is_fenced_and_indented(c: &Code, source: &str) -> bool {
+    let offset_start = c.position.as_ref().unwrap().start.offset;
+    let offset_end = c.position.as_ref().unwrap().end.offset;
+    let text = source.get(offset_start..offset_end).unwrap_or("");
+    !text.starts_with("```") && text.contains("```")
+}
+
 pub fn md046_code_block_style(file: &MarkDownFile, style: &CodeBlockStyle) -> Vec<Violation> {
     log::debug!("[MD046] File: {:#?}, style: {:#?}", &file.path, &style);
 
@@ -71,12 +86,42 @@ pub fn md046_code_block_style(file: &MarkDownFile, style: &CodeBlockStyle) -> Ve
     code_blocks
         .iter()
         .filter(|c| get_code_block_style(&c, &file.content).ne(&preferred_style))
-        .map(|c| violation_builder()
-            .message(&format!("Wrong code block style. Expected {}, got {}", preferred_style.as_str(), get_code_block_style(&c, &file.content).as_str()))
-            .push_fix(&format!("Use {} code block style", preferred_style.as_str()))
-            .push_fix("See code block reference: https://www.markdownguide.org/extended-syntax/#fenced-code-blocks")
-            .position(&c.position)
-            .build())
+        .map(|c| {
+            let expected_style = preferred_style.clone();
+            let actual_style = get_code_block_style(&c, &file.content);
+            let mut violation = violation_builder()
+                .message(&format!("Wrong code block style. Expected {}, got {}", &expected_style.as_str(), &actual_style.as_str()));
+            if style.eq(&CodeBlockStyle::Consistent) {
+                // Give a hint that the first code block is the one that is used to determine the style
+                violation = violation
+                    .push_fix(&format!("Code block style is configured to be consistent across the document. First code block has a {} style, but this one is {}", &expected_style.as_str(), &actual_style.as_str()));
+            } else {
+                violation = violation
+                    .push_fix(&format!("Code block style is configured to be {}, but this one is {}", &expected_style.as_str(), &actual_style.as_str()));
+            }
+            if expected_style.eq(&CodeBlockStyle::Fenced) && code_block_is_fenced_and_indented(&c, &file.content) {
+                // When code blocks are expected to be fenced it is ok to have
+                // a fenced block that with indentation. Most likely, the intent
+                // of the user was to have a fenced code block inside a list item.
+                // Thus give him a hint how to do it properly
+                violation = violation.push_fix(&format!("It seems that you are indenting a fenced code block. If your intent is to have a fenced code block within the list item, then please make sure that the code block is aligned with a list item.
+For example:
+
+- List item
+
+   ```sh
+   echo Hello
+   ```
+
+Otherwise, remove the indentation from the code block."));
+            } else {
+                violation = violation.push_fix(&format!("Consider changing it to the {} code block style", &expected_style.as_str()));
+            }
+            violation = violation
+                    .push_fix("See code block reference: https://www.markdownguide.org/extended-syntax/#fenced-code-blocks")
+                    .position(&c.position);
+            violation.build()
+        })
         .collect::<Vec<Violation>>()
 }
 
