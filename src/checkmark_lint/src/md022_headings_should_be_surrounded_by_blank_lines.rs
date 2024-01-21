@@ -35,7 +35,7 @@ fn to_violation(i: usize, h: &Heading) -> Violation {
     } else {
         violation = violation
             .message("Heading is not surrounded by blank lines")
-            .push_fix("Add a blank line before and after the header");
+            .push_fix("Ensure there is a blank line before and after the header");
     }
     violation.build()
 }
