@@ -26,7 +26,7 @@ pub fn md005_consistent_list_items_indentation(file: &MarkDownFile) -> Vec<Viola
         let num_line = li.position.as_ref().unwrap().start.line;
         if let Some(line) = source.lines().nth(num_line - 1) {
             for char in line.chars() {
-                if char.eq(&' ') {
+                if char.eq(&' ') || char.eq(&'\t') {
                     padding += 1;
                 } else {
                     break;
@@ -62,16 +62,33 @@ pub fn md005_consistent_list_items_indentation(file: &MarkDownFile) -> Vec<Viola
     let get_miss_aligned_items = |l: &List| -> Vec<ListItem> {
         let expected_alignment = &first_list_item_alignment(&l, &file.content);
         let mut miss_indented_items: Vec<ListItem> = vec![];
-        let max_num_item = get_max_num_item(&l);
         let mut num_item: usize = l.start.unwrap_or(1) as usize;
         for child in &l.children {
             if let Node::ListItem(li) = child {
                 let actual_alignment = get_list_item_alignment(&li, &file.content);
                 if l.ordered && first_list_item_alignment(&l, &file.content) > 0 {
-                    let digits_in_max_item = max_num_item.checked_ilog10().unwrap_or(0) as usize;
-                    let digits_in_current_item = num_item.checked_ilog10().unwrap_or(0) as usize;
-                    let num_item_alignment = digits_in_max_item - digits_in_current_item;
-                    if actual_alignment.ne(&num_item_alignment) {
+                    // When list is ordered and first item is indented then we assume that
+                    // there could be two possible cases:
+                    // 1. All items are indented the same, normal case
+                    // 2. All items are indented with respect to the max element, e.g.:
+                    //      1. One
+                    //      2. Two
+                    //    ...
+                    //    100. Hundred
+                    // So, get max number in this list, calculate how many digits it has,
+                    // subs from current digit and get possible additional alignment
+                    let max_num_item = get_max_num_item(&l);
+                    let digits_in_max_item =
+                        max_num_item.checked_ilog10().unwrap_or(0) as usize + 1;
+                    let digits_in_current_item =
+                        num_item.checked_ilog10().unwrap_or(0) as usize + 1;
+                    let additional_num_item_alignment = digits_in_max_item - digits_in_current_item;
+                    let expected_num_item_alignment =
+                        expected_alignment + additional_num_item_alignment;
+                    // If none of two cases satisfied then it is miss-aligned
+                    if actual_alignment.ne(&expected_num_item_alignment)
+                        && actual_alignment.ne(&additional_num_item_alignment)
+                    {
                         miss_indented_items.push(li.clone());
                     }
                 } else {
@@ -154,6 +171,13 @@ mod tests {
  9. Item
 10. Item
 11. Item
+
+## Normal aligned numbered list
+
+1. Item
+   1. Item
+   2. Item
+
 "
             .to_string(),
             issues: vec![],
