@@ -21,8 +21,8 @@ pub fn md010_hard_tabs(file: &MarkDownFile) -> Vec<Violation> {
             violation_builder()
                 .position(&Some(markdown::unist::Position::new(
                     i,
-                    line.len() - 1,
-                    common::find_offset_by_line_number(&file.content, i) + line.len() - 1,
+                    1,
+                    common::find_offset_by_line_number(&file.content, i),
                     i,
                     line.len(),
                     common::find_offset_by_line_number(&file.content, i) + line.len(),
@@ -51,13 +51,13 @@ mod tests {
         assert_eq!(
             vec![
                 violation_builder()
-                    .position(&Some(markdown::unist::Position::new(0, 4, 4, 0, 5, 5)))
+                    .position(&Some(markdown::unist::Position::new(0, 1, 0, 0, 5, 5)))
                     .build(),
                 violation_builder()
-                    .position(&Some(markdown::unist::Position::new(1, 3, 9, 1, 4, 10)))
+                    .position(&Some(markdown::unist::Position::new(1, 1, 6, 1, 4, 10)))
                     .build(),
                 violation_builder()
-                    .position(&Some(markdown::unist::Position::new(2, 5, 16, 2, 6, 17)))
+                    .position(&Some(markdown::unist::Position::new(2, 1, 11, 2, 6, 17)))
                     .build()
             ],
             md010_hard_tabs(&file)
