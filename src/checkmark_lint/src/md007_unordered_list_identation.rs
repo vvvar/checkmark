@@ -19,7 +19,7 @@ fn calculate_ident(line: &str) -> usize {
 
     let mut ident: usize = 0;
     for char in line_without_prefix.chars() {
-        if char.eq(&' ') {
+        if char.eq(&' ') || char.eq(&'\t') {
             ident += 1;
         } else {
             break;
@@ -202,6 +202,12 @@ mod tests {
 1. One
 2. Two
   - Two-One
+
+## Unordered list with hard-tabs(correct indentation)
+
+1. One
+2. Two
+	 - Two-One
 
 "
             .to_string(),
