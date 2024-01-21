@@ -17,6 +17,7 @@ mod md023_headings_must_start_at_the_beginning_of_the_line;
 mod md024_multiple_headings_with_the_same_content;
 mod md025_multiple_top_level_headings;
 mod md026_trailing_punctuation_in_heading;
+mod md027_multiple_spaces_after_block_quote_symbol;
 mod md028_blank_line_inside_block_quote;
 mod md033_inline_html;
 mod md046_code_block_style;
@@ -43,6 +44,7 @@ use md023_headings_must_start_at_the_beginning_of_the_line::*;
 use md024_multiple_headings_with_the_same_content::*;
 use md025_multiple_top_level_headings::*;
 use md026_trailing_punctuation_in_heading::*;
+use md027_multiple_spaces_after_block_quote_symbol::*;
 use md028_blank_line_inside_block_quote::*;
 use md033_inline_html::*;
 use md046_code_block_style::*;
@@ -86,6 +88,7 @@ pub fn lint(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
         md024_multiple_headings_with_the_same_content(&file),
         md025_multiple_top_level_headings(&file),
         md026_trailing_punctuation_in_heading(&file),
+        md027_multiple_spaces_after_block_quote_symbol(&file),
         md028_blank_line_inside_block_quote(&file),
         md033_inline_html(&file, &config.linter.allowed_html_tags),
         md046_code_block_style(&file, &CodeBlockStyle::Consistent),
