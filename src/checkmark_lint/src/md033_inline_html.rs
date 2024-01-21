@@ -56,9 +56,9 @@ pub fn md033_inline_html(file: &MarkDownFile, allowed_tags: &Vec<String>) -> Vec
         .map(|node| {
             violation_builder()
                 .position(&node.position)
-                .push_fix("Replace inline HTML with Markdown")
-                .push_fix("Remove inline HTML")
-                .push_fix("Or suppress it by adding name of the element to the list of allowed tags. Use \"allowed_html_tags\" option from the \"[lint]\" section in the config file or \"allowed_html_tags\" argument from the CLI")
+                .push_fix("If your intention was show this HTML tag as a text, consider escaping it with \"\\\". For example: \"\\<br\\>\"")
+                .push_fix("If it's not the case, consider using Markdown instead of HTML")
+                .push_fix("If this HTML tag is needed, then consider adding a name of this element to the list of allowed tags. Use \"allowed_html_tags\" option from the \"[lint]\" section in the config file")
                 .build()
         })
         .collect();
