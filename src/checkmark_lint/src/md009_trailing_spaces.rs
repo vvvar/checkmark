@@ -17,13 +17,13 @@ pub fn md009_trailing_spaces(file: &MarkDownFile) -> Vec<Violation> {
         .lines()
         .enumerate()
         .filter(|(_, line)| {
+            if line.contains("```") {
+                is_code_block = !is_code_block;
+            }
             if is_code_block {
                 false
-            } else if line.starts_with("```") {
-                is_code_block = !is_code_block;
-                false
             } else {
-                line.ends_with(" ")
+                line.ends_with(' ')
             }
         })
         .map(|(i, line)| {
@@ -31,8 +31,8 @@ pub fn md009_trailing_spaces(file: &MarkDownFile) -> Vec<Violation> {
             violation_builder()
                 .position(&Some(markdown::unist::Position::new(
                     i,
-                    line.len() - 1,
-                    common::find_offset_by_line_number(&file.content, i) + line.len() - 1,
+                    1,
+                    common::find_offset_by_line_number(&file.content, i),
                     i,
                     line.len(),
                     common::find_offset_by_line_number(&file.content, i) + line.len(),
@@ -56,8 +56,16 @@ mod tests {
 ## H2 
 
 ```text
-This is a code block    
+This is a fenced code block    
 ```
+
+## Trailing space after code block 
+
+    ```text
+    This is an indented code block    
+    ```
+
+## Trailing space after indented block 
 "
             .to_string(),
             issues: vec![],
@@ -66,10 +74,18 @@ This is a code block
         assert_eq!(
             vec![
                 violation_builder()
-                    .position(&Some(markdown::unist::Position::new(1, 2, 7, 1, 3, 8)))
+                    .position(&Some(markdown::unist::Position::new(1, 1, 5, 1, 3, 8)))
                     .build(),
                 violation_builder()
-                    .position(&Some(markdown::unist::Position::new(2, 5, 14, 2, 6, 15)))
+                    .position(&Some(markdown::unist::Position::new(2, 1, 9, 2, 6, 15)))
+                    .build(),
+                violation_builder()
+                    .position(&Some(markdown::unist::Position::new(8, 1, 62, 8, 35, 97)))
+                    .build(),
+                violation_builder()
+                    .position(&Some(markdown::unist::Position::new(
+                        14, 1, 159, 14, 39, 198
+                    )))
                     .build(),
             ],
             md009_trailing_spaces(&file)
