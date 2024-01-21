@@ -90,19 +90,30 @@ pub fn md004_unordered_list_style(
         .iter()
         .filter(|li| get_list_item_style(&li, &file.content).ne(&preferred_style))
         .map(|li| {
-            violation_builder()
+            let mut violation = violation_builder()
                 .position(&li.position)
                 .message(&format!(
                     "Wrong unordered list item style. Expected {:#?}, got {:#?}",
                     &preferred_style.as_string(),
                     get_list_item_style(&li, &file.content).as_string()
-                ))
-                .push_fix(&format!(
-                    "Replace {:#?} with {:#?}",
+                ));
+            if style.eq(&UnorderedListStyle::Consistent) {
+                violation = violation.push_fix(&format!(
+                    "Unordered list item style is configured to be consistent across the document. First list item in document uses {:#?} symbol, but this one uses {:#?}. Consider replacing {:#?} with {:#?}",
+                    &preferred_style.as_string(),
+                    get_list_item_style(&li, &file.content).as_string(),
+                    get_list_item_style(&li, &file.content).as_string(),
+                    &preferred_style.as_string(),
+                ));
+            } else {
+                violation = violation.push_fix(&format!(
+                    "Unordered list item style is configured to use {:#?} symbol. Consider replacing {:#?} with {:#?}",
+                    &preferred_style.as_string(),
                     get_list_item_style(&li, &file.content).as_string(),
                     &preferred_style.as_string()
-                ))
-                .build()
+                ));
+            }
+            violation.build()
         })
         .collect::<Vec<Violation>>()
 }
