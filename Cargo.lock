@@ -466,6 +466,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "auth-git2"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "41e7771d4ab6635cbd685ce8db215b29c78a468098126de77c57f3b2e6eb3757"
+dependencies = [
+ "dirs",
+ "git2",
+ "terminal-prompt",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -724,6 +735,7 @@ dependencies = [
 name = "checkmark_ls"
 version = "0.0.1"
 dependencies = [
+ "auth-git2",
  "common",
  "dunce",
  "env_logger",
@@ -3880,6 +3892,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ff1bc3d3f05aff0403e8ac0d92ced918ec05b666a43f83297ccef5bea8a3d449"
 dependencies = [
  "winapi-util",
+]
+
+[[package]]
+name = "terminal-prompt"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "572818b3472910acbd5dff46a3413715c18e934b071ab2ba464a7b2c2af16376"
+dependencies = [
+ "libc",
+ "winapi",
 ]
 
 [[package]]

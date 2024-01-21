@@ -6,7 +6,7 @@ Checkmark is a CLI tool designed to streamline your Markdown workflow. It provid
 
 ## Features
 
-Checkmark offers a range of commands to help maintain high-quality Markdown documentation:
+Checkmark is a tool designed to help maintain high-quality Markdown documentation. It offers a range of commands to automate various tasks related to formatting, checking, and reviewing Markdown files:
 
 - **fmt**: Auto-formats all Markdown files in the project, fixing common formatting issues such as trailing whitespace and inconsistent line endings.
 - **links**: Check broken links in your documents, covering both web and local file links.
@@ -14,6 +14,7 @@ Checkmark offers a range of commands to help maintain high-quality Markdown docu
 - **review**: Uses OpenAI's API to review your documents, providing AI-assisted insights and suggestions. Requires OpenAI API key.
 - **compose**: Assists in composing new Markdown documents from a prompt in a context of an existing document. Powered by OpenAI. Requires OpenAI API key.
 - **spelling**: Check your documents for spelling errors.
+- **remote check**: Check documents from the remote Git repository.
 - **CI mode**: Turns off interactive prompts and outputs reports in a format suitable for CI/CD pipelines.
 
 ## Installation
@@ -59,7 +60,7 @@ checkmark fmt . --check --show-diff
 Run this command to see a full list of formatting options:
 
 ```sh
-checkmark links --help
+checkmark fmt --help
 ```
 
 ### `review`
@@ -81,7 +82,7 @@ checkmark review .
 This will:
 
 1. take all your Markdown files
-2. split them in chunks(by headings)
+2. split them in chunks (by headings)
 3. one by one send them to Open.AI for review with the following prompt:
    > Review this project documentation for grammar, readability and clarity of the content.
    > Provide a summary and improvement suggestions.
@@ -109,7 +110,7 @@ This will:
         - **CI mode**: Turns off interactive prompts and outputs reports in a format suitable for CI/CD pipelines. This mode is designed to facilitate integration with CI/CD processes.
     ```
 
-You can control the level of creativity of an AI with(values between 0 and 100 are accepted):
+You can control the level of creativity of the AI with (values between 0 and 100 are accepted):
 
 ```sh
 checkmark review . --creativity 80
@@ -135,7 +136,7 @@ checkmark review --help
 checkmark compose --prompt "Write me a dummy documentation" --output DOCUMENT.MD
 ```
 
-This will generate a file `DOCUMENT.MD` with content generated using your prompt.
+This will generate a file `DOCUMENT.MD` with content generated, using your prompt.
 
 You can control the level of creativity of an AI with(values between 0 and 100 are accepted):
 
@@ -226,7 +227,7 @@ checkmark spellcheck --help
 checkmark generate-config
 ```
 
-This will generate a file called `checkmark.toml` in the same folder you're in. Every line in it is documented. Adjust it to your needs. You can store this file in the following folders(lookup will be done exactly in this order, the first match is picked up):
+Executing this command will generate a file named `checkmark.toml` in the current directory. The generated `checkmark.toml` file contains a full list of options with their default values. Each configuration option has documentation that describes how to use it. You can modify it to suit your requirements. You can store this file in the following folders(lookup will be done exactly in this order, the first match is picked up):
 
 1. project root
 2. `config`
@@ -239,6 +240,22 @@ In these folders, `checkmark` will look for either a file called `checkmark.toml
 ```sh
 checkmark <command> --config "/path/to/your/config.toml"
 ```
+
+### Remote check
+
+You can perform any check mentioned above on a remote Git repository. For that, provide link to the remote Git repo instead of a local file path like this:
+
+```sh
+checkmark fmt --check https://github.com/vvvar/checkmark.git
+```
+
+Or use SSH:
+
+```sh
+checkmark fmt --check git@github.com:vvvar/checkmark.git
+```
+
+> **NOTE**: checkmark will try to use your existing SSH keys in the default location (`~/.ssh`). If you're having problems ensure that you can do a normal clone using your local git client.
 
 ## Contributing
 

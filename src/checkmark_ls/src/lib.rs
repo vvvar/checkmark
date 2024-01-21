@@ -1,3 +1,4 @@
+use auth_git2::GitAuthenticator;
 use log::warn;
 
 /// Returns a path to a tmp dir based on input URI
@@ -23,75 +24,77 @@ pub async fn ls(path: &str, exclude: &Vec<String>) -> Vec<common::MarkDownFile> 
 
     let mut input_path = path.to_owned();
 
-    if is_url::is_url(&input_path) {
-        if input_path.ends_with(".git") {
-            log::debug!("Path is a git repo, cloning into tmp dir");
+    if input_path.ends_with(".git") {
+        log::debug!("Path is a git repo, cloning into tmp dir");
 
-            let mut cb = git2::RemoteCallbacks::new();
-            cb.transfer_progress(|stats| {
-                log::trace!(
-                    "transfer_progress callback, stats.indexed_deltas(): {}",
-                    &stats.indexed_deltas()
-                );
-                log::trace!(
-                    "transfer_progress callback, stats.indexed_objects(): {}",
-                    &stats.indexed_objects()
-                );
-                log::trace!(
-                    "transfer_progress callback, stats.received_bytes(): {}",
-                    &stats.received_bytes()
-                );
-                log::trace!(
-                    "transfer_progress callback, stats.received_objects(): {}",
-                    &stats.received_objects()
-                );
-                true
-            });
+        let auth = GitAuthenticator::default();
+        let git_config = git2::Config::open_default().unwrap();
 
-            let mut co = git2::build::CheckoutBuilder::new();
-            co.progress(|path, cur, total| {
-                if let Some(path) = path {
-                    log::trace!("progress callback, path: {}", &path.display());
-                }
-                log::trace!("progress callback, cur: {}", &cur);
-                log::trace!("progress callback, total: {}", &total);
-            });
+        let mut cb = git2::RemoteCallbacks::new();
+        cb.transfer_progress(|stats| {
+            log::trace!(
+                "transfer_progress callback, stats.indexed_deltas(): {}",
+                &stats.indexed_deltas()
+            );
+            log::trace!(
+                "transfer_progress callback, stats.indexed_objects(): {}",
+                &stats.indexed_objects()
+            );
+            log::trace!(
+                "transfer_progress callback, stats.received_bytes(): {}",
+                &stats.received_bytes()
+            );
+            log::trace!(
+                "transfer_progress callback, stats.received_objects(): {}",
+                &stats.received_objects()
+            );
+            true
+        });
+        cb.credentials(auth.credentials(&git_config));
 
-            let mut fo = git2::FetchOptions::new();
-            fo.remote_callbacks(cb);
+        let mut co = git2::build::CheckoutBuilder::new();
+        co.progress(|path, cur, total| {
+            if let Some(path) = path {
+                log::trace!("progress callback, path: {}", &path.display());
+            }
+            log::trace!("progress callback, cur: {}", &cur);
+            log::trace!("progress callback, total: {}", &total);
+        });
 
-            let tmp_dir = tmp_dir(&input_path);
+        let mut fo = git2::FetchOptions::new();
+        fo.remote_callbacks(cb);
 
-            log::debug!("Cloning into the {:#?}", &tmp_dir);
-            git2::build::RepoBuilder::new()
-                .fetch_options(fo)
-                .with_checkout(co)
-                .clone(&input_path, std::path::Path::new(&tmp_dir))
-                .unwrap();
+        let tmp_dir = tmp_dir(&input_path);
 
-            log::debug!("Cloned {:#?} into the {:#?}", &input_path, &tmp_dir);
-            input_path = tmp_dir.to_str().unwrap().to_owned();
-        } else {
-            log::debug!("Path is a plain URL, downloading as single file into tmp dir");
+        log::debug!("Cloning into the {:#?}", &tmp_dir);
+        git2::build::RepoBuilder::new()
+            .fetch_options(fo)
+            .with_checkout(co)
+            .clone(&input_path, std::path::Path::new(&tmp_dir))
+            .unwrap();
 
-            let response = reqwest::get(&input_path).await.unwrap();
+        log::debug!("Cloned {:#?} into the {:#?}", &input_path, &tmp_dir);
+        input_path = tmp_dir.to_str().unwrap().to_owned();
+    } else if is_url::is_url(&input_path) {
+        log::debug!("Path is a plain URL, downloading as single file into tmp dir");
 
-            let tmp_file_path = tmp_dir(&input_path).join(format!(
-                "{}.md",
-                std::path::Path::new(&input_path)
-                    .file_stem()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
-            ));
-            log::debug!("Will download into a file: {:#?}", &tmp_file_path);
+        let response = reqwest::get(&input_path).await.unwrap();
 
-            let mut file = std::fs::File::create(&tmp_file_path).unwrap();
-            let mut content = std::io::Cursor::new(response.bytes().await.unwrap());
-            std::io::copy(&mut content, &mut file).unwrap();
+        let tmp_file_path = tmp_dir(&input_path).join(format!(
+            "{}.md",
+            std::path::Path::new(&input_path)
+                .file_stem()
+                .unwrap()
+                .to_str()
+                .unwrap()
+        ));
+        log::debug!("Will download into a file: {:#?}", &tmp_file_path);
 
-            input_path = tmp_file_path.to_str().unwrap().to_owned();
-        }
+        let mut file = std::fs::File::create(&tmp_file_path).unwrap();
+        let mut content = std::io::Cursor::new(response.bytes().await.unwrap());
+        std::io::copy(&mut content, &mut file).unwrap();
+
+        input_path = tmp_file_path.to_str().unwrap().to_owned();
     }
 
     let mut files = Vec::<String>::new();
