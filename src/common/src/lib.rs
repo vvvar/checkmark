@@ -437,7 +437,7 @@ pub fn activate_debug_logging() {
 }
 
 /// TOML config for checkmark
-#[derive(Debug, Default, serde::Deserialize)]
+#[derive(Debug, Default, Clone, serde::Deserialize)]
 pub struct Config {
     #[serde(default)]
     pub compose: ComposeConfig,
@@ -493,7 +493,7 @@ impl Config {
     }
 }
 
-#[derive(Debug, Default, serde::Deserialize)]
+#[derive(Debug, Default, Clone, serde::Deserialize)]
 pub struct GlobalConfig {
     #[serde(default)]
     pub exclude: Vec<String>,
@@ -502,7 +502,7 @@ pub struct GlobalConfig {
     pub exclude_license: bool,
 }
 
-#[derive(Debug, Default, serde::Deserialize)]
+#[derive(Debug, Default, Clone, serde::Deserialize)]
 pub struct FmtConfig {
     #[serde(default)]
     pub check: bool,
@@ -511,7 +511,7 @@ pub struct FmtConfig {
     pub show_diff: bool,
 }
 
-#[derive(Debug, Default, serde::Deserialize)]
+#[derive(Debug, Default, Clone, serde::Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum HeadingStyle {
     #[default]
@@ -520,7 +520,7 @@ pub enum HeadingStyle {
     Setext,
 }
 
-#[derive(Debug, Default, serde::Deserialize)]
+#[derive(Debug, Default, Clone, serde::Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum UnorderedListStyle {
     #[default]
@@ -530,7 +530,7 @@ pub enum UnorderedListStyle {
     Plus,
 }
 
-#[derive(Debug, Default, serde::Deserialize)]
+#[derive(Debug, Default, Clone, serde::Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum BoldStyle {
     #[default]
@@ -539,7 +539,7 @@ pub enum BoldStyle {
     Underscore,
 }
 
-#[derive(Debug, Default, serde::Deserialize)]
+#[derive(Debug, Default, Clone, serde::Deserialize)]
 pub struct StyleConfig {
     #[serde(default)]
     pub headings: HeadingStyle,
@@ -551,7 +551,7 @@ pub struct StyleConfig {
     pub bold: BoldStyle,
 }
 
-#[derive(Debug, Default, serde::Deserialize)]
+#[derive(Debug, Default, Clone, serde::Deserialize)]
 pub struct ReviewConfig {
     #[serde(default)]
     pub no_suggestions: bool,
@@ -563,13 +563,13 @@ pub struct ReviewConfig {
     pub creativity: Option<u8>,
 }
 
-#[derive(Debug, Default, serde::Deserialize)]
+#[derive(Debug, Default, Clone, serde::Deserialize)]
 pub struct ComposeConfig {
     #[serde(default)]
     pub creativity: Option<u8>,
 }
 
-#[derive(Debug, Default, serde::Deserialize)]
+#[derive(Debug, Default, Clone, serde::Deserialize)]
 pub struct LinkCheckerConfig {
     #[serde(default)]
     pub ignore_wildcards: Vec<String>,
@@ -587,19 +587,19 @@ pub struct LinkCheckerConfig {
     pub github_token: Option<String>,
 }
 
-#[derive(Debug, Default, serde::Deserialize)]
+#[derive(Debug, Default, Clone, serde::Deserialize)]
 pub struct LinterConfig {
     #[serde(default)]
     pub allowed_html_tags: Vec<String>,
 }
 
-#[derive(Debug, Default, serde::Deserialize)]
+#[derive(Debug, Default, Clone, serde::Deserialize)]
 pub struct SpellingConfig {
     #[serde(default)]
     pub words_whitelist: Vec<String>,
 }
 
-#[derive(Debug, Default, serde::Deserialize)]
+#[derive(Debug, Default, Clone, serde::Deserialize)]
 pub struct OpenAiConfig {
     #[serde(default)]
     pub api_key: Option<String>,

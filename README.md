@@ -10,7 +10,7 @@ Checkmark is a tool designed to help maintain high-quality Markdown documentatio
 
 - **fmt**: Auto-formats all Markdown files in the project, fixing common formatting issues such as trailing whitespace and inconsistent line endings.
 - **links**: Check broken links in your documents, covering both web and local file links.
-- **lint**: Runs a linter (partial port of [markdownlint](https://github.com/DavidAnson/markdownlint)) to ensure your Markdown files adhere to best practices.
+- **lint**: Runs a linter (partial port of [markdownlint](https://githubbbb.com/DavidAnson/markdownlint)) to ensure your Markdown files adhere to best practices.
 - **review**: Uses OpenAI's API to review your documents, providing AI-assisted insights and suggestions. Requires OpenAI API key.
 - **compose**: Assists in composing new Markdown documents from a prompt in a context of an existing document. Powered by OpenAI. Requires OpenAI API key.
 - **spelling**: Check your documents for spelling errors.

@@ -12,26 +12,26 @@ pub async fn collect_links(
     ignored_uri_wildcards: &Vec<String>,
 ) -> Result<HashMap<String, Request>> {
     debug!(
-        "Collecting links in file: {:#?}, ignoring these links: {:#?}",
+        "Collect links in: {:#?}, ignore: {:#?}",
         &path, &ignored_uri_wildcards
     );
 
     let input = vec![Input {
         source: FsPath(PathBuf::from(path)),
-        file_type_hint: None,
+        file_type_hint: Some(lychee_lib::FileType::Markdown),
         excluded_paths: None,
     }];
-    debug!("Lychee inputs:\n{:#?}", &input);
+    debug!("Lychee inputs: {:#?}", &input);
 
     let links = Collector::new(None) // base
-        .skip_missing_inputs(false) // don't skip missing inputs? (default=false)
-        .use_html5ever(false) // use html5ever for parsing? (default=false)
-        .include_verbatim(true)
+        .skip_missing_inputs(true) // Valid pats are assumed
+        .use_html5ever(false) // use html5gum, author claims it to be faster
+        .include_verbatim(true) // verbatim is for ex. ```code``
         .collect_links(input)
         .await // base url or directory
         .collect::<Result<Vec<_>>>()
         .await?;
-    debug!("Found links:\n{:#?}", &links);
+    debug!("Found links: {:#?}", &links);
 
     // Dedup them
     let mut links_map: HashMap<String, Request> = HashMap::new();

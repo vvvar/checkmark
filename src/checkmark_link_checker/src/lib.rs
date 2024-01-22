@@ -1,7 +1,7 @@
 mod link_collector;
 
 use colored::Colorize;
-use common::{CheckIssueBuilder, Config, IssueCategory, IssueSeverity, MarkDownFile};
+use common::{CheckIssue, CheckIssueBuilder, Config, IssueCategory, IssueSeverity, MarkDownFile};
 use futures::future::join_all;
 use link_collector::*;
 use log::debug;
@@ -23,11 +23,9 @@ pub fn find_all_links_in_file(file: &MarkDownFile, uri: &str) -> Vec<Range<usize
         .collect()
 }
 
-pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
-    debug!(
-        "Checking links in file: {:#?}, config: {:#?}",
-        &file.path, &config
-    );
+pub async fn check_links(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
+    debug!("Checking: {:#?}, config: {:#?}", &file.path, &config);
+    let mut issues: Vec<CheckIssue> = vec![];
     let links = collect_links(&file.path, &config.link_checker.ignore_wildcards)
         .await
         .unwrap();
@@ -109,7 +107,7 @@ pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
                                 "Docs".cyan(),
                                 error.status().unwrap_or(StatusCode::INTERNAL_SERVER_ERROR).as_str()
                             ));
-                            file.issues.push(issue.build());
+                            issues.push(issue.build());
                         }
                     }
                     // Cannot read the body of the received response
@@ -209,7 +207,7 @@ pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
                                 issue =
                                     issue.push_fix(&format!("💡 {} {}", "Suggestion".cyan(), fix));
                             }
-                            file.issues.push(issue.build());
+                            issues.push(issue.build());
                         }
                     }
                     // The given path cannot be converted to a URI
@@ -319,7 +317,7 @@ pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
                             format!("If your network requires proxy, consider setting it via HTTP_PROXY/HTTPS_PROXY env variables or configure proxy in config file"),
                             format!("Consider checking your internet connection"),
                         ]);
-                    file.issues.push(issue.build());
+                    issues.push(issue.build());
                 }
             }
             // Got redirected to different resource
@@ -356,4 +354,6 @@ pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
             }
         };
     }
+
+    issues
 }

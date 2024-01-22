@@ -4,6 +4,7 @@ mod errors;
 mod tui;
 
 use colored::Colorize;
+use futures::future::join_all;
 use rayon::prelude::*;
 
 fn has_any_critical_issue(files: &Vec<common::MarkDownFile>) -> bool {
@@ -113,8 +114,19 @@ async fn main() -> Result<(), errors::AppError> {
         }
         cli::Subcommands::Linkcheck(_) => {
             tui.lock().unwrap().start_spinner("Checking links...");
-            for file in files.iter_mut() {
-                checkmark_link_checker::check_links(file, &config).await;
+            let checks = files.iter().map(|file| {
+                let file_path = file.path.clone();
+                let config_clone = config.clone();
+                async move {
+                    (
+                        file_path,
+                        checkmark_link_checker::check_links(&file, &config_clone).await,
+                    )
+                }
+            });
+            for (path, issues) in join_all(checks).await {
+                let file = files.iter_mut().find(|file| file.path.eq(&path)).unwrap();
+                file.issues.append(issues.clone().as_mut());
                 tui.lock().unwrap().print_file_check_status(file);
             }
         }
