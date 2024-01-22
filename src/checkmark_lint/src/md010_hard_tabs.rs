@@ -13,10 +13,20 @@ fn violation_builder() -> ViolationBuilder {
 
 pub fn md010_hard_tabs(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD010] File: {:#?}", &file.path);
+    let mut is_code_block = false;
     file.content
         .lines()
         .enumerate()
-        .filter(|(_, line)| line.contains("\t"))
+        .filter(|(_, line)| {
+            if line.contains("```") {
+                is_code_block = !is_code_block;
+            }
+            if is_code_block {
+                false
+            } else {
+                line.contains("\t")
+            }
+        })
         .map(|(i, line)| {
             log::debug!("[MD009] Problematic line {:#?}: {:#?}", i + 1, &line);
             violation_builder()
@@ -44,8 +54,13 @@ mod tests {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
             content: "# H1\t
 \t\t\t\t
-## H2\t"
-                .to_string(),
+## H2\t
+
+```sh
+\t\techo It's ok to have tabs in code blocks
+```
+"
+            .to_string(),
             issues: vec![],
         };
 
