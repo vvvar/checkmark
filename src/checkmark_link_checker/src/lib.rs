@@ -1,5 +1,6 @@
 mod link_collector;
 
+use colored::Colorize;
 use common::{CheckIssueBuilder, Config, IssueCategory, IssueSeverity, MarkDownFile};
 use futures::future::join_all;
 use link_collector::*;
@@ -78,7 +79,7 @@ pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
                         debug!("{uri} respond with network error: {error}");
 
                         for offset in find_all_links_in_file(file, &uri) {
-                            let issue = CheckIssueBuilder::default()
+                            let mut issue = CheckIssueBuilder::default()
                                 .set_category(IssueCategory::LinkChecking)
                                 .set_severity(IssueSeverity::Warning)
                                 .set_file_path(file.path.clone())
@@ -88,12 +89,26 @@ pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
                                 .set_col_num_end(1)
                                 .set_offset_start(offset.start)
                                 .set_offset_end(offset.end)
-                                .set_message(format!("{error}"))
-                                .set_fixes(vec![
-                                    format!("Can you open this link in a browser? If no then perhaps its broken"),
-                                    format!("If your network requires proxy, consider setting it via HTTP_PROXY/HTTPS_PROXY env variables"),
-                                    format!("Consider checking your internet connection"),
-                                ]);
+                                .set_message(format!("{error}"));
+                            issue = issue.push_fix(&format!(
+                                "🧠 {}  {}",
+                                "Rationale".cyan(),
+                                "Having a broken hyperlink is a bad, confusing user experience"
+                            ));
+                            let fixes = vec![
+                                format!("If your network requires a proxy, consider setting it via HTTP_PROXY/HTTPS_PROXY env variables"),
+                                format!("Consider checking your internet connection"),
+                                format!("Can you open this link in a browser? If no then perhaps its broken and shall be fixed"),
+                            ];
+                            for fix in fixes {
+                                issue =
+                                    issue.push_fix(&format!("💡 {} {}", "Suggestion".cyan(), fix));
+                            }
+                            issue = issue.push_fix(&format!(
+                                "📚 {}       https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/{}",
+                                "Docs".cyan(),
+                                error.status().unwrap_or(StatusCode::INTERNAL_SERVER_ERROR).as_str()
+                            ));
                             file.issues.push(issue.build());
                         }
                     }
@@ -168,24 +183,33 @@ pub async fn check_links(file: &mut MarkDownFile, config: &Config) {
                         let broken_filename =
                             Path::new(&uri).file_name().unwrap().to_str().unwrap();
                         for offset in find_all_links_in_file(file, broken_filename) {
-                            file.issues.push(
-                                CheckIssueBuilder::default()
-                                    .set_category(IssueCategory::LinkChecking)
-                                    .set_severity(IssueSeverity::Warning)
-                                    .set_file_path(file.path.clone())
-                                    .set_row_num_start(1)
-                                    .set_row_num_end(file.content.lines().count())
-                                    .set_col_num_start(1)
-                                    .set_col_num_end(1)
-                                    .set_offset_start(offset.start)
-                                    .set_offset_end(offset.end)
-                                    .set_message(format!("File \"{broken_filename}\" is not found in path \"{uri}\"", ))
-                                    .set_fixes(vec![
-                                        "Does this file really exist?".to_string(),
-                                        "Does it referenced correctly? Often such issues appear when relative path is used, for ex. '../file.md' will expect file one directory above".to_string()
-                                    ])
-                                    .build()
-                            );
+                            let mut issue = CheckIssueBuilder::default()
+                                .set_category(IssueCategory::LinkChecking)
+                                .set_severity(IssueSeverity::Warning)
+                                .set_file_path(file.path.clone())
+                                .set_row_num_start(1)
+                                .set_row_num_end(file.content.lines().count())
+                                .set_col_num_start(1)
+                                .set_col_num_end(1)
+                                .set_offset_start(offset.start)
+                                .set_offset_end(offset.end)
+                                .set_message(format!(
+                                    "File \"{broken_filename}\" is not found in path \"{uri}\"",
+                                ));
+                            issue = issue.push_fix(&format!(
+                                "🧠 {}  {}",
+                                "Rationale".cyan(),
+                                "Having a broken link to a file will lead to 404 error page and confuse users"
+                            ));
+                            let fixes = vec![
+                                format!("Does this file really exist? Try opening {:#?} in your file explorer", &uri),
+                                format!("Is this a symlink? If yes, then consider replacing it with a real path. Having symlinks in a project leads to dangling references and often considered a bad practice"),
+                            ];
+                            for fix in fixes {
+                                issue =
+                                    issue.push_fix(&format!("💡 {} {}", "Suggestion".cyan(), fix));
+                            }
+                            file.issues.push(issue.build());
                         }
                     }
                     // The given path cannot be converted to a URI

@@ -705,6 +705,7 @@ name = "checkmark_link_checker"
 version = "0.0.1"
 dependencies = [
  "async-std",
+ "colored",
  "common",
  "futures",
  "log",
