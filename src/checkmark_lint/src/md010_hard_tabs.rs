@@ -6,6 +6,7 @@ fn violation_builder() -> ViolationBuilder {
         .code("MD010")
         .message("Use of hard tabs")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md010.md")
+        .rationale("Hard tabs are often rendered inconsistently by different editors and can be harder to work with than spaces")
         .push_fix("Remove hard tabs")
         .is_fmt_fixable(true)
 }

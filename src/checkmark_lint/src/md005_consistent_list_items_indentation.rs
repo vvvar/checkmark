@@ -6,6 +6,7 @@ fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
         .code("MD005")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md005.md")
+        .rationale("Violations of this rule can lead to improperly rendered content")
         .is_fmt_fixable(true)
 }
 

@@ -7,8 +7,9 @@ fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
         .code("MD025")
         .message("Multiple top-level headings in the same document")
-        .push_fix("Structure your document so there is a single h1 heading that is the title for the document. Subsequent headings must be lower-level headings (h2, h3, etc.)")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md025.md")
+        .rationale("A top-level heading is an h1 on the first line of the file, and serves as the title for the document. If this convention is in use, then there can not be more than one title for the document, and the entire document should be contained within this heading")
+        .push_fix("Structure your document so there is a single h1 heading that is the title for the document. Subsequent headings must be lower-level headings (h2, h3, etc.)")
 }
 
 pub fn md025_multiple_top_level_headings(file: &MarkDownFile) -> Vec<Violation> {

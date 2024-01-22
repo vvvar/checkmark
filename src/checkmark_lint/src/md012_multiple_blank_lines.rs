@@ -6,6 +6,7 @@ fn violation_builder() -> ViolationBuilder {
         .code("MD012")
         .message("Multiple consecutive blank lines")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md012.md")
+        .rationale("Except in a code block, blank lines serve no purpose and do not affect the rendering of content")
         .push_fix("Remove unnecessary blank line")
         .is_fmt_fixable(true)
 }

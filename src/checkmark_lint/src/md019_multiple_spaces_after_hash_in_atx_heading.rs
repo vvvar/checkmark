@@ -8,6 +8,7 @@ fn violation_builder() -> ViolationBuilder {
         .code("MD019")
         .message("Multiple spaces after hash on atx style heading")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md019.md")
+        .rationale("Extra space has no purpose and does not affect the rendering of content")
         .push_fix("Separate the heading text from the hash character by a single space")
         .is_fmt_fixable(true)
 }

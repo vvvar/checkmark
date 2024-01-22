@@ -7,6 +7,7 @@ fn violation_builder() -> ViolationBuilder {
         .code("MD033")
         .message("Non-whitelisted inline HTML used")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md033.md")
+        .rationale("Raw HTML is allowed in Markdown, but this rule is included for those who want their documents to only include 'pure' Markdown, or for those who are rendering Markdown documents into something other than HTML")
 }
 
 pub fn md033_inline_html(file: &MarkDownFile, allowed_tags: &Vec<String>) -> Vec<Violation> {

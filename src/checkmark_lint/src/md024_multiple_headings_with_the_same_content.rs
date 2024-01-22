@@ -6,8 +6,9 @@ fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
         .code("MD024")
         .message("Multiple headings with the same content")
-        .push_fix("Ensure that the content of each heading is different")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md024.md")
+        .rationale("Some Markdown parsers generate anchors for headings based on the heading name; headings with the same content can cause problems with that")
+        .push_fix("Ensure that the content of each heading is different")
 }
 
 fn to_text(h: &Heading, source: &str) -> String {

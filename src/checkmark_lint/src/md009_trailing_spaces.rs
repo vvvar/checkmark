@@ -6,6 +6,7 @@ fn violation_builder() -> ViolationBuilder {
         .code("MD009")
         .message("Trailing space found")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md009.md")
+        .rationale("Except when being used to create a line break, trailing whitespace has no purpose and does not affect the rendering of content")
         .push_fix("Remove trailing space")
         .is_fmt_fixable(true)
 }

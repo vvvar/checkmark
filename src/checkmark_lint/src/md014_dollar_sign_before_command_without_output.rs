@@ -7,6 +7,8 @@ fn violation_builder() -> ViolationBuilder {
         .code("MD014")
         .message("Dollar signs used before commands without showing output")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md014.md")
+        .rationale("It is easier to copy/paste and less noisy if the dollar signs are omitted when they are not needed")
+        .push_additional_link("https://cirosantilli.com/markdown-style-guide#dollar-signs-in-shell-code")
         .push_fix("Remove unnecessary blank line")
         .is_fmt_fixable(true)
 }

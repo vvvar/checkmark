@@ -7,8 +7,9 @@ fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
         .code("MD023")
         .message("Headings must start at the beginning of the line")
-        .push_fix("Ensure that all headings start at the beginning of the line(heading inside block quote is an exception)")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md023.md")
+        .rationale("Headings that don't start at the beginning of the line will not be parsed as headings, and will instead appear as regular text")
+        .push_fix("Ensure that all headings start at the beginning of the line(heading inside block quote is an exception)")
         .is_fmt_fixable(true)
 }
 

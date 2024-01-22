@@ -6,6 +6,8 @@ fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
         .code("MD001")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md001.md")
+        .rationale("Headings represent the structure of a document and can be confusing when skipped - especially for accessibility scenarios")
+        .push_additional_link("https://www.w3.org/WAI/tutorials/page-structure/headings/")
 }
 
 pub fn md001_heading_level_should_increment_by_one_level_at_time(

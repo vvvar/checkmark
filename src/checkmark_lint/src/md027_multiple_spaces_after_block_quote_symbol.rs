@@ -8,6 +8,7 @@ fn violation_builder() -> ViolationBuilder {
         .code("MD027")
         .message("Multiple spaces after block quote symbol")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md027.md")
+        .rationale("Consistent formatting makes it easier to understand a document")
         .is_fmt_fixable(true)
 }
 

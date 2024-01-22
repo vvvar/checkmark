@@ -8,8 +8,12 @@ pub struct Violation {
     pub position: markdown::unist::Position,
     /// Link to the documentation of the violation
     pub doc_link: String,
+    // Explanation why this rule matters
+    pub rationale: String,
     /// List of possible fixes for the violation
     pub fixes: Vec<String>,
+    /// List of additional useful links such as link to Markdown reference
+    pub additional_links: Vec<String>,
     /// Is it possible to fix the violation automatically with fmt?
     pub is_fmt_fixable: bool,
 }
@@ -23,6 +27,7 @@ impl PartialEq for Violation {
             && self.message == other.message
             && self.position == other.position
             && self.doc_link == other.doc_link
+            && self.rationale == other.rationale
             && self.is_fmt_fixable == other.is_fmt_fixable
     }
 }
@@ -33,7 +38,9 @@ pub struct ViolationBuilder {
     pub message: Option<String>,
     pub position: Option<markdown::unist::Position>,
     pub doc_link: Option<String>,
+    pub rationale: Option<String>,
     pub fixes: Vec<String>,
+    pub additional_links: Vec<String>,
     pub is_fmt_fixable: bool,
 }
 
@@ -58,8 +65,18 @@ impl ViolationBuilder {
         self
     }
 
+    pub fn rationale(mut self, rationale: &str) -> ViolationBuilder {
+        self.rationale = Some(rationale.to_owned());
+        self
+    }
+
     pub fn push_fix(mut self, fix: &str) -> ViolationBuilder {
         self.fixes.push(fix.to_owned());
+        self
+    }
+
+    pub fn push_additional_link(mut self, additional_link: &str) -> ViolationBuilder {
+        self.additional_links.push(additional_link.to_owned());
         self
     }
 
@@ -74,7 +91,9 @@ impl ViolationBuilder {
             message: self.message.expect("ViolationBuilder.message is not set"),
             position: self.position.expect("ViolationBuilder.position is not set"),
             doc_link: self.doc_link.expect("ViolationBuilder.doc_link is not set"),
+            rationale: self.rationale.expect("ViolationBuilder.rationale is not set"),
             fixes: self.fixes,
+            additional_links: self.additional_links,
             is_fmt_fixable: self.is_fmt_fixable,
         }
     }

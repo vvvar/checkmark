@@ -50,6 +50,7 @@ use md033_inline_html::*;
 use md046_code_block_style::*;
 use md051_link_fragments_should_be_valid::*;
 use rayon::prelude::*;
+use colored::Colorize;
 
 /// Return formatted Markdown file
 pub fn lint(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
@@ -107,15 +108,18 @@ pub fn lint(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
             .set_col_num_end(violation.position.end.line)
             .set_offset_start(violation.position.start.offset)
             .set_offset_end(violation.position.end.offset)
-            .set_message(format!("{} - {}", violation.code, violation.message))
-            .set_fixes(violation.fixes);
-        if violation.is_fmt_fixable {
-            issue = issue.push_fix(&format!(
-                "run \"checkmark fmt {}\" to fix it automatically",
-                &file.path
-            ));
+            .set_message(format!("{} - {}", violation.code, violation.message));
+        issue = issue.push_fix(&format!("🧠 {}  {}", "Rationale".cyan(), &violation.rationale));
+        for fix in &violation.fixes {
+            issue = issue.push_fix(&format!("💡 {} {}", "Suggestion".cyan(), fix));
         }
-        issue = issue.push_fix(&format!("Rule details: {}", violation.doc_link));
+        if violation.is_fmt_fixable {
+            issue = issue.push_fix(&format!("🚀 {}   checkmark fmt {}", "Auto-fix".cyan(), &file.path));
+        }
+        for link in &violation.additional_links {
+            issue = issue.push_fix(&format!("🔗 {}        {}", "See".cyan(), link));
+        }
+        issue = issue.push_fix(&format!("📚 {}       {}", "Docs".cyan(), violation.doc_link));
         issue.build()
     })
     .collect::<Vec<CheckIssue>>()

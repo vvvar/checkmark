@@ -659,7 +659,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_cli"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "assert_cmd",
  "checkmark_fmt",
@@ -719,6 +719,7 @@ dependencies = [
 name = "checkmark_lint"
 version = "0.0.1"
 dependencies = [
+ "colored",
  "common",
  "line-numbers",
  "log",

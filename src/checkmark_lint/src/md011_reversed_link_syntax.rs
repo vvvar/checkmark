@@ -8,6 +8,7 @@ fn violation_builder() -> ViolationBuilder {
         .code("MD011")
         .message("Reversed link syntax")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md011.md")
+        .rationale("Reversed links are not rendered as usable links")
         .push_fix("Reversed links are not rendered as usable links. Swap the [] and () around")
         .is_fmt_fixable(true)
 }

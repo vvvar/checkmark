@@ -6,6 +6,7 @@ fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
         .code("MD022")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md022.md")
+        .rationale("side from aesthetic reasons, some parsers, including kramdown, will not parse headings that don't have a blank line before, and will parse them as regular text")
         .is_fmt_fixable(true)
 }
 

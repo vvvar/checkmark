@@ -6,6 +6,7 @@ fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
         .code("MD046")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md046.md")
+        .rationale("Consistent formatting makes it easier to understand a document")
         .is_fmt_fixable(true)
 }
 

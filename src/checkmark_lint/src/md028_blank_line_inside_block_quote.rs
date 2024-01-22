@@ -8,6 +8,7 @@ fn violation_builder() -> ViolationBuilder {
         .code("MD028")
         .message("Blank line inside block quote")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md028.md")
+        .rationale("Some Markdown parsers will treat two block quotes separated by one or more blank lines as the same block quote, while others will treat them as separate block quotes")
         .push_fix("If you want to have a single block quote - remove blank line")
         .push_fix("If you want to have block quotes split - add any text between them, for example an empty comment \"<!--  -->\"")
 }

@@ -7,6 +7,8 @@ fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
         .code("MD003")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md003.md")
+        .rationale("Consistent formatting makes it easier to understand a document")
+        .push_additional_link("https://www.markdownguide.org/basic-syntax/#headings")
         .is_fmt_fixable(true)
 }
 
@@ -97,7 +99,6 @@ pub fn md003_heading_style(file: &MarkDownFile, style: &HeadingStyle) -> Vec<Vio
             violation
                 .push_fix(&format!("Change heading style to {:#?}", preferred_style.as_str()))
                 .push_fix(&format!("Alternatively, you can enforce specific heading style via either \"headings\" option from the \"[style]\" section in config file or via \"--style-headings\" CLI option"))
-                .push_fix("See Markdown headings reference: https://www.markdownguide.org/basic-syntax/#headings")
                 .position(&h.position)
                 .build()
         })

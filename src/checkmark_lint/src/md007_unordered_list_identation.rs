@@ -6,6 +6,8 @@ fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
         .code("MD007")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md007.md")
+        .rationale("Indenting by 2 spaces allows the content of a nested list to be in line with the start of the content of the parent list when a single space is used after the list marker. Indenting by 4 spaces is consistent with code blocks and simpler for editors to implement. Additionally, this can be a compatibility issue for other Markdown parsers, which require 4-space indents")
+        .push_additional_link("https://cirosantilli.com/markdown-style-guide/#indentation-of-content-inside-lists")
         .is_fmt_fixable(true)
 }
 

@@ -7,6 +7,7 @@ fn violation_builder() -> ViolationBuilder {
         .code("MD020")
         .message("No space inside hashes on closed atx style heading")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md020.md")
+        .rationale("Violations of this rule can lead to improperly rendered content")
         .push_fix("Separate the heading text from the hash character by a single space")
         .is_fmt_fixable(true)
 }

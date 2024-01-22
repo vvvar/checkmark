@@ -7,6 +7,9 @@ fn violation_builder() -> ViolationBuilder {
         .code("MD051")
         .message("Link fragments should be valid")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md051.md")
+        .rationale("GitHub section links are created automatically for every heading when Markdown content is displayed on GitHub. This makes it easy to link directly to different sections within a document. However, section links change if headings are renamed or removed. This rule helps identify broken section links within a document.\n\nSection links are not part of the CommonMark specification. This rule enforces the GitHub heading algorithm which is: convert heading to lowercase, remove punctuation, convert spaces to dashes, append an incrementing integer as needed for uniqueness")
+        .push_additional_link("https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#section-links")
+        .push_additional_link("https://github.com/gjtorikian/html-pipeline/blob/f13a1534cb650ba17af400d1acd3a22c28004c09/lib/html/pipeline/toc_filter.rb")
         .push_fix("Add missing anchor")
 }
 
