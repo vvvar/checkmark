@@ -1,5 +1,6 @@
 pub mod open_ai;
 
+use colored::Colorize;
 use common::{
     find_index, CheckIssue, CheckIssueBuilder, Config, IssueCategory, IssueSeverity, MarkDownFile,
 };
@@ -58,10 +59,9 @@ pub async fn make_a_review(
                 .set_offset_end(offset.end)
                 .set_message(suggestion.description.clone());
             if !config.review.no_suggestions {
-                issue = issue.push_fix(&format!(
-                    "Consider following change: \n{}",
-                    &suggestion.replacement
-                ));
+                let suggestion =
+                    &format!("Consider replacing with: {:#?}", &suggestion.replacement);
+                issue = issue.push_fix(&format!("💡 {} {}", "Suggestion".cyan(), suggestion));
             }
             issue.build()
         })

@@ -756,6 +756,7 @@ dependencies = [
 name = "checkmark_open_ai"
 version = "0.0.1"
 dependencies = [
+ "colored",
  "common",
  "dotenv",
  "futures",
