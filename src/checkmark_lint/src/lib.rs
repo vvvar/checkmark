@@ -24,6 +24,7 @@ mod md046_code_block_style;
 mod md051_link_fragments_should_be_valid;
 mod violation;
 
+use colored::Colorize;
 use common::{CheckIssue, Config, MarkDownFile};
 use md001_heading_level_should_increment_by_one_level_at_time::*;
 use md003_heading_style::*;
@@ -50,7 +51,6 @@ use md033_inline_html::*;
 use md046_code_block_style::*;
 use md051_link_fragments_should_be_valid::*;
 use rayon::prelude::*;
-use colored::Colorize;
 
 /// Return formatted Markdown file
 pub fn lint(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
@@ -109,17 +109,29 @@ pub fn lint(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
             .set_offset_start(violation.position.start.offset)
             .set_offset_end(violation.position.end.offset)
             .set_message(format!("{} - {}", violation.code, violation.message));
-        issue = issue.push_fix(&format!("🧠 {}  {}", "Rationale".cyan(), &violation.rationale));
+        issue = issue.push_fix(&format!(
+            "🧠 {}  {}",
+            "Rationale".cyan(),
+            &violation.rationale
+        ));
         for fix in &violation.fixes {
             issue = issue.push_fix(&format!("💡 {} {}", "Suggestion".cyan(), fix));
         }
         if violation.is_fmt_fixable {
-            issue = issue.push_fix(&format!("🚀 {}   checkmark fmt {}", "Auto-fix".cyan(), &file.path));
+            issue = issue.push_fix(&format!(
+                "🚀 {}   checkmark fmt {}",
+                "Auto-fix".cyan(),
+                &file.path
+            ));
         }
         for link in &violation.additional_links {
             issue = issue.push_fix(&format!("🔗 {}        {}", "See".cyan(), link));
         }
-        issue = issue.push_fix(&format!("📚 {}       {}", "Docs".cyan(), violation.doc_link));
+        issue = issue.push_fix(&format!(
+            "📚 {}       {}",
+            "Docs".cyan(),
+            violation.doc_link
+        ));
         issue.build()
     })
     .collect::<Vec<CheckIssue>>()

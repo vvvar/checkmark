@@ -91,7 +91,9 @@ impl ViolationBuilder {
             message: self.message.expect("ViolationBuilder.message is not set"),
             position: self.position.expect("ViolationBuilder.position is not set"),
             doc_link: self.doc_link.expect("ViolationBuilder.doc_link is not set"),
-            rationale: self.rationale.expect("ViolationBuilder.rationale is not set"),
+            rationale: self
+                .rationale
+                .expect("ViolationBuilder.rationale is not set"),
             fixes: self.fixes,
             additional_links: self.additional_links,
             is_fmt_fixable: self.is_fmt_fixable,

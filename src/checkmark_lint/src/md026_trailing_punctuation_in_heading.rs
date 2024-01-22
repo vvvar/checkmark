@@ -8,7 +8,9 @@ fn violation_builder() -> ViolationBuilder {
         .message("Trailing punctuation in heading")
         .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md026.md")
         .rationale("Headings are not meant to be full sentences")
-        .push_additional_link("https://cirosantilli.com/markdown-style-guide/#punctuation-at-the-end-of-headers")
+        .push_additional_link(
+            "https://cirosantilli.com/markdown-style-guide/#punctuation-at-the-end-of-headers",
+        )
         .push_fix("Remove the trailing punctuation")
 }
 

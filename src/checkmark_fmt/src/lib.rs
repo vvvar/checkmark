@@ -6,6 +6,7 @@ use context::*;
 use style::*;
 use utils::*;
 
+use colored::Colorize;
 use markdown::mdast;
 use markdown::mdast::{AlignKind, Node};
 
@@ -751,21 +752,27 @@ pub fn check_md_format(
             .set_col_num_end(1)
             .set_offset_start(0)
             .set_offset_end(file.content.len())
-            .set_message(String::from("Formatting is incorrect"));
-        if config.fmt.show_diff {
-            issue = issue.push_fix(&format!(
-                "Detailed comparison of expected formatting and your file:\n\n{}\n\n",
-                get_diff(&file.content, &formatted.content)
-            ));
-        } else {
-            issue = issue
-                .push_fix(
-                    &format!("Suggestion: Run \"checkmark fmt --check --show-diff {}\" to see a how different expected formatting with your", &file.path));
+            .set_message(String::from("Incorrect file formatting"));
+        issue = issue.push_fix(&format!(
+            "🧠 {}  {}",
+            "Rationale".cyan(),
+            "Consistent formatting makes it easier to understand a document"
+        ));
+        if !config.fmt.show_diff {
+            issue = issue.push_fix(&format!("💡 {} Run \"checkmark fmt --check --show-diff {}\" to see a diff between expected formatting and your", "Suggestion".cyan(), &file.path));
         }
         issue = issue.push_fix(&format!(
-            "Suggestion: Run \"checkmark fmt {}\" to auto-format file",
+            "🚀 {}   checkmark fmt {}",
+            "Auto-fix".cyan(),
             &file.path
         ));
+        if config.fmt.show_diff {
+            issue = issue.push_fix(&format!(
+                "📌 {}\n\n{}\n\n",
+                "Diff".cyan(),
+                get_diff(&file.content, &formatted.content)
+            ));
+        }
         issues.push(issue.build());
     }
     issues

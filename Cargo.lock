@@ -689,6 +689,7 @@ dependencies = [
 name = "checkmark_fmt"
 version = "0.0.1"
 dependencies = [
+ "colored",
  "common",
  "log",
  "markdown",
