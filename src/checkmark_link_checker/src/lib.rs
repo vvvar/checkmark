@@ -313,7 +313,7 @@ pub async fn check_links(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue
                         .set_message(format!("Request timeout for url {uri}"))
                         .set_fixes(vec![
                             format!("Consider increasing timeout in config file, currently its set to {timeout} seconds"),
-                            format!("Consider increasing maximum amount of retried in config file, currently its set to {max_retries} seconds"),
+                            format!("Consider increasing maximum amount of retries in config file, currently its set to {max_retries} seconds"),
                             format!("If your network requires proxy, consider setting it via HTTP_PROXY/HTTPS_PROXY env variables or configure proxy in config file"),
                             format!("Consider checking your internet connection"),
                         ]);

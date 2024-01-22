@@ -659,7 +659,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_cli"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "assert_cmd",
  "checkmark_fmt",
