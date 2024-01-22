@@ -28,7 +28,6 @@ pub async fn collect_links(
         .use_html5ever(false) // use html5gum, author claims it to be faster
         .include_verbatim(true) // verbatim is for ex. ```code``
         .collect_links(input)
-        .await // base url or directory
         .collect::<Result<Vec<_>>>()
         .await?;
     debug!("Found links: {:#?}", &links);

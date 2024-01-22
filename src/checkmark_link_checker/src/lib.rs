@@ -233,10 +233,6 @@ pub async fn check_links(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue
                     ErrorKind::InvalidUrlRemap(url) => {
                         debug!("{:#?} request error given input can not be parsed into a valid URI remapping, url: {:#?}", &uri, &url);
                     }
-                    // The given path does not resolve to a valid file
-                    ErrorKind::FileNotFound(file_path) => {
-                        debug!("{:#?} request error given path does not resolve to a valid file, file_path: {:#?}", &uri, &file_path);
-                    }
                     // Error while traversing an input directory
                     ErrorKind::DirTraversal(error) => {
                         debug!("{:#?} request error while traversing an input directory, error:\n{:#?}", &uri, &error);
