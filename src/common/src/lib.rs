@@ -386,17 +386,48 @@ pub fn find_index(source: &str, sub_str: &str) -> core::ops::Range<usize> {
 /// line_number - line number to find offset for. Starts at 1
 /// returns offset of the line relative to the beginning of the text
 pub fn find_offset_by_line_number(text: &str, line_number: usize) -> usize {
+    // Detect whether text uses CRLF or LF.
+    // This affects our calculation because
+    // in CRLF each newline is incremented
+    // by 2 characters
+    let num_chars_newline = match text.contains("\r\n") {
+        true => 2,  // CRLF
+        false => 1, // LF
+    };
     let mut pos: usize = 0;
     for (i, line) in text.lines().enumerate() {
         if i < line_number {
             pos += line.len();
-            pos += 1;
+            pos += num_chars_newline;
             continue;
         } else {
             break;
         }
     }
     return pos;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Check that index consider CRLF format
+    #[test]
+    fn offset_by_line_number_crlf() {
+        let text = "Line 1\r\nLine 2\r\nLine 3\r\nLine 4\r\n";
+        let expected_offset = 8;
+        let actual_offset = find_offset_by_line_number(&text, 1);
+        assert_eq!(expected_offset, actual_offset);
+    }
+
+    // Check that index consider LF format
+    #[test]
+    fn offset_by_line_number_lf() {
+        let text = "Line 1\nLine 2\nLine 3\nLine 4\n";
+        let expected_offset = 7;
+        let actual_offset = find_offset_by_line_number(&text, 1);
+        assert_eq!(expected_offset, actual_offset);
+    }
 }
 
 /// Force activate debug logging

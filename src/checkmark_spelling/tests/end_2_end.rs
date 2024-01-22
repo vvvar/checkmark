@@ -1,28 +1,31 @@
 #[cfg(test)]
 use pretty_assertions::assert_eq;
 
+#[cfg(test)]
 const DUMMY_FILE_PATH: &str = "this/is/a/dummy/path/to/a/file.md";
 
 #[cfg(test)]
-fn assert_has_issues(content: &str, whitelist: &Vec<String>, issues: &Vec<common::CheckIssue>) {
+fn assert_has_issues(
+    content: &str,
+    whitelist: &Vec<String>,
+    expected_issues: &Vec<common::CheckIssue>,
+) {
     let markdown = common::MarkDownFile {
         path: DUMMY_FILE_PATH.to_owned(),
         content: content.to_owned(),
         issues: vec![],
     };
-    assert_eq!(
-        &checkmark_spelling::spell_check(
-            &markdown,
-            &common::Config {
-                spelling: common::SpellingConfig {
-                    words_whitelist: whitelist.clone(),
-                    ..common::SpellingConfig::default()
-                },
-                ..common::Config::default()
-            }
-        ),
-        issues
+    let actual_issues = checkmark_spelling::spell_check(
+        &markdown,
+        &common::Config {
+            spelling: common::SpellingConfig {
+                words_whitelist: whitelist.clone(),
+                ..common::SpellingConfig::default()
+            },
+            ..common::Config::default()
+        },
     );
+    assert_eq!(&actual_issues, expected_issues);
 }
 
 #[cfg(test)]
@@ -44,10 +47,12 @@ fn spelling_plain_misspelled_word() {
             col_num_end: 18,
             offset_start: 12,
             offset_end: 17,
-            message: "Word \"headr\" is unknown or miss-spelled".to_string(),
+            message: "\"headr\": Unknown word".to_string(),
             fixes: vec![
-                "Consider changing \"headr\" to \"head\"".to_string(),
-                "You can white list this word by adding it to the \"words_whitelist\" property in the config file or by passing it with the --words-whitelist argument".to_string(),
+                "🧠 \u{1b}[36mRationale\u{1b}[0m  Accurate spelling ensures clear, professional, and credible communication".to_string(),
+                "💡 \u{1b}[36mSuggestion\u{1b}[0m Consider changing \"headr\" to \"head\"".to_string(),
+                "💡 \u{1b}[36mSuggestion\u{1b}[0m Consider white-listing this word by adding it to the \"words_whitelist\" property in the config file".to_string(),
+                "🔗 \u{1b}[36mSee\u{1b}[0m        https://github.com/vvvar/checkmark/tree/main#generate-config".to_string()
             ],
         },
     ]);
@@ -66,10 +71,12 @@ fn spelling_several_misspelled_words() {
             col_num_end: 27,
             offset_start: 10,
             offset_end: 15,
-            message: "Word \"sommm\" is unknown or miss-spelled".to_string(),
+            message: "\"sommm\": Unknown word".to_string(),
             fixes: vec![
-                "Consider changing \"sommm\" to \"somme\"".to_string(),
-                "You can white list this word by adding it to the \"words_whitelist\" property in the config file or by passing it with the --words-whitelist argument".to_string(),
+                "🧠 \u{1b}[36mRationale\u{1b}[0m  Accurate spelling ensures clear, professional, and credible communication".to_string(),
+                "💡 \u{1b}[36mSuggestion\u{1b}[0m Consider changing \"sommm\" to \"somme\"".to_string(),
+                "💡 \u{1b}[36mSuggestion\u{1b}[0m Consider white-listing this word by adding it to the \"words_whitelist\" property in the config file".to_string(),
+                "🔗 \u{1b}[36mSee\u{1b}[0m        https://github.com/vvvar/checkmark/tree/main#generate-config".to_string()
             ],
         },
         common::CheckIssue {
@@ -82,10 +89,12 @@ fn spelling_several_misspelled_words() {
             col_num_end: 27,
             offset_start: 16,
             offset_end: 24,
-            message: "Word \"additnal\" is unknown or miss-spelled".to_string(),
+            message: "\"additnal\": Unknown word".to_string(),
             fixes: vec![
-                "Consider changing \"additnal\" to \"additional\"".to_string(),
-                "You can white list this word by adding it to the \"words_whitelist\" property in the config file or by passing it with the --words-whitelist argument".to_string(),
+                "🧠 \u{1b}[36mRationale\u{1b}[0m  Accurate spelling ensures clear, professional, and credible communication".to_string(),
+                "💡 \u{1b}[36mSuggestion\u{1b}[0m Consider changing \"additnal\" to \"additional\"".to_string(),
+                "💡 \u{1b}[36mSuggestion\u{1b}[0m Consider white-listing this word by adding it to the \"words_whitelist\" property in the config file".to_string(),
+                "🔗 \u{1b}[36mSee\u{1b}[0m        https://github.com/vvvar/checkmark/tree/main#generate-config".to_string()
             ],
         }
     ]);
@@ -126,10 +135,11 @@ fn spelling_gibberish_handled() {
         col_num_end: 17,
         offset_start: 2,
         offset_end: 16,
-        message: "Word \"fdssryyukiuu's\" is unknown or miss-spelled".to_string(),
+        message: "\"fdssryyukiuu's\": Unknown word".to_string(),
         fixes: vec![
-            "Cannot find any suggestion for word \"fdssryyukiuu\"".to_string(),
-            "You can white list this word by adding it to the \"words_whitelist\" property in the config file or by passing it with the --words-whitelist argument".to_string(),
+            "🧠 \u{1b}[36mRationale\u{1b}[0m  Accurate spelling ensures clear, professional, and credible communication".to_string(),
+            "💡 \u{1b}[36mSuggestion\u{1b}[0m Consider white-listing this word by adding it to the \"words_whitelist\" property in the config file".to_string(),
+            "🔗 \u{1b}[36mSee\u{1b}[0m        https://github.com/vvvar/checkmark/tree/main#generate-config".to_string()
         ],
     },]);
 }
