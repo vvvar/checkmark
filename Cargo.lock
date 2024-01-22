@@ -772,6 +772,7 @@ dependencies = [
 name = "checkmark_spelling"
 version = "0.0.1"
 dependencies = [
+ "colored",
  "common",
  "env_logger",
  "log",

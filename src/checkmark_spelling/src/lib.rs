@@ -1,3 +1,4 @@
+use colored::Colorize;
 use common::{
     filter_text_nodes, find_index, parse, CheckIssue, CheckIssueBuilder, IssueCategory,
     IssueSeverity, MarkDownFile,
@@ -179,26 +180,26 @@ pub fn spell_check(file: &MarkDownFile, config: &common::Config) -> Vec<CheckIss
                         .set_col_num_end(col_num_end)
                         .set_offset_start(offset_start)
                         .set_offset_end(offset_end)
-                        .set_message(format!("Word {:#?} is unknown or miss-spelled", &word));
-                    if suggestions.is_empty() {
-                        issue = issue.push_fix(&format!(
-                            "Cannot find any suggestion for word {:#?}",
-                            &remove_all_special_characters(word, false)
-                        ));
-                    } else {
+                        .set_message(format!("{:#?}: Unknown word", &word));
+                    issue = issue.push_fix(&format!(
+                        "🧠 {}  {}",
+                        "Rationale".cyan(),
+                        "Accurate spelling ensures clear, professional, and credible communication"
+                    ));
+                    if !suggestions.is_empty() {
                         for suggestion in suggestions {
-                            issue = issue.push_fix(&format!(
-                                "Consider changing {:#?} to {:#?}",
-                                &remove_all_special_characters(word, false),
-                                suggestion.term
-                            ));
+                            let fix = &format!("Consider changing {:#?} to {:#?}", &remove_all_special_characters(word, false), suggestion.term);
+                            issue = issue.push_fix(&format!("💡 {} {}", "Suggestion".cyan(), fix));
                         }
                     }
                     if let Some(location) = &config.location {
-                        let suggestion = format!("You can white list this word by adding it to your config file: {:#?}. Put it into the \"words_whitelist\" property in \"[spelling]\" section", &location);
-                        issue = issue.push_fix(&suggestion);
+                        let suggestion = format!("Consider white-listing this word by adding it to your config file: {:#?}", &location);
+                        issue = issue.push_fix(&format!("💡 {} {}", "Suggestion".cyan(), suggestion));
+                        issue = issue.push_fix(&format!("🔗 {}        {}", "See".cyan(), "https://github.com/vvvar/checkmark/blob/main/src/checkmark_cli/src/config_template.toml"));
                     } else {
-                        issue = issue.push_fix("You can white list this word by adding it to the \"words_whitelist\" property in the config file or by passing it with the --words-whitelist argument");
+                        let suggestion = "Consider white-listing this word by adding it to the \"words_whitelist\" property in the config file";
+                        issue = issue.push_fix(&format!("💡 {} {}", "Suggestion".cyan(), suggestion));
+                        issue = issue.push_fix(&format!("🔗 {}        {}", "See".cyan(), "https://github.com/vvvar/checkmark/tree/main#generate-config"));
                     }
                     issues.lock().unwrap().push(issue.build());
                 }
