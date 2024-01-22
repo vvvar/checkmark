@@ -120,6 +120,33 @@ fn escape_special_characters(str: &str) -> String {
         .replace("<", "\\<")
 }
 
+/// Returns true when link it either auto or bare
+/// Autolink: "<http://example.com>"
+/// Bare link: "http://example.com"
+fn is_auto_or_bare_link(l: &mdast::Link) -> bool {
+    // Detect this structure
+    //    Link {
+    //       children: [ Text {} ]
+    //       title: None
+    //    }
+    if l.title.is_none() && l.children.len() == 1 {
+        if let Node::Text(t) = l.children.first().unwrap() {
+            // Check that text is === as url
+            // "mailto:" stripped because parser adds it
+            // for all e-mails
+            if let Some(email) = l.url.strip_prefix("mailto:") {
+                t.value.eq(&email)
+            } else {
+                t.value.eq(&l.url)
+            }
+        } else {
+            false
+        }
+    } else {
+        false
+    }
+}
+
 /// Render Markdown file from AST
 fn to_md(
     node: &mdast::Node,
@@ -379,29 +406,35 @@ fn to_md(
             buffer.push('\n');
         }
         Node::Link(l) => {
-            buffer.push('[');
-            for child in &l.children {
-                if let Node::Link(sub_link) = child {
-                    // Although not explicitly prohibited, this is kinda a blank spot in CommonMark.
-                    // Technically, it is valid to have "[http://google.com](http://github.com)".
-                    // This will result in parser creating two nested links "Link { Link { Text }, Text }".
-                    // If we'll render it as-is it will result in a broken Markdown because
-                    // it will became "[[http://google.com](http://google.com)](http://github.com)".
-                    // Every time we format it will add another layer of nesting.
-                    // We want to avoid it and render inner link as a plain text.
-                    for child in &sub_link.children {
+            if is_auto_or_bare_link(l) {
+                buffer.push('<');
+                buffer.push_str(&l.url);
+                buffer.push('>');
+            } else {
+                buffer.push('[');
+                for child in &l.children {
+                    if let Node::Link(sub_link) = child {
+                        // Although not explicitly prohibited, this is kinda a blank spot in CommonMark.
+                        // Technically, it is valid to have "[http://google.com](http://github.com)".
+                        // This will result in parser creating two nested links "Link { Link { Text }, Text }".
+                        // If we'll render it as-is it will result in a broken Markdown because
+                        // it will became "[[http://google.com](http://google.com)](http://github.com)".
+                        // Every time we format it will add another layer of nesting.
+                        // We want to avoid it and render inner link as a plain text.
+                        for child in &sub_link.children {
+                            to_md(child, buffer, context, source, options);
+                        }
+                    } else {
                         to_md(child, buffer, context, source, options);
                     }
-                } else {
-                    to_md(child, buffer, context, source, options);
                 }
+                buffer.push(']');
+                buffer.push_str(&format!("({}", &l.url.clone().as_str()));
+                if let Some(title) = &l.title {
+                    buffer.push_str(&format!(" \"{}\"", &title));
+                }
+                buffer.push(')');
             }
-            buffer.push(']');
-            buffer.push_str(&format!("({}", &l.url.clone().as_str()));
-            if let Some(title) = &l.title {
-                buffer.push_str(&format!(" \"{}\"", &title));
-            }
-            buffer.push(')');
         }
         Node::Image(i) => {
             buffer.push_str(&format!("![{}]({}", &i.alt, &i.url));

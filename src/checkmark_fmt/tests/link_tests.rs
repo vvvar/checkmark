@@ -12,6 +12,14 @@ fn normal_link_rendered() {
     );
 }
 
+/// Auto-links
+/// https://sgmljs.net/docs/markdown-autolink-examples.html
+#[test]
+fn auto_links() {
+    utils::assert_changed_after_formatting("https://github.com", "<https://github.com>\n");
+    utils::assert_changed_after_formatting("someone@some.where", "<mailto:someone@some.where>\n");
+}
+
 /// Footnotes
 /// https://www.markdownguide.org/extended-syntax/#footnotes
 #[test]
