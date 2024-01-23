@@ -28,6 +28,8 @@
 //! CheckIssueBuilder::build() panics if any of the required fields has not been set.
 //! CheckIssue::to_sarif_result() panics if any of the required fields has not been set.
 
+pub mod tui;
+
 /// Represents single markdown file under check
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct MarkDownFile {

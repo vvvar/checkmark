@@ -673,7 +673,6 @@ dependencies = [
  "checkmark_open_ai",
  "checkmark_spelling",
  "clap 4.4.11",
- "codespan-reporting",
  "colored",
  "common",
  "dunce",
@@ -685,7 +684,6 @@ dependencies = [
  "serde",
  "serde-sarif",
  "serde_json",
- "spinners",
  "tokio",
 ]
 
@@ -885,11 +883,14 @@ dependencies = [
 name = "common"
 version = "0.1.0"
 dependencies = [
+ "codespan-reporting",
+ "colored",
  "env_logger",
  "log",
  "markdown",
  "serde",
  "serde-sarif",
+ "spinners",
  "strsim 0.10.0",
  "toml",
 ]

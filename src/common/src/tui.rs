@@ -1,4 +1,7 @@
+use crate::*;
 use colored::Colorize;
+use spinners::{Spinner, Spinners::Point};
+use std::sync::{Arc, Mutex};
 
 /// RAII Shows spinner + message while the check is running
 /// Wen created - starts spinner(unless in CI mode)
@@ -6,7 +9,7 @@ use colored::Colorize;
 pub struct CheckProgressTUI {
     ci_mode: bool,
     had_any_issue: bool,
-    spinner: Option<spinners::Spinner>,
+    spinner: Option<Spinner>,
     custom_finish_message: Option<String>,
 }
 
@@ -30,18 +33,15 @@ impl CheckProgressTUI {
         self.custom_finish_message = Some(message.to_string());
     }
 
-    pub fn new_thread_safe(ci_mode: bool) -> std::sync::Arc<std::sync::Mutex<Self>> {
-        std::sync::Arc::new(std::sync::Mutex::new(Self::new(ci_mode)))
+    pub fn new_thread_safe(ci_mode: bool) -> Arc<Mutex<Self>> {
+        Arc::new(Mutex::new(Self::new(ci_mode)))
     }
 
     pub fn start_spinner(&mut self, title: &str) {
         if let Some(spinner) = &mut self.spinner {
-            spinner.stop_with_message("".to_owned());
+            spinner.stop_with_newline();
         }
-        self.spinner = Some(spinners::Spinner::new(
-            spinners::Spinners::Point,
-            format!("{}", &title.dimmed()),
-        ));
+        self.spinner = Some(Spinner::new(Point, format!("{}", &title.dimmed())));
     }
 
     pub fn finish_spinner(&mut self) {
@@ -67,11 +67,11 @@ impl CheckProgressTUI {
         }
     }
 
-    pub fn print_file_check_status(&mut self, file: &common::MarkDownFile) {
+    pub fn print_file_check_status(&mut self, file: &MarkDownFile) {
         self.had_any_issue = file
             .issues
             .iter()
-            .any(|issue| issue.severity != common::IssueSeverity::Help);
+            .any(|issue| issue.severity != IssueSeverity::Help);
         let mut message = match self.had_any_issue {
             true => format!("{}: {}", "✗ Has issues".red().bold(), file.path),
             false => format!("{}: {}", "✓ Ok".green().bold(), file.path),
@@ -82,7 +82,7 @@ impl CheckProgressTUI {
         println!("{}", message);
     }
 
-    pub fn print_report(&mut self, files: &Vec<common::MarkDownFile>) {
+    pub fn print_report(&mut self, files: &Vec<MarkDownFile>) {
         use codespan_reporting::diagnostic::{Diagnostic, Label, Severity};
         use codespan_reporting::files::SimpleFiles;
         use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
@@ -92,19 +92,19 @@ impl CheckProgressTUI {
             let codespan_file_id = codespan_files.add(&analyzed_file.path, &analyzed_file.content);
             for issue in &analyzed_file.issues {
                 let issue_code = match &issue.category {
-                    common::IssueCategory::Formatting => "Formatting",
-                    common::IssueCategory::Linting => "Linting",
-                    common::IssueCategory::LinkChecking => "LinkCheck",
-                    common::IssueCategory::Spelling => "Spelling",
-                    common::IssueCategory::Grammar => "Grammar",
-                    common::IssueCategory::Review => "Review",
+                    IssueCategory::Formatting => "Formatting",
+                    IssueCategory::Linting => "Linting",
+                    IssueCategory::LinkChecking => "LinkCheck",
+                    IssueCategory::Spelling => "Spelling",
+                    IssueCategory::Grammar => "Grammar",
+                    IssueCategory::Review => "Review",
                 };
                 let severity = match &issue.severity {
-                    common::IssueSeverity::Bug => Severity::Bug,
-                    common::IssueSeverity::Error => Severity::Error,
-                    common::IssueSeverity::Warning => Severity::Warning,
-                    common::IssueSeverity::Note => Severity::Note,
-                    common::IssueSeverity::Help => Severity::Help,
+                    IssueSeverity::Bug => Severity::Bug,
+                    IssueSeverity::Error => Severity::Error,
+                    IssueSeverity::Warning => Severity::Warning,
+                    IssueSeverity::Note => Severity::Note,
+                    IssueSeverity::Help => Severity::Help,
                 };
                 let mut codespan_diagnostic = Diagnostic::new(severity)
                     .with_message(&issue.message)

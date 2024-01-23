@@ -1,5 +1,6 @@
 use auth_git2::GitAuthenticator;
 use log::warn;
+use std::sync::{Arc, Mutex};
 
 /// Returns a path to a tmp dir based on input URI
 fn tmp_dir(uri: &str) -> std::path::PathBuf {
@@ -19,13 +20,20 @@ fn tmp_dir(uri: &str) -> std::path::PathBuf {
 ///     1. path to a file - will just add this file to the list
 ///     2. path to a dir - will lookup all markdown files in this ir
 ///     3. remote URL
-pub async fn ls(path: &str, exclude: &Vec<String>) -> Vec<common::MarkDownFile> {
+pub async fn ls(
+    path: &str,
+    exclude: &Vec<String>,
+    tui: &Arc<Mutex<common::tui::CheckProgressTUI>>,
+) -> Vec<common::MarkDownFile> {
     log::debug!("Listing Markdown files in: {:#?}", &path);
 
     let mut input_path = path.to_owned();
 
     if input_path.ends_with(".git") {
         log::debug!("Path is a git repo, cloning into tmp dir");
+        tui.lock()
+            .unwrap()
+            .start_spinner(&format!("Cloning git repo {path}"));
 
         let auth = GitAuthenticator::default();
         let git_config = git2::Config::open_default().unwrap();
@@ -72,7 +80,6 @@ pub async fn ls(path: &str, exclude: &Vec<String>) -> Vec<common::MarkDownFile> 
             .with_checkout(co)
             .clone(&input_path, std::path::Path::new(&tmp_dir))
             .unwrap();
-
         log::debug!("Cloned {:#?} into the {:#?}", &input_path, &tmp_dir);
         input_path = tmp_dir.to_str().unwrap().to_owned();
     } else if is_url::is_url(&input_path) {

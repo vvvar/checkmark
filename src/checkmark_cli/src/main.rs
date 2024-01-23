@@ -1,7 +1,6 @@
 mod cli;
 mod config;
 mod errors;
-mod tui;
 
 use colored::Colorize;
 use rayon::prelude::*;
@@ -37,11 +36,11 @@ async fn main() -> Result<(), errors::AppError> {
     // Read config
     let config = config::read_config(&cli);
 
-    // Read all MD files
-    let mut files = checkmark_ls::ls(&cli.project_root, &config.global.exclude).await;
-
     // Create TUI
-    let tui = tui::CheckProgressTUI::new_thread_safe(cli.ci);
+    let tui = common::tui::CheckProgressTUI::new_thread_safe(cli.ci);
+
+    // Read all MD files
+    let mut files = checkmark_ls::ls(&cli.project_root, &config.global.exclude, &tui).await;
 
     // Analyze
     match &cli.subcommands {
