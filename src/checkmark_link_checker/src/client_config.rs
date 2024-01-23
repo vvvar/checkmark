@@ -7,6 +7,7 @@ pub struct ClientConfig {
     pub timeout: u64,
     pub max_retries: u64,
     pub github_token: Option<SecretString>,
+    pub check_emails: bool,
 }
 
 impl ClientConfig {
@@ -16,6 +17,7 @@ impl ClientConfig {
             timeout: ClientConfig::timeout(config),
             max_retries: ClientConfig::max_retries(config),
             github_token: ClientConfig::github_token(config),
+            check_emails: config.link_checker.check_emails,
         }
     }
 

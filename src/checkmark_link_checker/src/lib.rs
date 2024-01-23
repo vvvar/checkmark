@@ -34,7 +34,7 @@ pub async fn check(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
         let accepted = HashSet::from_iter(client_config.accepted_status_codes.clone().into_iter());
         let client = ClientBuilder::builder()
             .timeout(timeout)
-            .include_mail(true)
+            .include_mail(client_config.check_emails)
             .accepted(accepted)
             .max_retries(client_config.max_retries)
             .github_token(client_config.github_token.clone())

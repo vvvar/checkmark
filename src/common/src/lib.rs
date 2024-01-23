@@ -569,6 +569,10 @@ pub struct ComposeConfig {
     pub creativity: Option<u8>,
 }
 
+fn get_default_check_emails() -> bool {
+    true
+}
+
 #[derive(Debug, Default, Clone, serde::Deserialize)]
 pub struct LinkCheckerConfig {
     #[serde(default)]
@@ -585,6 +589,9 @@ pub struct LinkCheckerConfig {
 
     #[serde(default)]
     pub github_token: Option<String>,
+
+    #[serde(default = "get_default_check_emails")]
+    pub check_emails: bool,
 }
 
 #[derive(Debug, Default, Clone, serde::Deserialize)]

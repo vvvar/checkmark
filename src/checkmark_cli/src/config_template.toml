@@ -52,6 +52,10 @@ accept=[200, 301, 302, 307, 308]
 timeout=10
 # Maximum number of retries for HTTP requests before giving up
 max_retries=1
+# When true, the link checker will check if the email is valid
+# Sometimes it is useful to disable e-mail check. For example,
+# when you have a very restricted network configuration
+check_emails=true
 # Optional GitHub token used for GitHub links.
 # This allows much more request before getting rate-limited
 # github_token=""
