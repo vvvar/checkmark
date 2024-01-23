@@ -1,6 +1,7 @@
 mod invalid_file_path;
 mod network_request_error;
 mod request_timeout;
+mod unreachable_email;
 mod utils;
 
 use crate::client_config::ClientConfig;
@@ -109,12 +110,8 @@ pub fn handle_response(
                     vec![]
                 }
                 // The given mail address is unreachable
-                ErrorKind::UnreachableEmailAddress(uri, email) => {
-                    debug!(
-                        "{:#?} request error unreachable e-mail, email:{:#?}",
-                        &uri, &email
-                    );
-                    vec![]
+                ErrorKind::UnreachableEmailAddress(_, email) => {
+                    unreachable_email::handle(file, &uri, &email)
                 }
                 // The given header could not be parsed.
                 ErrorKind::InvalidHeader(header) => {
