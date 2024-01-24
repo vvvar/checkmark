@@ -4,6 +4,8 @@ Checkmark is a CLI tool designed to streamline your Markdown workflow. It provid
 
 ![main](./assets/fmt.svg)
 
+[Feature](#features)
+
 ## Features
 
 Checkmark is a tool designed to help maintain high-quality Markdown documentation. It offers a range of commands to automate various tasks related to formatting, checking, and reviewing Markdown files:

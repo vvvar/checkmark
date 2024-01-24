@@ -17,6 +17,8 @@ log = "0.4.2"
 secrecy = { version = "0.8.0", features = ["serde"] }
 colored = "2.1.0"
 markdown = { version = "1.0.0-alpha.14", features = [ "json", "log", "serde" ] }
+dunce = "1.0.4"
+regex = "1.10.2"
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"
