@@ -71,6 +71,8 @@ fn copy_associated_files(files: &Vec<PathBuf>, output_dir: &PathBuf) {
 }
 
 pub async fn render(files: &Vec<MarkDownFile>) {
+    use html_editor::operation::*;
+
     // 1. Ensure output dir exists and it's fresh
     let cwd = current_dir().unwrap();
     let output_dir = Path::new(&cwd).join("output");
@@ -82,6 +84,15 @@ pub async fn render(files: &Vec<MarkDownFile>) {
     // 3. Render markdown files to html
     //    Preserve the directory structure
     for file in files {
+        // 5. Calculate path to output file
+        //    cwd + output_dir + file path relative to cwd
+        //    Change ext from ".md" to ".html"
+        let mut out_file_path =
+            Path::new(&output_dir).join(Path::new(&file.path).strip_prefix(&cwd).unwrap());
+        out_file_path.set_extension("html");
+        // 6. Ensure dir tree exist and finally write the file
+        create_dir_all(&out_file_path.parent().unwrap()).ok();
+
         let html = to_html_with_options(
             &file.content,
             &Options {
@@ -94,17 +105,13 @@ pub async fn render(files: &Vec<MarkDownFile>) {
             },
         )
         .expect("Unable to parse Markdown file")
-        // 4. Replace .md with .html in links
-        //    We are going to save them as .html
         .replace(".md", ".html");
-        // 5. Calculate path to output file
-        //    cwd + output_dir + file path relative to cwd
-        //    Change ext from ".md" to ".html"
-        let mut out_file_path =
-            Path::new(&output_dir).join(Path::new(&file.path).strip_prefix(&cwd).unwrap());
-        out_file_path.set_extension("html");
-        // 6. Ensure dir tree exist and finally write the file
-        create_dir_all(&out_file_path.parent().unwrap()).ok();
-        write(&out_file_path, &html).unwrap();
+        let css = html_editor::Node::Text(include_str!("style.css").to_string());
+        let style: html_editor::Node = html_editor::Node::new_element("style", vec![], vec![css]);
+        let head: html_editor::Node = html_editor::Node::new_element("head", vec![], vec![style]);
+        let content = html_editor::Node::Text(html);
+        let body: html_editor::Node = html_editor::Node::new_element("body", vec![], vec![content]);
+        let document = html_editor::Node::new_element("html", vec![], vec![head, body]);
+        write(&out_file_path, &document.html()).unwrap();
     }
 }
