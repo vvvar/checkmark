@@ -1,6 +1,5 @@
 use async_std::stream::StreamExt;
 use common::MarkDownFile;
-use log::debug;
 use lychee_lib::{Collector, Input, InputSource::*, Request, Result};
 use markdown::to_html;
 use regex::Regex;
@@ -8,7 +7,6 @@ use std::collections::HashSet;
 use std::env::current_dir;
 use std::fs::{create_dir_all, remove_dir_all, write};
 use std::path::{Path, PathBuf};
-use std::str::FromStr;
 
 /// Collect links from file
 pub async fn collect_associated_files(files: &Vec<MarkDownFile>) -> Vec<PathBuf> {
@@ -46,8 +44,16 @@ pub async fn collect_associated_files(files: &Vec<MarkDownFile>) -> Vec<PathBuf>
                 Some(stripped_uri) => stripped_uri.to_string(),
                 None => uri,
             };
-            PathBuf::from_str(&uri).unwrap().canonicalize().unwrap()
+            if os_info::get().os_type().eq(&os_info::Type::Windows) {
+                uri = match uri.strip_prefix("/") {
+                    Some(stripped_uri) => stripped_uri.to_string(),
+                    None => uri,
+                };
+            }
+            uri
         })
+        .filter(|link| dunce::canonicalize(&link).is_ok())
+        .map(|link| dunce::canonicalize(&link).unwrap())
         .collect()
 }
 
@@ -55,8 +61,12 @@ fn copy_associated_files(files: &Vec<PathBuf>, output_dir: &PathBuf) {
     let cwd = current_dir().unwrap();
     for file in files {
         let out_file_path = Path::new(output_dir).join(file.strip_prefix(&cwd).unwrap());
-        create_dir_all(out_file_path.parent().unwrap()).ok();
-        std::fs::copy(file, out_file_path).unwrap();
+        if file.is_file() {
+            create_dir_all(out_file_path.parent().unwrap()).ok();
+            std::fs::copy(file, out_file_path).ok();
+        } else {
+            fs_extra::dir::copy(file, out_file_path, &fs_extra::dir::CopyOptions::new()).ok();
+        }
     }
 }
 

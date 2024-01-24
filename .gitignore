@@ -1,5 +1,6 @@
 .DS_Store
 /target
+/output
 .env
 report.sarif
 output.md
