@@ -1,7 +1,7 @@
 use async_std::stream::StreamExt;
 use common::MarkDownFile;
 use lychee_lib::{Collector, Input, InputSource::*, Request, Result};
-use markdown::to_html;
+use markdown::{to_html_with_options, Options};
 use regex::Regex;
 use std::collections::HashSet;
 use std::env::current_dir;
@@ -82,10 +82,21 @@ pub async fn render(files: &Vec<MarkDownFile>) {
     // 3. Render markdown files to html
     //    Preserve the directory structure
     for file in files {
-        let html = to_html(&file.content)
-            // 4. Replace .md with .html in links
-            //    We are going to save them as .html
-            .replace(".md", ".html");
+        let html = to_html_with_options(
+            &file.content,
+            &Options {
+                compile: markdown::CompileOptions {
+                    allow_dangerous_html: true,
+                    allow_dangerous_protocol: true,
+                    ..markdown::CompileOptions::gfm()
+                },
+                ..markdown::Options::gfm()
+            },
+        )
+        .expect("Unable to parse Markdown file")
+        // 4. Replace .md with .html in links
+        //    We are going to save them as .html
+        .replace(".md", ".html");
         // 5. Calculate path to output file
         //    cwd + output_dir + file path relative to cwd
         //    Change ext from ".md" to ".html"
