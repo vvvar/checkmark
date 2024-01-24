@@ -82,6 +82,21 @@ async fn main() -> Result<(), errors::AppError> {
                 tui.lock().unwrap().print_file_check_status(file);
             }
         }
+        cli::Subcommands::Render(_) => {
+            tui.lock().unwrap().start_spinner("Rendering...");
+            tui.lock().unwrap().set_custom_finish_message(
+                &"ʕっ•ᴥ•ʔっ Open out directory"
+                    .cyan()
+                    .bold()
+                    .to_string(),
+            );
+            checkmark_render::render(&files).await;
+            tui.lock().unwrap().print_file_check_status(&common::MarkDownFile {
+                path: "".to_string(),
+                content: "".to_string(),
+                issues: vec![],
+            });
+        }
         cli::Subcommands::Compose(compose_cmd) => {
             tui.lock().unwrap().start_spinner("Composing...");
             let output_file = match &compose_cmd.output {

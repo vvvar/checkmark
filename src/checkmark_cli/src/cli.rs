@@ -44,6 +44,10 @@ pub struct ReviewCommand {
 
 #[derive(Debug, clap::Parser)]
 #[command(long_about = None)]
+pub struct RenderCommand {}
+
+#[derive(Debug, clap::Parser)]
+#[command(long_about = None)]
 pub struct ComposeCommand {
     /// Describe what you want to write about
     #[arg(long, action, required = true)]
@@ -113,6 +117,8 @@ pub enum Subcommands {
     Lint(LintCommand),
     /// Reviews the document using OpenAI's API. Requires internet connection and OPEN_AI_API_KEY environment variable(.dotenv file is supported)
     Review(ReviewCommand),
+    /// Renders the document into desired format
+    Render(RenderCommand),
     /// Compose a file in Markdown format from a prompt
     Compose(ComposeCommand),
     /// Checks the document for spelling errors(offline)

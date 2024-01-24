@@ -99,6 +99,7 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
                 }
             }
         }
+        crate::cli::Subcommands::Render(_) => {}
         crate::cli::Subcommands::Compose(compose) => {
             if let Some(creativity) = compose.creativity {
                 if creativity > 100 {
