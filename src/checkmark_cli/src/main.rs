@@ -24,7 +24,7 @@ async fn main() -> Result<(), errors::AppError> {
 
     // When needed, force enable verbose logging
     let get_rust_log = |level: &str| {
-        format!("none,checkmark_cli={level},checkmark_fmt={level},checkmark_link_checker={level},checkmark_lint={level},checkmark_ls={level},checkmark_open_ai={level},checkmark_spelling={level},common={level}")
+        format!("none,checkmark_cli={level},checkmark_fmt={level},checkmark_link_checker={level},checkmark_lint={level},checkmark_ls={level},checkmark_open_ai={level},checkmark_spelling={level},checkmark_render={level},common={level}")
     };
     if cli.verbose {
         std::env::set_var("RUST_LOG", get_rust_log("debug"))
