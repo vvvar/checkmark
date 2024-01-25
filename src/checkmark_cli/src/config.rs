@@ -99,7 +99,15 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
                 }
             }
         }
-        crate::cli::Subcommands::Render(_) => {}
+        crate::cli::Subcommands::Render(render) => {
+            if let Some(output) = &render.output {
+                config.rendering.output = Some(output.clone());
+            }
+            if let Some(theme) = &render.theme {
+                config.rendering.theme = Some(theme.clone());
+            }
+            config.rendering.serve = render.serve;
+        }
         crate::cli::Subcommands::Compose(compose) => {
             if let Some(creativity) = compose.creativity {
                 if creativity > 100 {

@@ -87,7 +87,7 @@ async fn main() -> Result<(), errors::AppError> {
             tui.lock().unwrap().set_custom_finish_message(
                 &"ʕっ•ᴥ•ʔっ Open out directory".cyan().bold().to_string(),
             );
-            checkmark_render::render(&files).await;
+            checkmark_render::render(&files, &config).await;
             tui.lock()
                 .unwrap()
                 .print_file_check_status(&common::MarkDownFile {

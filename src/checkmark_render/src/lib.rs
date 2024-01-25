@@ -1,9 +1,11 @@
 use async_std::stream::StreamExt;
-use common::MarkDownFile;
+use common::{Config, MarkDownFile};
 use lychee_lib::{Collector, Input, InputSource::*, Request, Result};
 use markdown::{to_html_with_options, Options};
 use regex::Regex;
 use std::collections::HashSet;
+use std::collections::HashMap;
+use std::string::String;
 use std::env::current_dir;
 use std::fs::{create_dir_all, remove_dir_all, write};
 use std::path::{Path, PathBuf};
@@ -70,12 +72,63 @@ fn copy_associated_files(files: &Vec<PathBuf>, output_dir: &PathBuf) {
     }
 }
 
-pub async fn render(files: &Vec<MarkDownFile>) {
-    use html_editor::operation::*;
-
+pub async fn render(files: &Vec<MarkDownFile>, config: &Config) {
+    // Pre-build themes
+    let mut themes = HashMap::<String, String>::new();
+    themes.insert(
+        "black".to_string(),
+        include_str!("themes/black.css").to_string(),
+    );
+    themes.insert(
+        "book".to_string(),
+        include_str!("themes/book.css").to_string(),
+    );
+    themes.insert(
+        "classic".to_string(),
+        include_str!("themes/classic.css").to_string(),
+    );
+    themes.insert(
+        "funky".to_string(),
+        include_str!("themes/funky.css").to_string(),
+    );
+    themes.insert(
+        "gfm".to_string(),
+        include_str!("themes/gfm.css").to_string(),
+    );
+    themes.insert(
+        "grayscale".to_string(),
+        include_str!("themes/grayscale.css").to_string(),
+    );
+    themes.insert(
+        "newspaper".to_string(),
+        include_str!("themes/newspaper.css").to_string(),
+    );
+    themes.insert(
+        "paper".to_string(),
+        include_str!("themes/paper.css").to_string(),
+    );
+    themes.insert(
+        "publication".to_string(),
+        include_str!("themes/publication.css").to_string(),
+    );
+    themes.insert(
+        "tiny".to_string(),
+        include_str!("themes/tiny.css").to_string(),
+    );
+    themes.insert(
+        "typewriter".to_string(),
+        include_str!("themes/typewriter.css").to_string(),
+    );
+    themes.insert(
+        "whiteboard".to_string(),
+        include_str!("themes/whiteboard.css").to_string(),
+    );
     // 1. Ensure output dir exists and it's fresh
     let cwd = current_dir().unwrap();
-    let output_dir = Path::new(&cwd).join("output");
+    let output_dir = match &config.rendering.output {
+        Some(output_dir) => PathBuf::from(output_dir),
+        None => cwd.join("output"),
+    };
     remove_dir_all(&output_dir).ok();
     create_dir_all(&output_dir).ok();
     // 2. Find all associated files(images, assets, etc) and copy them to output dir
@@ -83,7 +136,8 @@ pub async fn render(files: &Vec<MarkDownFile>) {
     copy_associated_files(&collect_associated_files(&files).await, &output_dir);
     // 3. Render markdown files to html
     //    Preserve the directory structure
-    for file in files {
+    use rayon::prelude::*;
+    files.par_iter().for_each(|file| {
         // 5. Calculate path to output file
         //    cwd + output_dir + file path relative to cwd
         //    Change ext from ".md" to ".html"
@@ -92,7 +146,6 @@ pub async fn render(files: &Vec<MarkDownFile>) {
         out_file_path.set_extension("html");
         // 6. Ensure dir tree exist and finally write the file
         create_dir_all(&out_file_path.parent().unwrap()).ok();
-
         let html = to_html_with_options(
             &file.content,
             &Options {
@@ -106,12 +159,33 @@ pub async fn render(files: &Vec<MarkDownFile>) {
         )
         .expect("Unable to parse Markdown file")
         .replace(".md", ".html");
-        let css = html_editor::Node::Text(include_str!("style.css").to_string());
+        use html_editor::operation::*;
+        let css = match &config.rendering.theme {
+            Some(theme) => match themes.get(theme) {
+                Some(css) => html_editor::Node::Text(css.to_string()),
+                None => html_editor::Node::Text(include_str!("themes/typewriter.css").to_string()),
+            },
+            None => html_editor::Node::Text(include_str!("themes/typewriter.css").to_string()),
+        };
         let style: html_editor::Node = html_editor::Node::new_element("style", vec![], vec![css]);
         let head: html_editor::Node = html_editor::Node::new_element("head", vec![], vec![style]);
         let content = html_editor::Node::Text(html);
         let body: html_editor::Node = html_editor::Node::new_element("body", vec![], vec![content]);
         let document = html_editor::Node::new_element("html", vec![], vec![head, body]);
         write(&out_file_path, &document.html()).unwrap();
+    });
+    if config.rendering.serve {
+        println!("Serving files from {}", output_dir.display());
+        println!("Open http://localhost:8000 in your browser. Press Ctrl+C to stop.");
+        open::that("http://localhost:8000").ok();
+        rouille::start_server("localhost:8000", move |request| {
+            let response = rouille::match_assets(&request, &output_dir);
+            if response.is_success() {
+                return response;
+            } else {
+                let default_file = Path::new("/").join("README.html");
+                return rouille::Response::redirect_302(default_file.display().to_string());
+            }
+        });
     }
 }
