@@ -44,6 +44,20 @@ pub struct ReviewCommand {
 
 #[derive(Debug, clap::Parser)]
 #[command(long_about = None)]
+pub struct RenderCommand {
+    /// Path where rendered content should be saved
+    #[arg(long, value_hint=clap::ValueHint::AnyPath, default_value="./output")]
+    pub output: Option<String>,
+    /// CSS Theme to use
+    #[arg(long)]
+    pub theme: Option<String>,
+    /// Start the server and open the rendered document in the browser
+    #[arg(long, action)]
+    pub serve: bool,
+}
+
+#[derive(Debug, clap::Parser)]
+#[command(long_about = None)]
 pub struct ComposeCommand {
     /// Describe what you want to write about
     #[arg(long, action, required = true)]
@@ -99,7 +113,7 @@ pub struct SpellcheckCommand {
 #[command(long_about = None)]
 pub struct GenerateConfigCommand {
     /// Path where config file should be saved
-    #[arg(global = true, value_hint=clap::ValueHint::AnyPath, default_value=".")]
+    #[arg(value_hint=clap::ValueHint::AnyPath, default_value=".")]
     pub path: String,
 }
 
@@ -113,6 +127,8 @@ pub enum Subcommands {
     Lint(LintCommand),
     /// Reviews the document using OpenAI's API. Requires internet connection and OPEN_AI_API_KEY environment variable(.dotenv file is supported)
     Review(ReviewCommand),
+    /// Renders the document into desired format
+    Render(RenderCommand),
     /// Compose a file in Markdown format from a prompt
     Compose(ComposeCommand),
     /// Checks the document for spelling errors(offline)

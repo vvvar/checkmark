@@ -24,7 +24,7 @@ async fn main() -> Result<(), errors::AppError> {
 
     // When needed, force enable verbose logging
     let get_rust_log = |level: &str| {
-        format!("none,checkmark_cli={level},checkmark_fmt={level},checkmark_link_checker={level},checkmark_lint={level},checkmark_ls={level},checkmark_open_ai={level},checkmark_spelling={level},common={level}")
+        format!("none,checkmark_cli={level},checkmark_fmt={level},checkmark_link_checker={level},checkmark_lint={level},checkmark_ls={level},checkmark_open_ai={level},checkmark_spelling={level},checkmark_render={level},common={level}")
     };
     if cli.verbose {
         std::env::set_var("RUST_LOG", get_rust_log("debug"))
@@ -81,6 +81,20 @@ async fn main() -> Result<(), errors::AppError> {
                 );
                 tui.lock().unwrap().print_file_check_status(file);
             }
+        }
+        cli::Subcommands::Render(_) => {
+            tui.lock().unwrap().start_spinner("Rendering...");
+            tui.lock().unwrap().set_custom_finish_message(
+                &"ʕっ•ᴥ•ʔっ Open out directory".cyan().bold().to_string(),
+            );
+            checkmark_render::render(&files, &config).await;
+            tui.lock()
+                .unwrap()
+                .print_file_check_status(&common::MarkDownFile {
+                    path: "".to_string(),
+                    content: "".to_string(),
+                    issues: vec![],
+                });
         }
         cli::Subcommands::Compose(compose_cmd) => {
             tui.lock().unwrap().start_spinner("Composing...");

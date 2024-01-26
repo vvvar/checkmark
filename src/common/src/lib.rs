@@ -465,6 +465,9 @@ pub struct Config {
     pub review: ReviewConfig,
 
     #[serde(default)]
+    pub rendering: RenderingConfig,
+
+    #[serde(default)]
     pub spelling: SpellingConfig,
 
     #[serde(default)]
@@ -563,6 +566,18 @@ pub struct ReviewConfig {
 
     #[serde(default)]
     pub creativity: Option<u8>,
+}
+
+#[derive(Debug, Default, Clone, serde::Deserialize)]
+pub struct RenderingConfig {
+    #[serde(default)]
+    pub output: Option<String>,
+
+    #[serde(default)]
+    pub theme: Option<String>,
+
+    #[serde(default)]
+    pub serve: bool,
 }
 
 #[derive(Debug, Default, Clone, serde::Deserialize)]
