@@ -65,7 +65,7 @@ impl Themes {
     pub fn get(&self, theme: &Option<String>) -> String {
         let default_theme = "typewriter";
         match theme {
-            Some(name) => match self.preinstalled_themes.get(name) {
+            Some(name) => match self.preinstalled_themes.get(&name.to_lowercase()) {
                 Some(css) => css.clone().to_string(),
                 None => self
                     .preinstalled_themes

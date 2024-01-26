@@ -1,6 +1,6 @@
 # checkmark
 
-Checkmark is a CLI tool designed to streamline your Markdown workflow. It provides a suite of features including auto-formatting, linting, AI-assisted document review, link checking, spell checking, and AI-assisted document composition.
+Checkmark is a CLI tool designed to streamline your Markdown workflow. It provides a suite of features including auto-formatting, linting, AI-assisted document review, link checking, spell checking, AI-assisted document composition and HTML rendering.
 
 ![main](./assets/fmt.svg)
 
@@ -14,6 +14,7 @@ Checkmark is a tool designed to help maintain high-quality Markdown documentatio
 - **review**: Uses OpenAI's API to review your documents, providing AI-assisted insights and suggestions. Requires OpenAI API key.
 - **compose**: Assists in composing new Markdown documents from a prompt in a context of an existing document. Powered by OpenAI. Requires OpenAI API key.
 - **spelling**: Check your documents for spelling errors.
+- **render**: Convert your documents into HTML. Suitable for deploying to a simple HTTP server.
 - **remote check**: Check documents from the remote Git repository.
 - **CI mode**: Turns off interactive prompts and outputs reports in a format suitable for CI/CD pipelines.
 
@@ -217,6 +218,34 @@ Run this command to see a full list of review options:
 
 ```sh
 checkmark spellcheck --help
+```
+
+### `render`
+
+Recursively render all Markdown files inside the current directory with into HTML:
+
+```sh
+checkmark render .
+```
+
+This will collect all Markdown files and convert them into HTML. Results will be stored in the `output` folder. If you need to render them in another folder, then use `--output` flag:
+
+```sh
+checkmark render . --out custom_colder
+```
+
+Additionally, you can switch between themes with `--theme` flag:
+
+```sh
+checkmark render . --theme gfm
+```
+
+A list of themes is available [here](./src/checkmark_render/src/themes).
+
+Run this command to see a full list of render options:
+
+```sh
+checkmark render --help
 ```
 
 ### `generate-config`
