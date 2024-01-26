@@ -8,10 +8,6 @@ impl Themes {
     pub fn create() -> Self {
         let mut themes = HashMap::<String, String>::new();
         themes.insert(
-            "black".to_string(),
-            include_str!("themes/black.css").to_string(),
-        );
-        themes.insert(
             "book".to_string(),
             include_str!("themes/book.css").to_string(),
         );
@@ -20,8 +16,8 @@ impl Themes {
             include_str!("themes/classic.css").to_string(),
         );
         themes.insert(
-            "funky".to_string(),
-            include_str!("themes/funky.css").to_string(),
+            "funk".to_string(),
+            include_str!("themes/funk.css").to_string(),
         );
         themes.insert(
             "gfm".to_string(),
@@ -42,6 +38,10 @@ impl Themes {
         themes.insert(
             "publication".to_string(),
             include_str!("themes/publication.css").to_string(),
+        );
+        themes.insert(
+            "space".to_string(),
+            include_str!("themes/space.css").to_string(),
         );
         themes.insert(
             "tiny".to_string(),

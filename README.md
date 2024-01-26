@@ -231,7 +231,7 @@ checkmark render .
 This will collect all Markdown files and convert them into HTML. Results will be stored in the `output` folder. If you need to render them in another folder, then use `--output` flag:
 
 ```sh
-checkmark render . --out custom_colder
+checkmark render . --out custom_folder
 ```
 
 Additionally, you can switch between themes with `--theme` flag:
@@ -240,7 +240,7 @@ Additionally, you can switch between themes with `--theme` flag:
 checkmark render . --theme gfm
 ```
 
-A list of themes is available [here](./src/checkmark_render/src/themes).
+A list of themes is available [here](./docs/THEMES.md).
 
 Run this command to see a full list of render options:
 

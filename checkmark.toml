@@ -21,7 +21,7 @@ timeout=10
 max_retries=1
 
 [linter]
-allowed_html_tags =[]
+allowed_html_tags=["img"]
 
 [review]                          
 no_suggestions=false
@@ -31,16 +31,4 @@ creativity=10
 creativity=80
 
 [spelling]
-words_whitelist=[
-    "additnal",
-    "API",
-    "behavior",
-    "checkmark",
-    "dotenv",
-    "OpenAI",
-    "GoogleTest",
-    "CLI",
-    "URL",
-    "SARIF",
-    "OPEN_AI_API_KEY"
-]
+words_whitelist=[]
