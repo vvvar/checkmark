@@ -553,6 +553,9 @@ pub struct StyleConfig {
     pub unordered_lists: UnorderedListStyle,
 
     #[serde(default)]
+    pub num_spaces_after_list_marker: Option<u8>,
+
+    #[serde(default)]
     pub bold: BoldStyle,
 }
 

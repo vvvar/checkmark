@@ -155,6 +155,9 @@ pub struct Cli {
     /// Style: Type of unordered list style to enforce. Possible values are: "dash", "asterisk", "plus" or "consistent"
     #[arg(global = true, long, required = false)]
     pub style_unordered_lists: Option<String>,
+    /// Style: Amount of spaces to use after list markers. Defaults to 1
+    #[arg(global = true, long, required = false)]
+    pub style_num_spaces_after_list_marker: Option<u8>,
     /// Style: Type of bold element style to enforce. Possible values are: "asterisk", "underscore" or "consistent"
     #[arg(global = true, long, required = false)]
     pub style_bold: Option<String>,

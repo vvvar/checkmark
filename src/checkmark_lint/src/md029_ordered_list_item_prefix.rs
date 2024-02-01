@@ -72,7 +72,22 @@ fn increases_prefix_in_numerical_order(l: &List, source: &str) -> bool {
     increasing_in_num_order
 }
 
-fn two_lists_split_by_code(root: &markdown::mdast::Node) -> Option<markdown::unist::Position> {
+// Determine the case when we have for ex.:
+//
+// 1. One
+//    ```text
+//    Code block
+//    ```
+// 2. Two
+//
+// or:
+//
+// 1. One
+//    > Quote
+// 2. Two
+fn two_lists_split_by_code_or_block_quote(
+    root: &markdown::mdast::Node,
+) -> Option<markdown::unist::Position> {
     let mut stack: VecDeque<&Node> = VecDeque::new();
     for el in root.children().unwrap() {
         if stack.len() >= 3 {
@@ -88,10 +103,13 @@ fn two_lists_split_by_code(root: &markdown::mdast::Node) -> Option<markdown::uni
                 }
             }
         }
-        let mut is_second_code = false;
+        let mut is_second_code_or_quote = false;
         if let Some(el) = stack.get(1) {
             if let Node::Code(_) = el {
-                is_second_code = true;
+                is_second_code_or_quote = true;
+            }
+            if let Node::BlockQuote(_) = el {
+                is_second_code_or_quote = true;
             }
         }
         let mut is_third_list = false;
@@ -102,7 +120,7 @@ fn two_lists_split_by_code(root: &markdown::mdast::Node) -> Option<markdown::uni
                 }
             }
         }
-        if is_first_list && is_second_code && is_third_list {
+        if is_first_list && is_second_code_or_quote && is_third_list {
             return Some(stack.get(1).unwrap().position().unwrap().clone());
         }
     }
@@ -140,13 +158,14 @@ pub fn md029_ordered_list_item_prefix(file: &MarkDownFile) -> Vec<Violation> {
         })
         .map(|h| violation_builder().position(&h.position).build())
         .collect::<Vec<Violation>>();
-    if let Some(position) = two_lists_split_by_code(&ast) {
+    if let Some(position) = two_lists_split_by_code_or_block_quote(&ast) {
         violations.push(
             violation_builder()
                 .position(&Some(position.clone()))
-                .message("Improperly-indented code block appears between two list items and breaks the list in two")
+                .message("Improperly-indented code block or quote appears between two list items and breaks the list in two")
+                .rationale("Parsers could miss-interpret list and render them as two separate lists.")
                 .set_fixes(vec![
-                    "Indent the code block so it becomes part of the preceding list item as intended".to_string()
+                    "Indent the code block or quote so it becomes part of the preceding list item as intended".to_string()
                 ])
                 .build()
         );
@@ -309,12 +328,19 @@ mod tests {
     #[test]
     fn md029_detect_list_items_separated_by_element() {
         // Happy paths
-        let two_lists = "1. First list\n\n```text\nCode block\n```\n\n1. Second list\n";
-        assert!(two_lists_split_by_code(&parse(&two_lists).unwrap()).is_some());
+        let two_lists_and_code = "1. First list\n\n```text\nCode block\n```\n\n1. Second list\n";
+        assert!(
+            two_lists_split_by_code_or_block_quote(&parse(&two_lists_and_code).unwrap()).is_some()
+        );
+
+        let two_lists_quote = "1. First list\n\n> Quote\n\n1. Second list\n";
+        assert!(
+            two_lists_split_by_code_or_block_quote(&parse(&two_lists_quote).unwrap()).is_some()
+        );
 
         // Negative cases
         let one_list = "1. First list\n1. Second list\n";
-        assert!(!two_lists_split_by_code(&parse(&one_list).unwrap()).is_some());
+        assert!(!two_lists_split_by_code_or_block_quote(&parse(&one_list).unwrap()).is_some());
     }
 
     #[test]
@@ -356,6 +382,14 @@ mod tests {
    ```
 
 2. Still first list
+
+# Valid. With break and quote
+
+1. First list
+
+   > Quote
+
+2. Still first list
 ",
             ),
             issues: vec![],
@@ -394,9 +428,10 @@ Code block
                 .position(&Some(markdown::unist::Position::new(4, 1, 26, 6, 1, 47)))
                 .build(),
             violation_builder()
-                .message("Improperly-indented code block appears between two list items and breaks the list in two")
+                .message("Improperly-indented code block or quote appears between two list items and breaks the list in two")
+                .rationale("Parsers could miss-interpret list and render them as two separate lists.")
                 .set_fixes(vec![
-                    "Indent the code block so it becomes part of the preceding list item as intended".to_string()
+                    "Indent the code block or quote so it becomes part of the preceding list item as intended".to_string()
                 ])
                 .position(&Some(markdown::unist::Position::new(11, 1, 95, 13, 4, 117)))
                 .build()

@@ -9,6 +9,7 @@ exclude = [
 [style]
 headings="consistent"
 unordered_lists="consistent"
+num_spaces_after_list_marker=1
 bold="consistent"
 
 [fmt]

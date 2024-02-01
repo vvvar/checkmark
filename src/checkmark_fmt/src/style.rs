@@ -40,10 +40,29 @@ pub enum StrongStyle {
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
+#[allow(dead_code)]
+pub struct HeaderOptions {
+    pub style: HeaderStyle,
+}
+
+#[derive(Debug, Clone, Default, PartialEq)]
+#[allow(dead_code)]
+pub struct ListOptions {
+    pub sign_style: ListSignStyle,
+    pub num_spaces_after_list_marker: u8,
+}
+
+#[derive(Debug, Clone, Default, PartialEq)]
+#[allow(dead_code)]
+pub struct StrongOptions {
+    pub style: StrongStyle,
+}
+
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct FormattingOptions {
-    pub list_sign_style: ListSignStyle,
-    pub header_style: HeaderStyle,
-    pub strong_style: StrongStyle,
+    pub header: HeaderOptions,
+    pub list: ListOptions,
+    pub strong: StrongOptions,
 }
 
 /// It is possible to pass single "~" and it wold be interpreted

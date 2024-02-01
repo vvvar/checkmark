@@ -147,6 +147,9 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
             log::warn!("Unknown unordered list style: {}", &style_unordered_lists);
         }
     }
+    if let Some(num_spaces_after_list_marker) = cli.style_num_spaces_after_list_marker {
+        config.style.num_spaces_after_list_marker = Some(num_spaces_after_list_marker);
+    }
     if let Some(style_bold) = &cli.style_bold {
         if style_bold.eq("consistent") {
             config.style.bold = common::BoldStyle::Consistent;

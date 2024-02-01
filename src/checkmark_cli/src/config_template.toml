@@ -21,6 +21,10 @@ headings="consistent"
 # Possible values are: "asterisk", "plus", "dash" or "consistent"
 # Reference: https://www.markdownguide.org/basic-syntax/#lists-1
 unordered_lists="consistent"
+# Amount of spaces to use after list markers. Defaults to 1.
+# WARN: It is highly unrecommended to change this value because
+#       some parsers may start miss-interpreting your lists
+num_spaces_after_list_marker=1
 # Bold(string) emphasis.
 # Possible values are: "asterisk", "underscore" or "consistent"
 # Reference: https://www.markdownguide.org/basic-syntax/#bold

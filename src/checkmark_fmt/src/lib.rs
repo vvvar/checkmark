@@ -168,7 +168,7 @@ fn to_md(
             }
         }
         Node::Heading(heading) => {
-            if HeaderStyle::Atx == options.header_style {
+            if HeaderStyle::Atx == options.header.style {
                 buffer.push_str("#".repeat(heading.depth as usize).as_str());
                 buffer.push(' ');
             }
@@ -176,7 +176,7 @@ fn to_md(
                 to_md(child, buffer, context, source, options);
             }
             buffer.push('\n');
-            if HeaderStyle::SetExt == options.header_style {
+            if HeaderStyle::SetExt == options.header.style {
                 if heading.depth == 1 {
                     buffer.push_str("=============");
                 } else {
@@ -288,10 +288,11 @@ fn to_md(
             if let Context::List(ctx) = context {
                 buffer.push_str(&"  ".repeat(ctx.nesting_level));
                 if ctx.is_ordered {
-                    buffer.push_str(&format!("{}. ", ctx.num_item));
+                    buffer.push_str(&format!("{}.", ctx.num_item));
                 } else {
-                    buffer.push_str(&format!("{} ", options.list_sign_style.as_str()));
+                    buffer.push_str(&format!("{}", options.list.sign_style.as_str()));
                 }
+                buffer.push_str(&" ".repeat(options.list.num_spaces_after_list_marker as usize));
                 match li.checked {
                     Some(is_checked) => match is_checked {
                         true => buffer.push_str("[x] "),
@@ -375,14 +376,14 @@ fn to_md(
             buffer.push('*');
         }
         Node::Strong(s) => {
-            match options.strong_style {
+            match options.strong.style {
                 StrongStyle::Asterisk => buffer.push_str("**"),
                 StrongStyle::Underscore => buffer.push_str("__"),
             }
             for child in &s.children {
                 to_md(child, buffer, context, source, options);
             }
-            match options.strong_style {
+            match options.strong.style {
                 StrongStyle::Asterisk => buffer.push_str("**"),
                 StrongStyle::Underscore => buffer.push_str("__"),
             }
@@ -620,129 +621,141 @@ pub fn fmt_markdown(file: &common::MarkDownFile, config: &common::Config) -> com
 
     log::debug!("Constructing formatting options");
     let fmt_options = FormattingOptions {
-        list_sign_style: match config.style.unordered_lists {
-            common::UnorderedListStyle::Consistent => {
-                log::debug!("Detect unordered list style in {:#?}", &file.path);
+        list: ListOptions {
+            sign_style: match config.style.unordered_lists {
+                common::UnorderedListStyle::Consistent => {
+                    log::debug!("Detect unordered list style in {:#?}", &file.path);
 
-                let ast = common::parse(&file.content).unwrap();
-                let mut unordered_list_items: Vec<&mdast::ListItem> = vec![];
-                common::for_each(&ast, |node| {
-                    if let mdast::Node::List(l) = node {
-                        if l.ordered == false {
-                            for child in &l.children {
-                                if let mdast::Node::ListItem(li) = child {
-                                    unordered_list_items.push(li);
+                    let ast = common::parse(&file.content).unwrap();
+                    let mut unordered_list_items: Vec<&mdast::ListItem> = vec![];
+                    common::for_each(&ast, |node| {
+                        if let mdast::Node::List(l) = node {
+                            if l.ordered == false {
+                                for child in &l.children {
+                                    if let mdast::Node::ListItem(li) = child {
+                                        unordered_list_items.push(li);
+                                    }
                                 }
                             }
                         }
-                    }
-                });
-                if let Some(first_unordered_list_item) = unordered_list_items.first() {
-                    log::debug!(
-                        "First unordered list item: {:#?}",
-                        &first_unordered_list_item
-                    );
+                    });
+                    if let Some(first_unordered_list_item) = unordered_list_items.first() {
+                        log::debug!(
+                            "First unordered list item: {:#?}",
+                            &first_unordered_list_item
+                        );
 
-                    let offset_start = first_unordered_list_item
-                        .position
-                        .as_ref()
-                        .unwrap()
-                        .start
-                        .offset;
-                    let offset_end = first_unordered_list_item
-                        .position
-                        .as_ref()
-                        .unwrap()
-                        .end
-                        .offset;
-                    let first_unordered_list_item_str =
-                        &file.content[offset_start..offset_end].trim();
-                    log::debug!(
-                        "Extracted first unordered list item from file: {:#?}",
-                        &first_unordered_list_item_str
-                    );
+                        let offset_start = first_unordered_list_item
+                            .position
+                            .as_ref()
+                            .unwrap()
+                            .start
+                            .offset;
+                        let offset_end = first_unordered_list_item
+                            .position
+                            .as_ref()
+                            .unwrap()
+                            .end
+                            .offset;
+                        let first_unordered_list_item_str =
+                            &file.content[offset_start..offset_end].trim();
+                        log::debug!(
+                            "Extracted first unordered list item from file: {:#?}",
+                            &first_unordered_list_item_str
+                        );
 
-                    if first_unordered_list_item_str.starts_with('*') {
-                        log::debug!("First unordered list item has asterisk style");
-                        ListSignStyle::Asterisk
-                    } else if first_unordered_list_item_str.starts_with('+') {
-                        log::debug!("First unordered list item has plus style");
-                        ListSignStyle::Plus
+                        if first_unordered_list_item_str.starts_with('*') {
+                            log::debug!("First unordered list item has asterisk style");
+                            ListSignStyle::Asterisk
+                        } else if first_unordered_list_item_str.starts_with('+') {
+                            log::debug!("First unordered list item has plus style");
+                            ListSignStyle::Plus
+                        } else {
+                            log::debug!("First unordered list style is neither asterisk nor plus, defaulting to dash");
+                            ListSignStyle::Minus
+                        }
                     } else {
-                        log::debug!("First unordered list style is neither asterisk nor plus, defaulting to dash");
+                        log::debug!("File has no unordered lists, defaulting to dash");
                         ListSignStyle::Minus
                     }
-                } else {
-                    log::debug!("File has no unordered lists, defaulting to dash");
-                    ListSignStyle::Minus
                 }
-            }
-            common::UnorderedListStyle::Asterisk => ListSignStyle::Asterisk,
-            common::UnorderedListStyle::Plus => ListSignStyle::Plus,
-            common::UnorderedListStyle::Dash => ListSignStyle::Minus,
+                common::UnorderedListStyle::Asterisk => ListSignStyle::Asterisk,
+                common::UnorderedListStyle::Plus => ListSignStyle::Plus,
+                common::UnorderedListStyle::Dash => ListSignStyle::Minus,
+            },
+            num_spaces_after_list_marker: match config.style.num_spaces_after_list_marker {
+                Some(n) => n,
+                None => 1,
+            },
         },
-        header_style: match config.style.headings {
-            common::HeadingStyle::Consistent => {
-                log::debug!("Detecting heading style from the file {:#?}", &file.path);
+        header: HeaderOptions {
+            style: match config.style.headings {
+                common::HeadingStyle::Consistent => {
+                    log::debug!("Detecting heading style from the file {:#?}", &file.path);
 
-                let ast = common::parse(&file.content).unwrap();
-                let mut headings: Vec<&mdast::Heading> = vec![];
-                common::for_each(&ast, |node| {
-                    if let mdast::Node::Heading(h) = node {
-                        headings.push(h);
-                    }
-                });
-                if let Some(first_heading) = headings.first() {
-                    log::debug!("First heading in a file: {:#?}", &first_heading);
+                    let ast = common::parse(&file.content).unwrap();
+                    let mut headings: Vec<&mdast::Heading> = vec![];
+                    common::for_each(&ast, |node| {
+                        if let mdast::Node::Heading(h) = node {
+                            headings.push(h);
+                        }
+                    });
+                    if let Some(first_heading) = headings.first() {
+                        log::debug!("First heading in a file: {:#?}", &first_heading);
 
-                    if is_heading_atx(first_heading, &file.content) {
-                        log::debug!("First heading has ATX style");
-                        HeaderStyle::Atx
+                        if is_heading_atx(first_heading, &file.content) {
+                            log::debug!("First heading has ATX style");
+                            HeaderStyle::Atx
+                        } else {
+                            log::debug!("First heading has SetExt style");
+                            HeaderStyle::SetExt
+                        }
                     } else {
-                        log::debug!("First heading has SetExt style");
-                        HeaderStyle::SetExt
+                        log::debug!("There are no headings in a file, defaulting to ATX");
+                        HeaderStyle::Atx
                     }
-                } else {
-                    log::debug!("There are no headings in a file, defaulting to ATX");
-                    HeaderStyle::Atx
                 }
-            }
-            common::HeadingStyle::Setext => HeaderStyle::SetExt,
-            common::HeadingStyle::Atx => HeaderStyle::Atx,
+                common::HeadingStyle::Setext => HeaderStyle::SetExt,
+                common::HeadingStyle::Atx => HeaderStyle::Atx,
+            },
         },
-        strong_style: match config.style.bold {
-            common::BoldStyle::Consistent => {
-                log::debug!(
-                    "Detecting bold(strong) style from the file {:#?}",
-                    &file.path
-                );
+        strong: StrongOptions {
+            style: match config.style.bold {
+                common::BoldStyle::Consistent => {
+                    log::debug!(
+                        "Detecting bold(strong) style from the file {:#?}",
+                        &file.path
+                    );
 
-                let ast = common::parse(&file.content).unwrap();
-                let mut strong_els: Vec<&mdast::Strong> = vec![];
-                common::for_each(&ast, |node| {
-                    if let mdast::Node::Strong(s) = node {
-                        strong_els.push(s);
-                    }
-                });
-                if let Some(first_strong_el) = strong_els.first() {
-                    log::debug!("First bold(strong) el in a file: {:#?}", &first_strong_el);
+                    let ast = common::parse(&file.content).unwrap();
+                    let mut strong_els: Vec<&mdast::Strong> = vec![];
+                    common::for_each(&ast, |node| {
+                        if let mdast::Node::Strong(s) = node {
+                            strong_els.push(s);
+                        }
+                    });
+                    if let Some(first_strong_el) = strong_els.first() {
+                        log::debug!("First bold(strong) el in a file: {:#?}", &first_strong_el);
 
-                    if is_string_underscored(first_strong_el, &file.content) {
-                        log::debug!("First bold(strong) el is underscored");
-                        StrongStyle::Underscore
+                        if is_string_underscored(first_strong_el, &file.content) {
+                            log::debug!("First bold(strong) el is underscored");
+                            StrongStyle::Underscore
+                        } else {
+                            log::debug!(
+                                "First bold(strong) not underscored, defaulting to the asterisk"
+                            );
+                            StrongStyle::Asterisk
+                        }
                     } else {
                         log::debug!(
-                            "First bold(strong) not underscored, defaulting to the asterisk"
+                            "There are no bold(strong) els in a file, defaulting to asterisk"
                         );
                         StrongStyle::Asterisk
                     }
-                } else {
-                    log::debug!("There are no bold(strong) els in a file, defaulting to asterisk");
-                    StrongStyle::Asterisk
                 }
-            }
-            common::BoldStyle::Asterisk => StrongStyle::Asterisk,
-            common::BoldStyle::Underscore => StrongStyle::Underscore,
+                common::BoldStyle::Asterisk => StrongStyle::Asterisk,
+                common::BoldStyle::Underscore => StrongStyle::Underscore,
+            },
         },
     };
     log::debug!("Formatting options: {:#?}", &fmt_options);
