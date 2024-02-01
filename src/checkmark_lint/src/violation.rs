@@ -70,6 +70,11 @@ impl ViolationBuilder {
         self
     }
 
+    pub fn set_fixes(mut self, fixes: Vec<String>) -> ViolationBuilder {
+        self.fixes = fixes.clone();
+        self
+    }
+
     pub fn push_fix(mut self, fix: &str) -> ViolationBuilder {
         self.fixes.push(fix.to_owned());
         self
