@@ -1,6 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
 use common::{find_offset_by_line_number, MarkDownFile};
-use regex::Regex;
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
@@ -12,23 +11,39 @@ fn violation_builder() -> ViolationBuilder {
         .is_fmt_fixable(true)
 }
 
-// Returns true if the line ends
-// with atx heading without one
-// space before hash symbol
+fn remove_trailing_suffix(s: &str, c: char) -> String {
+    let mut result = String::from(s);
+    while result.ends_with(c) {
+        if let Some(s) = result.strip_suffix(c) {
+            result = s.to_string()
+        }
+    }
+    result
+}
+
+// Returns true if the line is an ATX heading
+// without one space before a closing hash symbol
 // Example: "## Heading##"
-fn ends_with_atx_heading_without_space(text: &str) -> bool {
-    // Pattern: start of the line followed by one or more hash
-    //          characters followed by on or more of any characters
-    //          that ens with non-whitespace character followed by
-    //          one or more hash characters
-    Regex::new(r"^#+.+\S#.").unwrap().is_match(text)
+fn closed_atx_without_space_before_closing_hash(text: &str) -> bool {
+    // Detect ATX headings
+    if text.starts_with('#') {
+        let mut heading = String::from(text);
+        heading = remove_trailing_suffix(&heading, ' ');
+        // Detect closing style ATX headings
+        if heading.ends_with('#') {
+            heading = remove_trailing_suffix(&heading, '#');
+            !heading.ends_with(' ')
+        } else {
+            false
+        }
+    } else {
+        false
+    }
 }
 
 fn to_issue(line_number: usize, line: &str, file: &str) -> Violation {
-    // +/- 1 whitespace
-    let offset_start =
-        find_offset_by_line_number(file, line_number) + line.rfind(' ').unwrap_or(0) + 1;
-    let offset_end = find_offset_by_line_number(file, line_number + 1) - 1;
+    let offset_start = find_offset_by_line_number(file, line_number);
+    let offset_end = find_offset_by_line_number(file, line_number) + line.len();
     violation_builder()
         .position(&Some(markdown::unist::Position::new(
             line_number,
@@ -46,7 +61,7 @@ pub fn md020_no_space_inside_hashes_on_closed_atx_heading(file: &MarkDownFile) -
     file.content
         .lines()
         .enumerate()
-        .filter(|(_, line)| ends_with_atx_heading_without_space(line))
+        .filter(|(_, line)| closed_atx_without_space_before_closing_hash(line))
         .map(|(i, line)| to_issue(i, line, &file.content))
         .collect()
 }
@@ -55,6 +70,16 @@ pub fn md020_no_space_inside_hashes_on_closed_atx_heading(file: &MarkDownFile) -
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
+
+    #[test]
+    pub fn md020_detect_atx_heading_ends_with_without_space() {
+        // Detects invalid headings
+        assert!(closed_atx_without_space_before_closing_hash("## Heading##"));
+        // Do not complains about valid headings
+        assert!(!closed_atx_without_space_before_closing_hash(
+            "#### Via Conan"
+        ));
+    }
 
     #[test]
     pub fn md020() {
@@ -66,7 +91,7 @@ mod tests {
 
         assert_eq!(
             vec![violation_builder()
-                .position(&Some(markdown::unist::Position::new(0, 1, 12, 0, 1, 15)))
+                .position(&Some(markdown::unist::Position::new(0, 1, 0, 0, 1, 15)))
                 .build(),],
             md020_no_space_inside_hashes_on_closed_atx_heading(&file)
         );
