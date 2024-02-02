@@ -58,10 +58,20 @@ fn to_issue(line_number: usize, line: &str, file: &str) -> Violation {
 
 pub fn md020_no_space_inside_hashes_on_closed_atx_heading(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD020] File: {:#?}", &file.path);
+    let mut is_code_block = false;
     file.content
         .lines()
         .enumerate()
-        .filter(|(_, line)| closed_atx_without_space_before_closing_hash(line))
+        .filter(|(_, line)| {
+            if line.contains("```") {
+                is_code_block = !is_code_block;
+            }
+            if is_code_block {
+                false
+            } else {
+                closed_atx_without_space_before_closing_hash(line)
+            }
+        })
         .map(|(i, line)| to_issue(i, line, &file.content))
         .collect()
 }
@@ -82,7 +92,7 @@ mod tests {
     }
 
     #[test]
-    pub fn md020() {
+    pub fn md020_e2e() {
         let file = common::MarkDownFile {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
             content: "##  Heading 2##".to_string(),
@@ -93,6 +103,24 @@ mod tests {
             vec![violation_builder()
                 .position(&Some(markdown::unist::Position::new(0, 1, 0, 0, 1, 15)))
                 .build(),],
+            md020_no_space_inside_hashes_on_closed_atx_heading(&file)
+        );
+    }
+
+    #[test]
+    pub fn md020_skip_code_blocks() {
+        let file = common::MarkDownFile {
+            path: String::from("this/is/a/dummy/path/to/a/file.md"),
+            content: "
+```txt
+## Still Valid##
+```"
+            .to_string(),
+            issues: vec![],
+        };
+
+        assert_eq!(
+            Vec::<Violation>::new(),
             md020_no_space_inside_hashes_on_closed_atx_heading(&file)
         );
     }
