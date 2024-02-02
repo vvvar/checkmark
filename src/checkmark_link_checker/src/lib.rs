@@ -32,12 +32,17 @@ pub async fn check(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
         let request = request.clone();
         let timeout = Duration::from_secs(client_config.timeout);
         let accepted = HashSet::from_iter(client_config.accepted_status_codes.clone().into_iter());
+        let user_agent = match config.link_checker.user_agent {
+            Some(ref user_agent) => user_agent.clone(),
+            None => "checkmark".to_string(),
+        };
         let client = ClientBuilder::builder()
             .timeout(timeout)
             .include_mail(client_config.check_emails)
             .accepted(accepted)
             .max_retries(client_config.max_retries)
             .github_token(client_config.github_token.clone())
+            .user_agent(user_agent.clone())
             .build()
             .client()
             .unwrap();

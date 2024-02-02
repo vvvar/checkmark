@@ -612,6 +612,9 @@ pub struct LinkCheckerConfig {
 
     #[serde(default = "get_default_check_emails")]
     pub check_emails: bool,
+
+    #[serde(default)]
+    pub user_agent: Option<String>,
 }
 
 #[derive(Debug, Default, Clone, serde::Deserialize)]

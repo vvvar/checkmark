@@ -91,6 +91,9 @@ pub struct LinkcheckCommand {
     /// Optional GitHub token used for GitHub links. This allows much more request before getting rate-limited
     #[arg(long)]
     pub github_token: Option<String>,
+    /// Optional user agent to use for HTTP requests
+    #[arg(long)]
+    pub user_agent: Option<String>,
 }
 
 #[derive(Debug, clap::Parser)]

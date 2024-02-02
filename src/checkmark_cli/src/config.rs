@@ -80,6 +80,9 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
             if let Some(github_token) = &links.github_token {
                 config.link_checker.github_token = Some(github_token.clone());
             }
+            if let Some(user_agent) = &links.user_agent {
+                config.link_checker.user_agent = Some(user_agent.clone());
+            }
         }
         crate::cli::Subcommands::Lint(lint) => {
             if !lint.allowed_html_tags.is_empty() {
