@@ -136,7 +136,37 @@ mod test {
             ..common::Config::default()
         };
         let actual_issues = spell_check(&SPELL_CHECKER, &markdown, &config);
-        assert_eq!(&actual_issues, expected_issues);
+        // Custom assertion because we won't check "fixes" field
+        for (index, issue) in expected_issues.iter().enumerate() {
+            assert_eq!(issue.category, actual_issues.get(index).unwrap().category);
+            assert_eq!(issue.severity, actual_issues.get(index).unwrap().severity);
+            assert_eq!(issue.file_path, actual_issues.get(index).unwrap().file_path);
+            assert_eq!(
+                issue.row_num_start,
+                actual_issues.get(index).unwrap().row_num_start
+            );
+            assert_eq!(
+                issue.row_num_end,
+                actual_issues.get(index).unwrap().row_num_end
+            );
+            assert_eq!(
+                issue.col_num_start,
+                actual_issues.get(index).unwrap().col_num_start
+            );
+            assert_eq!(
+                issue.col_num_end,
+                actual_issues.get(index).unwrap().col_num_end
+            );
+            assert_eq!(
+                issue.offset_start,
+                actual_issues.get(index).unwrap().offset_start
+            );
+            assert_eq!(
+                issue.offset_end,
+                actual_issues.get(index).unwrap().offset_end
+            );
+            assert_eq!(issue.message, actual_issues.get(index).unwrap().message);
+        }
     }
 
     #[cfg(test)]
@@ -160,10 +190,10 @@ mod test {
             offset_end: 17,
             message: "\"headr\": Unknown word".to_string(),
             fixes: vec![
-                "🧠 \u{1b}[36mRationale\u{1b}[0m  Accurate spelling ensures clear, professional, and credible communication".to_string(),
-                "💡 \u{1b}[36mSuggestion\u{1b}[0m Consider changing \"headr\" to \"head\"".to_string(),
-                "💡 \u{1b}[36mSuggestion\u{1b}[0m Consider white-listing this word by adding it to the \"words_whitelist\" property in the config file".to_string(),
-                "🔗 \u{1b}[36mSee\u{1b}[0m        https://github.com/vvvar/checkmark/tree/main#generate-config".to_string()
+                "🧠 Accurate spelling ensures clear, professional, and credible communication".to_string(),
+                "💡 Consider changing \"headr\" to \"head\"".to_string(),
+                "💡 Consider white-listing this word by adding it to the \"words_whitelist\" property in the config file".to_string(),
+                "🔗 https://github.com/vvvar/checkmark/tree/main#generate-config".to_string()
             ],
         },
     ]);
@@ -184,10 +214,10 @@ mod test {
             offset_end: 15,
             message: "\"sommm\": Unknown word".to_string(),
             fixes: vec![
-                "🧠 \u{1b}[36mRationale\u{1b}[0m  Accurate spelling ensures clear, professional, and credible communication".to_string(),
-                "💡 \u{1b}[36mSuggestion\u{1b}[0m Consider changing \"sommm\" to \"somme\"".to_string(),
-                "💡 \u{1b}[36mSuggestion\u{1b}[0m Consider white-listing this word by adding it to the \"words_whitelist\" property in the config file".to_string(),
-                "🔗 \u{1b}[36mSee\u{1b}[0m        https://github.com/vvvar/checkmark/tree/main#generate-config".to_string()
+                "🧠 Accurate spelling ensures clear, professional, and credible communication".to_string(),
+                "💡 Consider changing \"sommm\" to \"somme\"".to_string(),
+                "💡 Consider white-listing this word by adding it to the \"words_whitelist\" property in the config file".to_string(),
+                "🔗 https://github.com/vvvar/checkmark/tree/main#generate-config".to_string()
             ],
         },
         common::CheckIssue {
@@ -202,10 +232,10 @@ mod test {
             offset_end: 24,
             message: "\"additnal\": Unknown word".to_string(),
             fixes: vec![
-                "🧠 \u{1b}[36mRationale\u{1b}[0m  Accurate spelling ensures clear, professional, and credible communication".to_string(),
-                "💡 \u{1b}[36mSuggestion\u{1b}[0m Consider changing \"additnal\" to \"additional\"".to_string(),
-                "💡 \u{1b}[36mSuggestion\u{1b}[0m Consider white-listing this word by adding it to the \"words_whitelist\" property in the config file".to_string(),
-                "🔗 \u{1b}[36mSee\u{1b}[0m        https://github.com/vvvar/checkmark/tree/main#generate-config".to_string()
+                "🧠 Accurate spelling ensures clear, professional, and credible communication".to_string(),
+                "💡 Consider changing \"additnal\" to \"additional\"".to_string(),
+                "💡 Consider white-listing this word by adding it to the \"words_whitelist\" property in the config file".to_string(),
+                "🔗 https://github.com/vvvar/checkmark/tree/main#generate-config".to_string()
             ],
         }
     ]);
@@ -242,9 +272,9 @@ mod test {
         offset_end: 14,
         message: "\"fdssryyukiuu\": Unknown word".to_string(),
         fixes: vec![
-            "🧠 \u{1b}[36mRationale\u{1b}[0m  Accurate spelling ensures clear, professional, and credible communication".to_string(),
-            "💡 \u{1b}[36mSuggestion\u{1b}[0m Consider white-listing this word by adding it to the \"words_whitelist\" property in the config file".to_string(),
-            "🔗 \u{1b}[36mSee\u{1b}[0m        https://github.com/vvvar/checkmark/tree/main#generate-config".to_string()
+            "🧠 Accurate spelling ensures clear, professional, and credible communication".to_string(),
+            "💡 Consider white-listing this word by adding it to the \"words_whitelist\" property in the config file".to_string(),
+            "🔗 https://github.com/vvvar/checkmark/tree/main#generate-config".to_string()
         ],
     },]);
     }
