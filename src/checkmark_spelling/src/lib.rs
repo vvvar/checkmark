@@ -75,10 +75,10 @@ pub fn spell_check(
     file: &MarkDownFile,
     config: &common::Config,
 ) -> Vec<CheckIssue> {
-    log::debug!("Checking spelling for file {:#?}", &file);
+    log::debug!("Checking spelling for file {:#?}", &file.path);
     text_to_words(&file.content)
         .par_iter()
-        .map(|word| (word, check_spelling(&spell_checker, &word.value)))
+        .map(|word| (word, check_spelling(spell_checker, &word.value)))
         .filter(|(_, result)| result.is_err())
         .map(|(word, result)| (word, result.unwrap_err()))
         .map(|(word, suggestions)| to_check_issue(word, &file.path, &config.location, &suggestions))
@@ -92,10 +92,11 @@ pub fn spell_check_bulk(
     tui: &Arc<Mutex<CheckProgressTUI>>,
 ) {
     tui.lock().unwrap().start_spinner("Checking spelling...");
+    log::debug!("Initializing spell checker...");
     let spell_checker = create_spell_checker(&config.spelling.words_whitelist);
     files.par_iter_mut().for_each(|file| {
         file.issues
-            .append(&mut spell_check(&spell_checker, file, &config));
+            .append(&mut spell_check(&spell_checker, file, config));
         tui.lock().unwrap().print_file_check_status(file);
     });
 }

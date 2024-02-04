@@ -26,9 +26,7 @@ pub fn handle_response(
         Status::Error(error_kind) => {
             match error_kind {
                 // Network error while handling request
-                ErrorKind::NetworkRequest(error) => {
-                    network_request_error::handle(file, &uri, error)
-                }
+                ErrorKind::NetworkRequest(error) => network_request_error::handle(file, uri, error),
                 // Cannot read the body of the received response
                 ErrorKind::ReadResponseBody(error) => {
                     debug!("{uri} respond OK, but unable to read response body, error: {error}");
@@ -103,7 +101,7 @@ pub fn handle_response(
                     vec![]
                 }
                 // The given URI cannot be converted to a file path
-                ErrorKind::InvalidFilePath(_) => invalid_file_path::handle(file, &uri),
+                ErrorKind::InvalidFilePath(_) => invalid_file_path::handle(file, uri),
                 // The given path cannot be converted to a URI
                 ErrorKind::InvalidUrlFromPath(uri_path) => {
                     debug!("{:#?} request error given path cannot be converted to a URI, uri_path: {:#?}", &uri, &uri_path);
@@ -111,7 +109,7 @@ pub fn handle_response(
                 }
                 // The given mail address is unreachable
                 ErrorKind::UnreachableEmailAddress(_, email) => {
-                    unreachable_email::handle(file, &uri, &email)
+                    unreachable_email::handle(file, uri, email)
                 }
                 // The given header could not be parsed.
                 ErrorKind::InvalidHeader(header) => {
@@ -202,7 +200,7 @@ pub fn handle_response(
         }
         // Request timed out
         Status::Timeout(_) => {
-            request_timeout::handle(file, &uri, client_config.timeout, client_config.max_retries)
+            request_timeout::handle(file, uri, client_config.timeout, client_config.max_retries)
         }
         // Got redirected to different resource
         Status::Redirected(status_code) => {

@@ -126,7 +126,6 @@ pub async fn ls(
 
                 match glob::glob(&glob_pattern) {
                     Ok(search_results) => {
-                        log::debug!("Glob search results: {:#?}", &search_results);
                         for search_result in search_results {
                             match search_result {
                                 Ok(markdown_file_path) => {
@@ -173,18 +172,15 @@ pub async fn ls(
     }
 
     // Filter files by exclude patterns
-    markdown_files = markdown_files
-        .into_iter()
-        .filter(|markdown_file| {
-            for exclude_pattern in exclude {
-                if wildmatch::WildMatch::new(exclude_pattern).matches(markdown_file.path.as_str()) {
-                    log::debug!("Ignoring {:#?}", &markdown_file.path);
-                    return false;
-                }
+    markdown_files.retain(|markdown_file| {
+        for exclude_pattern in exclude {
+            if wildmatch::WildMatch::new(exclude_pattern).matches(markdown_file.path.as_str()) {
+                log::debug!("Ignoring {:#?}", &markdown_file.path);
+                return false;
             }
-            return true;
-        })
-        .collect();
+        }
+        true
+    });
 
     markdown_files
 }

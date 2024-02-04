@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 
 /// Collect all links from files
 /// that are pointing to other files or directories
-pub async fn collect(files: &Vec<MarkDownFile>) -> Vec<PathBuf> {
+pub async fn collect(files: &[MarkDownFile]) -> Vec<PathBuf> {
     let input = files
         .iter()
         .map(|file| Input {
@@ -45,15 +45,15 @@ pub async fn collect(files: &Vec<MarkDownFile>) -> Vec<PathBuf> {
                 None => uri,
             };
             if os_info::get().os_type().eq(&os_info::Type::Windows) {
-                uri = match uri.strip_prefix("/") {
+                uri = match uri.strip_prefix('/') {
                     Some(stripped_uri) => stripped_uri.to_string(),
                     None => uri,
                 };
             }
             uri
         })
-        .filter(|link| dunce::canonicalize(&link).is_ok())
-        .map(|link| dunce::canonicalize(&link).unwrap())
+        .filter(|link| dunce::canonicalize(link).is_ok())
+        .map(|link| dunce::canonicalize(link).unwrap())
         .collect()
 }
 
@@ -78,6 +78,6 @@ pub fn copy(files: &Vec<PathBuf>, output_dir: &PathBuf) {
 }
 
 // Convenience function
-pub async fn collect_and_copy(files: &Vec<MarkDownFile>, dest: &PathBuf) {
-    copy(&collect(&files).await, &dest);
+pub async fn collect_and_copy(files: &[MarkDownFile], dest: &PathBuf) {
+    copy(&collect(files).await, dest);
 }

@@ -21,7 +21,7 @@ fn assert_spaces_after_list_marker(l: &ListItem, source: &str, expected_num_spac
     let mut text = source.get(offset_start..offset_end).unwrap_or("");
     // Strip list marker. Pattern:
     // Either: numbered list,"*"-prefixed, "-"-prefixed or "+"-prefixed
-    if let Some(matched) = Regex::new(r"(\b.\.|\*|\-|\+)").unwrap().find(&text) {
+    if let Some(matched) = Regex::new(r"(\b.\.|\*|\-|\+)").unwrap().find(text) {
         text = text.get(matched.end()..).unwrap_or("");
     }
     let mut ident: u8 = 0;
@@ -50,7 +50,7 @@ pub fn md030_spaces_after_list_markers(
     log::debug!("[MD030] List items: {:#?}", &list_items);
     list_items
         .iter()
-        .filter(|li| !assert_spaces_after_list_marker(&li, &file.content, expected_num_spaces))
+        .filter(|li| !assert_spaces_after_list_marker(li, &file.content, expected_num_spaces))
         .map(|li| {
             violation_builder()
                 .position(&li.position)

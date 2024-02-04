@@ -59,7 +59,7 @@ pub fn md003_heading_style(file: &MarkDownFile, style: &HeadingStyle) -> Vec<Vio
     let preferred_style = match style {
         HeadingStyle::Consistent => {
             if let Some(h) = headings.first() {
-                get_heading_style(&h, &file.content)
+                get_heading_style(h, &file.content)
             } else {
                 HeadingStyle::Atx
             }
@@ -80,25 +80,25 @@ pub fn md003_heading_style(file: &MarkDownFile, style: &HeadingStyle) -> Vec<Vio
 
     headings
         .iter()
-        .filter(|h| get_heading_style(&h, &file.content).ne(&preferred_style))
+        .filter(|h| get_heading_style(h, &file.content).ne(&preferred_style))
         .map(|h| {
             let mut violation = violation_builder();
             if style.eq(&HeadingStyle::Consistent) {
                 violation = violation.message(&format!(
                     "Inconsistent headings style. First heading in this file is {:#?}, but this one is {:#?}",
                     preferred_style.as_str(),
-                    get_heading_style(&h, &file.content).as_str()
+                    get_heading_style(h, &file.content).as_str()
                 ))
             } else {
                 violation = violation.message(&format!(
                     "Wrong heading style. Expected {:#?}, got {:#?}",
                     input_style_string,
-                    get_heading_style(&h, &file.content).as_str()
+                    get_heading_style(h, &file.content).as_str()
                 ))
             }
             violation
                 .push_fix(&format!("Change heading style to {:#?}", preferred_style.as_str()))
-                .push_fix(&format!("Alternatively, you can enforce specific heading style via either \"headings\" option from the \"[style]\" section in config file or via \"--style-headings\" CLI option"))
+                .push_fix("Alternatively, you can enforce specific heading style via either \"headings\" option from the \"[style]\" section in config file or via \"--style-headings\" CLI option")
                 .position(&h.position)
                 .build()
         })

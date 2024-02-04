@@ -24,7 +24,7 @@ pub fn md010_hard_tabs(file: &MarkDownFile) -> Vec<Violation> {
             if is_code_block {
                 false
             } else {
-                line.contains("\t")
+                line.contains('\t')
             }
         })
         .map(|(i, line)| {

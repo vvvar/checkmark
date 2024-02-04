@@ -64,10 +64,10 @@ pub fn md004_unordered_list_style(
         let text = source
             .get(offset_start..offset_end)
             .unwrap_or("")
-            .replace(" ", "");
-        if text.starts_with("*") {
+            .replace(' ', "");
+        if text.starts_with('*') {
             UnorderedListStyle::Asterisk
-        } else if text.starts_with("+") {
+        } else if text.starts_with('+') {
             UnorderedListStyle::Plus
         } else {
             UnorderedListStyle::Dash
@@ -77,7 +77,7 @@ pub fn md004_unordered_list_style(
     let preferred_style = match style {
         UnorderedListStyle::Consistent => {
             if let Some(li) = unordered_list_items.first() {
-                get_list_item_style(&li, &file.content)
+                get_list_item_style(li, &file.content)
             } else {
                 UnorderedListStyle::Dash
             }
@@ -89,28 +89,28 @@ pub fn md004_unordered_list_style(
 
     unordered_list_items
         .iter()
-        .filter(|li| get_list_item_style(&li, &file.content).ne(&preferred_style))
+        .filter(|li| get_list_item_style(li, &file.content).ne(&preferred_style))
         .map(|li| {
             let mut violation = violation_builder()
                 .position(&li.position)
                 .message(&format!(
                     "Wrong unordered list item style. Expected {:#?}, got {:#?}",
                     &preferred_style.as_string(),
-                    get_list_item_style(&li, &file.content).as_string()
+                    get_list_item_style(li, &file.content).as_string()
                 ));
             if style.eq(&UnorderedListStyle::Consistent) {
                 violation = violation.push_fix(&format!(
                     "Unordered list item style is configured to be consistent across the document. First list item in document uses {:#?} symbol, but this one uses {:#?}. Consider replacing {:#?} with {:#?}",
                     &preferred_style.as_string(),
-                    get_list_item_style(&li, &file.content).as_string(),
-                    get_list_item_style(&li, &file.content).as_string(),
+                    get_list_item_style(li, &file.content).as_string(),
+                    get_list_item_style(li, &file.content).as_string(),
                     &preferred_style.as_string(),
                 ));
             } else {
                 violation = violation.push_fix(&format!(
                     "Unordered list item style is configured to use {:#?} symbol. Consider replacing {:#?} with {:#?}",
                     &preferred_style.as_string(),
-                    get_list_item_style(&li, &file.content).as_string(),
+                    get_list_item_style(li, &file.content).as_string(),
                     &preferred_style.as_string()
                 ));
             }

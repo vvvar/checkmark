@@ -40,8 +40,8 @@ pub async fn render(files: &Vec<MarkDownFile>, config: &Config) {
         );
         out_file_path.set_extension("html");
         // 5. Ensure dir tree exist and finally write the file
-        create_dir_all(&out_file_path.parent().unwrap()).ok();
-        write(&out_file_path, &md_to_html(file, config)).unwrap();
+        create_dir_all(out_file_path.parent().unwrap()).ok();
+        write(&out_file_path, md_to_html(file, config)).unwrap();
     });
     if config.rendering.serve {
         dev_server::run(&output_dir);

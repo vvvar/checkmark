@@ -52,8 +52,7 @@ pub async fn check(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
     join_all(requests)
         .await
         .iter()
-        .map(|(uri, response)| handle_response(file, uri, response, &client_config))
-        .flatten()
+        .flat_map(|(uri, response)| handle_response(file, uri, response, &client_config))
         .collect::<Vec<CheckIssue>>()
 }
 
@@ -62,7 +61,7 @@ pub struct BulkCheckResult {
     pub issues: Vec<CheckIssue>,
 }
 
-pub async fn bulk_check(files: &Vec<MarkDownFile>, config: &Config) -> Vec<BulkCheckResult> {
+pub async fn bulk_check(files: &[MarkDownFile], config: &Config) -> Vec<BulkCheckResult> {
     let checks = files.iter().map(|file| {
         let file_path = file.path.clone();
         let config_clone = config.clone();

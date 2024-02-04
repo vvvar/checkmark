@@ -7,7 +7,7 @@ use reqwest::StatusCode;
 pub fn handle(file: &MarkDownFile, uri: &str, error: &reqwest::Error) -> Vec<CheckIssue> {
     debug!("{uri} - handling network error: {error}");
     let mut issues: Vec<CheckIssue> = vec![];
-    for offset in find_all_links_in_file(file, &uri) {
+    for offset in find_all_links_in_file(file, uri) {
         let mut issue = CheckIssueBuilder::default()
             .set_category(IssueCategory::LinkChecking)
             .set_severity(IssueSeverity::Warning)

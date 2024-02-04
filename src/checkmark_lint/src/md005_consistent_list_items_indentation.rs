@@ -43,7 +43,7 @@ pub fn md005_consistent_list_items_indentation(file: &MarkDownFile) -> Vec<Viola
         let mut padding: usize = 0;
         for child in &l.children {
             if let Node::ListItem(li) = child {
-                padding = get_list_item_alignment(&li, source);
+                padding = get_list_item_alignment(li, source);
                 break;
             }
         }
@@ -61,13 +61,13 @@ pub fn md005_consistent_list_items_indentation(file: &MarkDownFile) -> Vec<Viola
     };
 
     let get_miss_aligned_items = |l: &List| -> Vec<ListItem> {
-        let expected_alignment = &first_list_item_alignment(&l, &file.content);
+        let expected_alignment = &first_list_item_alignment(l, &file.content);
         let mut miss_indented_items: Vec<ListItem> = vec![];
         let mut num_item: usize = l.start.unwrap_or(1) as usize;
         for child in &l.children {
             if let Node::ListItem(li) = child {
-                let actual_alignment = get_list_item_alignment(&li, &file.content);
-                if l.ordered && first_list_item_alignment(&l, &file.content) > 0 {
+                let actual_alignment = get_list_item_alignment(li, &file.content);
+                if l.ordered && first_list_item_alignment(l, &file.content) > 0 {
                     // When list is ordered and first item is indented then we assume that
                     // there could be two possible cases:
                     // 1. All items are indented the same, normal case
@@ -78,7 +78,7 @@ pub fn md005_consistent_list_items_indentation(file: &MarkDownFile) -> Vec<Viola
                     //    100. Hundred
                     // So, get max number in this list, calculate how many digits it has,
                     // subs from current digit and get possible additional alignment
-                    let max_num_item = get_max_num_item(&l);
+                    let max_num_item = get_max_num_item(l);
                     let digits_in_max_item =
                         max_num_item.checked_ilog10().unwrap_or(0) as usize + 1;
                     let digits_in_current_item =
@@ -92,10 +92,8 @@ pub fn md005_consistent_list_items_indentation(file: &MarkDownFile) -> Vec<Viola
                     {
                         miss_indented_items.push(li.clone());
                     }
-                } else {
-                    if actual_alignment.ne(expected_alignment) {
-                        miss_indented_items.push(li.clone());
-                    }
+                } else if actual_alignment.ne(expected_alignment) {
+                    miss_indented_items.push(li.clone());
                 }
                 num_item += 1;
             }
@@ -105,15 +103,15 @@ pub fn md005_consistent_list_items_indentation(file: &MarkDownFile) -> Vec<Viola
 
     lists.iter()
         .filter(|l| !get_miss_aligned_items(l).is_empty())
-        .map(|l| {
-            let expected_alignment = &first_list_item_alignment(&l, &file.content);
+        .flat_map(|l| {
+            let expected_alignment = &first_list_item_alignment(l, &file.content);
             get_miss_aligned_items(l).iter().map(|miss_indented_item|
                 violation_builder()
                     .position(&miss_indented_item.position)
                     .message(&format!(
                         "Inconsistent indentation for list items at the same level. Expected {} spaces, got {} spaces",
                         &expected_alignment,
-                        get_list_item_alignment(&miss_indented_item, &file.content)
+                        get_list_item_alignment(miss_indented_item, &file.content)
                     ))
                     .push_fix(&format!(
                         "Align list item to be indented with {:#?} spaces",
@@ -122,7 +120,6 @@ pub fn md005_consistent_list_items_indentation(file: &MarkDownFile) -> Vec<Viola
                     .build())
             .collect::<Vec<Violation>>()
         })
-        .flatten()
         .collect::<Vec<Violation>>()
 }
 

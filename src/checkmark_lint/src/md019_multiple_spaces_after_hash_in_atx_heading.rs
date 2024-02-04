@@ -41,7 +41,7 @@ pub fn md019_multiple_spaces_after_hash_on_atx_style_heading(
 
     headings
         .iter()
-        .filter(|h| start_with_atx_heading_without_space(&h, &file.content))
+        .filter(|h| start_with_atx_heading_without_space(h, &file.content))
         .map(|h| violation_builder().position(&h.position).build())
         .collect()
 }

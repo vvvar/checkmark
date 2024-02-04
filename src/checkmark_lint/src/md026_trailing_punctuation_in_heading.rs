@@ -19,7 +19,7 @@ fn ends_with_trailing_punctuation(h: &Heading) -> bool {
     let mut buffer: String = String::new();
     let mut stack: Vec<&markdown::mdast::Node> = vec![];
     for child in &h.children {
-        stack.push(&child);
+        stack.push(child);
     }
     while let Some(current) = stack.pop() {
         if let Node::Text(t) = current {
@@ -48,7 +48,7 @@ pub fn md026_trailing_punctuation_in_heading(file: &MarkDownFile) -> Vec<Violati
 
     headings
         .iter()
-        .filter(|h| ends_with_trailing_punctuation(&h))
+        .filter(|h| ends_with_trailing_punctuation(h))
         .map(|h| violation_builder().position(&h.position).build())
         .collect::<Vec<Violation>>()
 }

@@ -71,7 +71,7 @@ pub fn md046_code_block_style(file: &MarkDownFile, style: &CodeBlockStyle) -> Ve
     let preferred_style = match style {
         CodeBlockStyle::Consistent => {
             if let Some(c) = code_blocks.first() {
-                get_code_block_style(&c, &file.content)
+                get_code_block_style(c, &file.content)
             } else {
                 CodeBlockStyle::Fenced
             }
@@ -86,10 +86,10 @@ pub fn md046_code_block_style(file: &MarkDownFile, style: &CodeBlockStyle) -> Ve
 
     code_blocks
         .iter()
-        .filter(|c| get_code_block_style(&c, &file.content).ne(&preferred_style))
+        .filter(|c| get_code_block_style(c, &file.content).ne(&preferred_style))
         .map(|c| {
             let expected_style = preferred_style.clone();
-            let actual_style = get_code_block_style(&c, &file.content);
+            let actual_style = get_code_block_style(c, &file.content);
             let mut violation = violation_builder()
                 .message(&format!("Wrong code block style. Expected {}, got {}", &expected_style.as_str(), &actual_style.as_str()));
             if style.eq(&CodeBlockStyle::Consistent) {
@@ -100,12 +100,12 @@ pub fn md046_code_block_style(file: &MarkDownFile, style: &CodeBlockStyle) -> Ve
                 violation = violation
                     .push_fix(&format!("Code block style is configured to be {}, but this one is {}", &expected_style.as_str(), &actual_style.as_str()));
             }
-            if expected_style.eq(&CodeBlockStyle::Fenced) && code_block_is_fenced_and_indented(&c, &file.content) {
+            if expected_style.eq(&CodeBlockStyle::Fenced) && code_block_is_fenced_and_indented(c, &file.content) {
                 // When code blocks are expected to be fenced it is ok to have
                 // a fenced block that with indentation. Most likely, the intent
                 // of the user was to have a fenced code block inside a list item.
                 // Thus give him a hint how to do it properly
-                violation = violation.push_fix(&format!("It seems that you are indenting a fenced code block. If your intent is to have a fenced code block within the list item, then please make sure that the code block is aligned with a list item.
+                violation = violation.push_fix("It seems that you are indenting a fenced code block. If your intent is to have a fenced code block within the list item, then please make sure that the code block is aligned with a list item.
 For example:
 
 - List item
@@ -114,7 +114,7 @@ For example:
    echo Hello
    ```
 
-Otherwise, remove the indentation from the code block."));
+Otherwise, remove the indentation from the code block.");
             } else {
                 violation = violation.push_fix(&format!("Consider changing it to the {} code block style", &expected_style.as_str()));
             }

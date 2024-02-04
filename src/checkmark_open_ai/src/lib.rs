@@ -37,7 +37,7 @@ pub async fn make_a_review(
         // Aggregate all responses into the single review
         .reduce(|acc, r| OpenAIReview {
             summary: r.summary,
-            suggestions: vec![r.suggestions.clone(), acc.suggestions].concat(),
+            suggestions: [r.suggestions.clone(), acc.suggestions].concat(),
         })
         // If not possible - return default review with empty suggestions
         .unwrap_or(OpenAIReview::default());

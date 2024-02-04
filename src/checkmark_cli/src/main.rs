@@ -102,10 +102,10 @@ async fn main() -> Result<(), errors::AppError> {
                 Some(path) => path.clone(),
                 None => "output.md".to_string(),
             };
-            let context = match &compose_cmd.context {
-                Some(path) => Some(std::fs::read_to_string(path).unwrap()),
-                None => None,
-            };
+            let context = compose_cmd
+                .context
+                .as_ref()
+                .map(|path| std::fs::read_to_string(path).unwrap());
             tui.lock().unwrap().set_custom_finish_message(
                 &"ʕっ•ᴥ•ʔっ Open a file to review the result"
                     .cyan()

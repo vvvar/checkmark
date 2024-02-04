@@ -5,7 +5,7 @@ use log::debug;
 pub fn handle(file: &MarkDownFile, uri: &str, timeout: u64, max_retries: u64) -> Vec<CheckIssue> {
     debug!("{uri} - handling request timeout");
     let mut issues: Vec<CheckIssue> = vec![];
-    for offset in find_all_links_in_file(file, &uri) {
+    for offset in find_all_links_in_file(file, uri) {
         let issue = CheckIssueBuilder::default()
             .set_category(IssueCategory::LinkChecking)
             .set_severity(IssueSeverity::Warning)

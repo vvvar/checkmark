@@ -42,9 +42,10 @@ impl ClientConfig {
     }
 
     fn github_token(config: &Config) -> Option<SecretString> {
-        match &config.link_checker.github_token {
-            Some(token) => Some(SecretString::from(token.clone())),
-            None => None,
-        }
+        config
+            .link_checker
+            .github_token
+            .as_ref()
+            .map(|token| SecretString::from(token.clone()))
     }
 }

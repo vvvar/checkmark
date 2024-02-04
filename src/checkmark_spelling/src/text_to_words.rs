@@ -28,7 +28,7 @@ pub struct Word {
 
 impl Display for Word {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        f.write_str(&self.value.as_ref())
+        f.write_str(self.value.as_ref())
     }
 }
 
@@ -43,48 +43,30 @@ impl PartialEq<&str> for Word {
 fn extract(node: &markdown::mdast::Text) -> Vec<Word> {
     node.value
         .split_ascii_whitespace()
-        .filter(|word| !is_url::is_url(&word))
-        .map(|w| w.split('-').collect::<Vec<_>>())
-        .flatten()
-        .map(|w| {
+        .filter(|word| !is_url::is_url(word))
+        .flat_map(|w| w.split('-').collect::<Vec<_>>())
+        .flat_map(|w| {
             if w.to_lowercase().contains("n't") {
                 vec![w]
             } else {
                 w.split('\'').collect::<Vec<_>>()
             }
         })
-        .flatten()
-        .map(|w| w.split('/').collect::<Vec<_>>())
-        .flatten()
-        .map(|w| w.split('(').collect::<Vec<_>>())
-        .flatten()
-        .map(|w| w.split(')').collect::<Vec<_>>())
-        .flatten()
-        .map(|w| w.split('{').collect::<Vec<_>>())
-        .flatten()
-        .map(|w| w.split('}').collect::<Vec<_>>())
-        .flatten()
-        .map(|w| w.split('[').collect::<Vec<_>>())
-        .flatten()
-        .map(|w| w.split(']').collect::<Vec<_>>())
-        .flatten()
-        .map(|w| w.split(',').collect::<Vec<_>>())
-        .flatten()
-        .map(|w| w.split('.').collect::<Vec<_>>())
-        .flatten()
-        .map(|w| w.split('!').collect::<Vec<_>>())
-        .flatten()
-        .map(|w| w.split('?').collect::<Vec<_>>())
-        .flatten()
-        .map(|w| w.split(':').collect::<Vec<_>>())
-        .flatten()
-        .map(|w| w.split('_').collect::<Vec<_>>())
-        .flatten()
-        .map(|w| w.split('"').collect::<Vec<_>>())
-        .flatten()
-        .map(|w| w.split('+').collect::<Vec<_>>())
-        .flatten()
-        // .map(|w| (w, remove_all_special_characters(w, true)))
+        .flat_map(|w| w.split('/').collect::<Vec<_>>())
+        .flat_map(|w| w.split('(').collect::<Vec<_>>())
+        .flat_map(|w| w.split(')').collect::<Vec<_>>())
+        .flat_map(|w| w.split('{').collect::<Vec<_>>())
+        .flat_map(|w| w.split('}').collect::<Vec<_>>())
+        .flat_map(|w| w.split('[').collect::<Vec<_>>())
+        .flat_map(|w| w.split(']').collect::<Vec<_>>())
+        .flat_map(|w| w.split(',').collect::<Vec<_>>())
+        .flat_map(|w| w.split('.').collect::<Vec<_>>())
+        .flat_map(|w| w.split('!').collect::<Vec<_>>())
+        .flat_map(|w| w.split('?').collect::<Vec<_>>())
+        .flat_map(|w| w.split(':').collect::<Vec<_>>())
+        .flat_map(|w| w.split('_').collect::<Vec<_>>())
+        .flat_map(|w| w.split('"').collect::<Vec<_>>())
+        .flat_map(|w| w.split('+').collect::<Vec<_>>())
         .map(|w| (w, w.to_lowercase()))
         .filter(|(_, escaped)| !escaped.is_empty())
         .filter(|(_, escaped)| !is_ignored_word(escaped))
@@ -130,11 +112,10 @@ fn extract(node: &markdown::mdast::Text) -> Vec<Word> {
 }
 
 pub fn text_to_words(text: &str) -> Vec<Word> {
-    let ast = parse(&text).unwrap();
+    let ast = parse(text).unwrap();
     filter_text_nodes(&ast)
         .par_iter()
-        .map(|text_node| extract(&text_node))
-        .flatten()
+        .flat_map(|text_node| extract(text_node))
         .collect()
 }
 

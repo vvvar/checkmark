@@ -2,8 +2,7 @@
 exclude = [         
     "*LICENSE*",
     "*/.github/*",
-    "*/tests/*",
-    "*/src/*",
+    "*/tests/*"
 ]
 
 [style]

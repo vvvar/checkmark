@@ -123,7 +123,7 @@ impl OpenAiRequestParameters {
             user_prompt: input.to_string(),
             response_format: resp_format.to_string(),
             creativity: match creativity {
-                Some(c) => c.clone(),
+                Some(c) => *c,
                 None => 10,
             },
             api_key: match api_key {

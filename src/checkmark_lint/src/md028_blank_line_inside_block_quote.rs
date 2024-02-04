@@ -39,8 +39,7 @@ pub fn md028_blank_line_inside_block_quote(file: &MarkDownFile) -> Vec<Violation
                 .get(current_block_quote_end_offset..next_block_quote_start_offset)
                 .unwrap_or("Blank");
             if text_between_block_quotes
-                .replace("\n", "")
-                .replace(" ", "")
+                .replace(['\n', ' '], "")
                 .is_empty()
             {
                 violations.push(

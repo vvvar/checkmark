@@ -96,11 +96,9 @@ fn two_lists_split_by_code_or_block_quote(
         stack.push_back(el);
 
         let mut is_first_list = false;
-        if let Some(el) = stack.get(0) {
-            if let Node::List(l) = el {
-                if l.ordered {
-                    is_first_list = true;
-                }
+        if let Some(Node::List(l)) = stack.front() {
+            if l.ordered {
+                is_first_list = true;
             }
         }
         let mut is_second_code_or_quote = false;
@@ -113,18 +111,16 @@ fn two_lists_split_by_code_or_block_quote(
             }
         }
         let mut is_third_list = false;
-        if let Some(el) = stack.get(2) {
-            if let Node::List(l) = el {
-                if l.ordered {
-                    is_third_list = true;
-                }
+        if let Some(Node::List(l)) = stack.get(2) {
+            if l.ordered {
+                is_third_list = true;
             }
         }
         if is_first_list && is_second_code_or_quote && is_third_list {
             return Some(stack.get(1).unwrap().position().unwrap().clone());
         }
     }
-    return None;
+    None
 }
 
 pub fn md029_ordered_list_item_prefix(file: &MarkDownFile) -> Vec<Violation> {

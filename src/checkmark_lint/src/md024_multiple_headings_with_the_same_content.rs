@@ -26,7 +26,7 @@ fn to_text(h: &Heading, source: &str) -> String {
 fn is_in(lhs: &Heading, slice: &[&Heading], source: &str) -> bool {
     slice
         .iter()
-        .any(|rhs| to_text(&lhs, &source).eq(&to_text(rhs, &source)))
+        .any(|rhs| to_text(lhs, source).eq(&to_text(rhs, source)))
 }
 
 pub fn md024_multiple_headings_with_the_same_content(file: &MarkDownFile) -> Vec<Violation> {

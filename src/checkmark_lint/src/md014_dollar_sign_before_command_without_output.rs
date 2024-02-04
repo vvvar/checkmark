@@ -14,15 +14,13 @@ fn violation_builder() -> ViolationBuilder {
 }
 
 fn is_code_start_always_with_dollar(code: &Code) -> bool {
-    code.value.lines().all(|line| line.starts_with("$"))
+    code.value.lines().all(|line| line.starts_with('$'))
 }
 
 fn to_issue(code: &Code) -> Violation {
     violation_builder()
         .position(&code.position)
-        .push_fix(&format!(
-            "The dollar signs are unnecessary in this situation, and should not be included"
-        ))
+        .push_fix("The dollar signs are unnecessary in this situation, and should not be included")
         .build()
 }
 

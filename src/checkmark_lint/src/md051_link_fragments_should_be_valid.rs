@@ -17,9 +17,9 @@ fn violation_builder() -> ViolationBuilder {
 /// For example: [About](#about-us)
 fn extract_links_with_fragments(ast: &Node) -> Vec<&Link> {
     let mut link_nodes: Vec<&Link> = vec![];
-    for_each(&ast, |node| {
+    for_each(ast, |node| {
         if let Node::Link(l) = node {
-            if l.url.starts_with("#") {
+            if l.url.starts_with('#') {
                 link_nodes.push(l);
             }
         }
@@ -30,7 +30,7 @@ fn extract_links_with_fragments(ast: &Node) -> Vec<&Link> {
 
 fn extract_headings(ast: &Node) -> Vec<&Heading> {
     let mut heading_nodes: Vec<&Heading> = vec![];
-    for_each(&ast, |node| {
+    for_each(ast, |node| {
         if let Node::Heading(h) = node {
             heading_nodes.push(h);
         }
@@ -53,11 +53,8 @@ fn heading_to_fragment(heading: &Heading) -> String {
         "#{}",
         &text
             .to_lowercase()
-            .replace(",", "")
-            .replace(".", "")
-            .replace("+", "")
-            .replace("&", "")
-            .replace(" ", "-")
+            .replace([',', '.', '+', '&'], "")
+            .replace(' ', "-")
     );
     text
 }
@@ -66,7 +63,7 @@ fn heading_to_fragment(heading: &Heading) -> String {
 /// At least one of them shall contain an anchor.
 fn extract_html_elements(ast: &Node) -> Vec<scraper::Node> {
     let mut html_elements: Vec<scraper::Node> = vec![];
-    for_each(&ast, |node| {
+    for_each(ast, |node| {
         if let Node::Html(h) = node {
             let fragment = scraper::Html::parse_fragment(&h.value);
             html_elements.append(&mut fragment.tree.clone().into_iter().collect::<Vec<_>>())
@@ -81,15 +78,15 @@ fn extract_html_elements(ast: &Node) -> Vec<scraper::Node> {
 ///   - has any HTML el with "id" attr or <a> el with "name" attribute that is == to the same fragment
 /// For every link that does not satisfy any of these conditions, returns a violation.
 fn find_violations(
-    links: &Vec<&Link>,
-    headings: &Vec<&Heading>,
-    html_els: &Vec<scraper::Node>,
+    links: &[&Link],
+    headings: &[&Heading],
+    html_els: &[scraper::Node],
 ) -> Vec<Violation> {
     // Does link fragment point to a header?
     let does_fragment_points_to_header = |anchor: &Link| {
         headings
             .iter()
-            .any(|heading| anchor.url.eq(&heading_to_fragment(&heading)))
+            .any(|heading| anchor.url.eq(&heading_to_fragment(heading)))
     };
     // Does anchor points to any other anchor in HTML <a id="#anchor"/>?
     let does_fragment_points_to_html = |link: &Link| {
@@ -109,9 +106,7 @@ fn find_violations(
     };
     let violations = links
         .iter()
-        .filter(|link| {
-            !does_fragment_points_to_header(&link) && !does_fragment_points_to_html(&link)
-        })
+        .filter(|link| !does_fragment_points_to_header(link) && !does_fragment_points_to_html(link))
         .map(|link| violation_builder().position(&link.position).build())
         .collect();
     log::debug!("[MD051] Violations: {:#?}", &violations);

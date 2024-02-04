@@ -85,6 +85,7 @@ impl ViolationBuilder {
         self
     }
 
+    #[allow(clippy::wrong_self_convention)]
     pub fn is_fmt_fixable(mut self, is_fmt_fixable: bool) -> ViolationBuilder {
         self.is_fmt_fixable = is_fmt_fixable;
         self

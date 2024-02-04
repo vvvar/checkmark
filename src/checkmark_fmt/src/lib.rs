@@ -35,7 +35,7 @@ fn calculate_max_col_len(table: &mdast::Table, source: &str) -> Vec<usize> {
             }
         }
     }
-    max_col_len.into_iter().map(|(_, size)| size).collect()
+    max_col_len.into_values().collect()
 }
 
 fn render_table_row(
@@ -44,12 +44,12 @@ fn render_table_row(
     context: &Context,
     source: &str,
     options: &FormattingOptions,
-    expected_col_lengths: &Vec<usize>,
+    expected_col_lengths: &[usize],
 ) {
     // Render a heading of the table
     buffer.push_str("| ");
     // Rows
-    for (i, child) in node.children().unwrap().into_iter().enumerate() {
+    for (i, child) in node.children().unwrap().iter().enumerate() {
         // Cols
         let len_before = buffer.len();
         for child in child.children().unwrap() {
@@ -59,7 +59,7 @@ fn render_table_row(
         let expected_len = len_before + expected_col_lengths.get(i).unwrap();
         if len_after < expected_len {
             // Fill missing with white spaces
-            buffer.push_str(&format!("{}", " ".repeat(expected_len - len_after)));
+            buffer.push_str(&" ".repeat(expected_len - len_after));
         }
         buffer.push_str(" | ");
     }
@@ -73,7 +73,7 @@ fn render_table_row(
 fn render_table_heading_separator(
     table: &mdast::Table,
     buffer: &mut String,
-    expected_col_lengths: &Vec<usize>,
+    expected_col_lengths: &[usize],
 ) {
     buffer.push('|');
     for (i, align) in table.align.iter().enumerate() {
@@ -84,18 +84,10 @@ fn render_table_heading_separator(
             2
         };
         match align {
-            AlignKind::Left => {
-                buffer.push_str(&format!(" :{} |", &format!("{}", "-".repeat(padding))))
-            }
-            AlignKind::Right => {
-                buffer.push_str(&format!(" {}: |", &format!("{}", "-".repeat(padding))))
-            }
-            AlignKind::Center => {
-                buffer.push_str(&format!(" :{}: |", &format!("{}", "-".repeat(padding - 1))))
-            }
-            AlignKind::None => {
-                buffer.push_str(&format!(" -{}- |", &format!("{}", "-".repeat(padding - 1))))
-            }
+            AlignKind::Left => buffer.push_str(&format!(" :{} |", &"-".repeat(padding))),
+            AlignKind::Right => buffer.push_str(&format!(" {}: |", &"-".repeat(padding))),
+            AlignKind::Center => buffer.push_str(&format!(" :{}: |", &"-".repeat(padding - 1))),
+            AlignKind::None => buffer.push_str(&format!(" -{}- |", &"-".repeat(padding - 1))),
         }
     }
     buffer.push('\n');
@@ -111,13 +103,13 @@ fn render_table_heading_separator(
 /// Do not escape: "-", "+", "!", "#", "{", "}", "(", ")", "_", and "." because render engines are mostly fine with them although they have a special meaning
 fn escape_special_characters(str: &str) -> String {
     str.replace('\t', " ")
-        .replace("\\", "\\\\")
-        .replace("|", "\\|")
-        .replace("*", "\\*")
-        .replace("[", "\\[")
-        .replace("]", "\\]")
-        .replace(">", "\\>")
-        .replace("<", "\\<")
+        .replace('\\', "\\\\")
+        .replace('|', "\\|")
+        .replace('*', "\\*")
+        .replace('[', "\\[")
+        .replace(']', "\\]")
+        .replace('>', "\\>")
+        .replace('<', "\\<")
 }
 
 /// Returns true when link it either auto or bare
@@ -290,15 +282,14 @@ fn to_md(
                 if ctx.is_ordered {
                     buffer.push_str(&format!("{}.", ctx.num_item));
                 } else {
-                    buffer.push_str(&format!("{}", options.list.sign_style.as_str()));
+                    buffer.push_str(options.list.sign_style.as_str());
                 }
                 buffer.push_str(&" ".repeat(options.list.num_spaces_after_list_marker as usize));
-                match li.checked {
-                    Some(is_checked) => match is_checked {
+                if let Some(is_checked) = li.checked {
+                    match is_checked {
                         true => buffer.push_str("[x] "),
                         false => buffer.push_str("[ ] "),
-                    },
-                    _ => {}
+                    }
                 }
                 if li.children.is_empty() {
                     // Special case when there's a list item without content
@@ -607,9 +598,9 @@ fn to_md(
             buffer.push('\n');
         }
         Node::Yaml(yaml) => {
-            buffer.push_str(&"---\n");
+            buffer.push_str("---\n");
             buffer.push_str(&yaml.value);
-            buffer.push_str(&"\n---\n");
+            buffer.push_str("\n---\n");
         }
         _ => panic!("Unexpected node type {node:#?}"),
     }
@@ -630,7 +621,7 @@ pub fn fmt_markdown(file: &common::MarkDownFile, config: &common::Config) -> com
                     let mut unordered_list_items: Vec<&mdast::ListItem> = vec![];
                     common::for_each(&ast, |node| {
                         if let mdast::Node::List(l) = node {
-                            if l.ordered == false {
+                            if !l.ordered {
                                 for child in &l.children {
                                     if let mdast::Node::ListItem(li) = child {
                                         unordered_list_items.push(li);
@@ -683,10 +674,7 @@ pub fn fmt_markdown(file: &common::MarkDownFile, config: &common::Config) -> com
                 common::UnorderedListStyle::Plus => ListSignStyle::Plus,
                 common::UnorderedListStyle::Dash => ListSignStyle::Minus,
             },
-            num_spaces_after_list_marker: match config.style.num_spaces_after_list_marker {
-                Some(n) => n,
-                None => 1,
-            },
+            num_spaces_after_list_marker: config.style.num_spaces_after_list_marker.unwrap_or(1),
         },
         header: HeaderOptions {
             style: match config.style.headings {
@@ -786,7 +774,7 @@ pub fn check_md_format(
     config: &common::Config,
 ) -> Vec<common::CheckIssue> {
     let mut issues: Vec<common::CheckIssue> = vec![];
-    let formatted = &fmt_markdown(file, &config);
+    let formatted = &fmt_markdown(file, config);
     if !file.content.eq(&formatted.content) {
         let mut issue = common::CheckIssueBuilder::default()
             .set_category(common::IssueCategory::Formatting)

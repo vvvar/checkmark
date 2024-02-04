@@ -358,22 +358,14 @@ pub fn filter_paragraph_nodes(ast: &markdown::mdast::Node) -> Vec<&markdown::mda
 pub fn find_index(source: &str, sub_str: &str) -> core::ops::Range<usize> {
     let mut index_start = 0;
     let mut index_end = source.len();
-    log::debug!("Searching {:#?}", &sub_str);
     if let Some(index) = source.find(sub_str) {
-        log::debug!("Found exact index: {:#?}", &index);
         index_start = index;
         index_end = sub_str.len() + index_start;
     } else {
-        log::debug!("Unable to find exact index, trying to guess");
         for line in source.lines() {
             if strsim::sorensen_dice(sub_str, line) > 0.5 {
                 index_start = source.find(line).unwrap();
                 index_end = source.len();
-                log::debug!(
-                    "Found the best guess line on index {:#?}:\n{:#?}",
-                    &index_start,
-                    &line
-                );
             }
         }
     }
@@ -406,7 +398,7 @@ pub fn find_offset_by_line_number(text: &str, line_number: usize) -> usize {
             break;
         }
     }
-    return pos;
+    pos
 }
 
 #[cfg(test)]
@@ -435,7 +427,7 @@ mod tests {
 /// Force activate debug logging
 pub fn activate_debug_logging() {
     std::env::set_var("RUST_LOG", "debug");
-    if let Ok(_) = env_logger::try_init() {}
+    env_logger::try_init().ok();
 }
 
 /// TOML config for checkmark
@@ -637,7 +629,6 @@ pub struct OpenAiConfig {
 
 /// Parse Markdown file into an AST
 pub fn parse(source: &str) -> Result<markdown::mdast::Node, String> {
-    log::debug!("Parsing file to an AST");
     let options = markdown::ParseOptions {
         constructs: markdown::Constructs {
             frontmatter: true,
@@ -645,5 +636,5 @@ pub fn parse(source: &str) -> Result<markdown::mdast::Node, String> {
         },
         ..markdown::ParseOptions::gfm()
     };
-    markdown::to_mdast(&source, &options)
+    markdown::to_mdast(source, &options)
 }
