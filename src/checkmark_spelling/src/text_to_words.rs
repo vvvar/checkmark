@@ -81,6 +81,8 @@ fn extract(node: &markdown::mdast::Text) -> Vec<Word> {
         .flatten()
         .map(|w| w.split('"').collect::<Vec<_>>())
         .flatten()
+        .map(|w| w.split('+').collect::<Vec<_>>())
+        .flatten()
         // .map(|w| (w, remove_all_special_characters(w, true)))
         .map(|w| (w, w.to_lowercase()))
         .filter(|(_, escaped)| !escaped.is_empty())
@@ -150,7 +152,7 @@ mod tests {
     #[test]
     fn extracting_words_from_text_node() {
         assert_eq!(
-            extract(&text_node("This/is a {test} 111")),
+            extract(&text_node("This/is a {test} 111+")),
             vec!["this", "is", "a", "test"]
         );
         assert_eq!(
