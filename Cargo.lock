@@ -864,6 +864,7 @@ dependencies = [
  "colored",
  "common",
  "env_logger",
+ "is-url",
  "log",
  "markdown",
  "pretty_assertions",

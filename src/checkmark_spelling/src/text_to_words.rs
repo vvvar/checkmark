@@ -43,6 +43,7 @@ impl PartialEq<&str> for Word {
 fn extract(node: &markdown::mdast::Text) -> Vec<Word> {
     node.value
         .split_ascii_whitespace()
+        .filter(|word| !is_url::is_url(&word))
         .map(|w| w.split('-').collect::<Vec<_>>())
         .flatten()
         .map(|w| {
@@ -156,7 +157,9 @@ mod tests {
             vec!["this", "is", "a", "test"]
         );
         assert_eq!(
-            extract(&text_node("Get, your [double-edged]: sword.")),
+            extract(&text_node(
+                "Get, https://totalbs.com your [double-edged]: sword."
+            )),
             vec!["get", "your", "double", "edged", "sword"]
         );
         assert_eq!(
