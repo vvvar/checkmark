@@ -867,6 +867,7 @@ dependencies = [
  "is-url",
  "log",
  "markdown",
+ "once_cell",
  "pretty_assertions",
  "rayon",
  "symspell",

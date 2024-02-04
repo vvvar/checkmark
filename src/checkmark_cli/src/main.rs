@@ -143,12 +143,7 @@ async fn main() -> Result<(), errors::AppError> {
             });
         }
         cli::Subcommands::Spellcheck(_) => {
-            tui.lock().unwrap().start_spinner("Checking spelling...");
-            files.par_iter_mut().for_each(|file| {
-                file.issues
-                    .append(&mut checkmark_spelling::spell_check(file, &config));
-                tui.lock().unwrap().print_file_check_status(file);
-            });
+            checkmark_spelling::spell_check_bulk(&mut files, &config, &tui)
         }
         cli::Subcommands::GenerateConfig(generate_config) => {
             let path = dunce::canonicalize(&generate_config.path)
