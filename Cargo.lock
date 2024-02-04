@@ -844,7 +844,6 @@ dependencies = [
  "log",
  "lychee-lib",
  "markdown",
- "normpath",
  "open",
  "os_info",
  "pretty_assertions",
@@ -854,7 +853,6 @@ dependencies = [
  "rouille",
  "secrecy",
  "tokio",
- "wildmatch",
 ]
 
 [[package]]
@@ -2967,15 +2965,6 @@ name = "normalize-line-endings"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61807f77802ff30975e01f4f071c8ba10c022052f98b3294119f3e615d13e5be"
-
-[[package]]
-name = "normpath"
-version = "1.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec60c60a693226186f5d6edf073232bfb6464ed97eb22cf3b01c1e8198fd97f5"
-dependencies = [
- "windows-sys 0.48.0",
-]
 
 [[package]]
 name = "num-bigint"
