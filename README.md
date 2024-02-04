@@ -40,6 +40,8 @@ Checkmark has a bunch of different commands. Each serves its purpose. Below you 
 
 ### `fmt`
 
+![fmt](./assets/fmt.svg)
+
 Recursively auto-format all Markdown files inside the current directory with:
 
 ```sh
@@ -65,6 +67,8 @@ checkmark fmt --help
 ```
 
 ### `review`
+
+![review](./assets/review.svg)
 
 `checkmark` is capable of reviewing your documentation using [Open AI](https://openai.com). First, you need to provide an OpenAI API Key. You can do it either via environment variable:
 
@@ -131,6 +135,8 @@ checkmark review --help
 
 ### `compose`
 
+![compose](./assets/compose.svg)
+
 `checkmark` is capable of composing documentation using [Open.AI](https://openai.com) based on your prompts with:
 
 ```sh
@@ -161,6 +167,8 @@ checkmark compose --help
 
 ### `linkcheck`
 
+![linkcheck](./assets/linkcheck.svg)
+
 Recursively check all links in Markdown files inside the current directory with:
 
 ```sh
@@ -184,6 +192,8 @@ checkmark linkcheck --help
 
 ### `lint`
 
+![lint](./assets/lint.svg)
+
 Recursively lint all Markdown files inside the current directory with:
 
 ```sh
@@ -199,6 +209,8 @@ checkmark lint --help
 ```
 
 ### `spellcheck`
+
+![spellcheck](./assets/spellcheck.svg)
 
 Recursively spell-check all Markdown files inside the current directory with:
 
