@@ -29,7 +29,7 @@ no_suggestions=false
 creativity=10
 
 [compose]
-creativity=80
+creativity=20
 
 [spelling]
 words_whitelist=["checkmark", "OpenAI"]

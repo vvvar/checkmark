@@ -122,10 +122,7 @@ impl OpenAiRequestParameters {
             role_prompt: role.to_string(),
             user_prompt: input.to_string(),
             response_format: resp_format.to_string(),
-            creativity: match creativity {
-                Some(c) => *c,
-                None => 10,
-            },
+            creativity: creativity.unwrap_or(10),
             api_key: match api_key {
                 Some(k) => k.clone(),
                 None => read_open_ai_api_key().expect("Unable to read Open AI API key"),
