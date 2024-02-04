@@ -7,8 +7,6 @@ use std::ops::Range;
 /// We want to ignore spell-checking for certain exceptions
 fn is_ignored_word(word: &str) -> bool {
     let is_number = |w: &str| w.chars().all(|c| c.is_numeric());
-    // let is_single_quoted = |w: &str| w.starts_with('\'') && w.ends_with('\'');
-    // let is_double_quoted = |w: &str| w.starts_with('\"') && w.ends_with('\"');
     is_number(word)
 }
 
