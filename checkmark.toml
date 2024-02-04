@@ -33,4 +33,4 @@ creativity=10
 creativity=80
 
 [spelling]
-words_whitelist=[]
+words_whitelist=["checkmark", "OpenAI"]

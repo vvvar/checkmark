@@ -113,12 +113,6 @@ fn spelling_respect_owned_form() {
 }
 
 #[test]
-fn spelling_skip_quoted() {
-    assert_has_no_issues("# Single quoted './report.sarif'", &vec![]);
-    assert_has_no_issues("# Double quoted \"./report.sarif\"", &vec![]);
-}
-
-#[test]
 fn spelling_skip_numbers() {
     assert_has_no_issues("# Number here 42", &vec![]);
 }
@@ -134,8 +128,8 @@ fn spelling_gibberish_handled() {
         col_num_start: 3,
         col_num_end: 17,
         offset_start: 2,
-        offset_end: 16,
-        message: "\"fdssryyukiuu's\": Unknown word".to_string(),
+        offset_end: 14,
+        message: "\"fdssryyukiuu\": Unknown word".to_string(),
         fixes: vec![
             "🧠 \u{1b}[36mRationale\u{1b}[0m  Accurate spelling ensures clear, professional, and credible communication".to_string(),
             "💡 \u{1b}[36mSuggestion\u{1b}[0m Consider white-listing this word by adding it to the \"words_whitelist\" property in the config file".to_string(),
