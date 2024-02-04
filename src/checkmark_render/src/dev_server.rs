@@ -1,7 +1,7 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-pub fn run(static_dir: &PathBuf) {
-    let static_dir = static_dir.clone();
+pub fn run(static_dir: &Path) {
+    let static_dir = static_dir.to_path_buf();
     println!("Serving files from {}", static_dir.display());
     println!("Open http://localhost:8000 in your browser. Press Ctrl+C to stop.");
     open::that("http://localhost:8000").ok();
