@@ -94,6 +94,9 @@ pub struct LinkcheckCommand {
     /// Optional user agent to use for HTTP requests
     #[arg(long)]
     pub user_agent: Option<String>,
+    /// Allow insecure SSL certificates. Use only as a last resort because it is insecure
+    #[arg(long, short, action)]
+    pub allow_insecure: bool,
 }
 
 #[derive(Debug, clap::Parser)]

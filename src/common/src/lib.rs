@@ -607,6 +607,9 @@ pub struct LinkCheckerConfig {
 
     #[serde(default)]
     pub user_agent: Option<String>,
+
+    #[serde(default)]
+    pub allow_insecure: bool,
 }
 
 #[derive(Debug, Default, Clone, serde::Deserialize)]

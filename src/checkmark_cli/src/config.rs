@@ -83,6 +83,10 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
             if let Some(user_agent) = &links.user_agent {
                 config.link_checker.user_agent = Some(user_agent.clone());
             }
+            // Only when user explicitly set this option via CLI - consider it as a force enablement
+            if links.allow_insecure && !config.link_checker.allow_insecure {
+                config.link_checker.allow_insecure = true;
+            }
         }
         crate::cli::Subcommands::Lint(lint) => {
             if !lint.allowed_html_tags.is_empty() {

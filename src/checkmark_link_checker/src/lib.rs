@@ -9,8 +9,6 @@ use futures::future::join_all;
 use handlers::*;
 use log::debug;
 use lychee_lib::ClientBuilder;
-use std::collections::HashSet;
-use std::time::Duration;
 
 fn sanitize_uri(uri: &str) -> String {
     let mut uri = uri.to_string();
@@ -28,26 +26,20 @@ pub async fn check(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
     let links = collect(&file.path, config).await.unwrap();
     let client_config = ClientConfig::from_checkmark_config(config);
     let requests = links.iter().map(|(uri, request)| {
-        let uri = sanitize_uri(uri);
-        let request = request.clone();
-        let timeout = Duration::from_secs(client_config.timeout);
-        let accepted = HashSet::from_iter(client_config.accepted_status_codes.clone().into_iter());
-        let user_agent = match config.link_checker.user_agent {
-            Some(ref user_agent) => user_agent.clone(),
-            None => "checkmark".to_string(),
-        };
         let client = ClientBuilder::builder()
-            .timeout(timeout)
+            .allow_insecure(client_config.allow_insecure)
+            .timeout(client_config.timeout)
             .include_mail(client_config.check_emails)
-            .accepted(accepted)
+            .accepted(client_config.accepted_status_codes.clone())
             .max_retries(client_config.max_retries)
             .github_token(client_config.github_token.clone())
-            .user_agent(user_agent.clone())
+            .user_agent(client_config.user_agent.clone())
             .build()
             .client()
             .unwrap();
+        let uri = sanitize_uri(uri);
         debug!("Checking {:#?}", &uri);
-        async move { (uri, client.check(request).await.unwrap()) }
+        async move { (uri, client.check(request.clone()).await.unwrap()) }
     });
     join_all(requests)
         .await

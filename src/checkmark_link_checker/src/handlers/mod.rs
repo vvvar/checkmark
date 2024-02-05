@@ -199,9 +199,12 @@ pub fn handle_response(
             }
         }
         // Request timed out
-        Status::Timeout(_) => {
-            request_timeout::handle(file, uri, client_config.timeout, client_config.max_retries)
-        }
+        Status::Timeout(_) => request_timeout::handle(
+            file,
+            uri,
+            client_config.timeout.as_secs(),
+            client_config.max_retries,
+        ),
         // Got redirected to different resource
         Status::Redirected(status_code) => {
             debug!(
