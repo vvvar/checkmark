@@ -549,6 +549,9 @@ pub struct StyleConfig {
 
     #[serde(default)]
     pub bold: BoldStyle,
+
+    #[serde(default)]
+    pub default_code_block_language: Option<String>,
 }
 
 #[derive(Debug, Default, Clone, serde::Deserialize)]

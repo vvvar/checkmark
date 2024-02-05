@@ -10,6 +10,7 @@ headings="consistent"
 unordered_lists="consistent"
 num_spaces_after_list_marker=1
 bold="consistent"
+default_code_block_language="text"
 
 [fmt]
 check=false

@@ -59,10 +59,165 @@ pub struct StrongOptions {
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
+#[allow(dead_code)]
+pub struct CodeBlockOptions {
+    pub default_language: String,
+}
+
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct FormattingOptions {
     pub header: HeaderOptions,
     pub list: ListOptions,
     pub strong: StrongOptions,
+    pub code_block: CodeBlockOptions,
+}
+
+impl FormattingOptions {
+    pub fn from(config: &common::Config, source: &common::MarkDownFile) -> Self {
+        Self {
+            list: ListOptions {
+                sign_style: match config.style.unordered_lists {
+                    common::UnorderedListStyle::Consistent => {
+                        log::debug!("Detect unordered list style in {:#?}", &source.path);
+                        let ast = common::parse(&source.content).unwrap();
+                        let mut unordered_list_items: Vec<&markdown::mdast::ListItem> = vec![];
+                        common::for_each(&ast, |node| {
+                            if let markdown::mdast::Node::List(l) = node {
+                                if !l.ordered {
+                                    for child in &l.children {
+                                        if let markdown::mdast::Node::ListItem(li) = child {
+                                            unordered_list_items.push(li);
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                        if let Some(first_unordered_list_item) = unordered_list_items.first() {
+                            log::debug!(
+                                "First unordered list item: {:#?}",
+                                &first_unordered_list_item
+                            );
+
+                            let offset_start = first_unordered_list_item
+                                .position
+                                .as_ref()
+                                .unwrap()
+                                .start
+                                .offset;
+                            let offset_end = first_unordered_list_item
+                                .position
+                                .as_ref()
+                                .unwrap()
+                                .end
+                                .offset;
+                            let first_unordered_list_item_str =
+                                &source.content[offset_start..offset_end].trim();
+                            log::debug!(
+                                "Extracted first unordered list item from file: {:#?}",
+                                &first_unordered_list_item_str
+                            );
+
+                            if first_unordered_list_item_str.starts_with('*') {
+                                log::debug!("First unordered list item has asterisk style");
+                                ListSignStyle::Asterisk
+                            } else if first_unordered_list_item_str.starts_with('+') {
+                                log::debug!("First unordered list item has plus style");
+                                ListSignStyle::Plus
+                            } else {
+                                log::debug!("First unordered list style is neither asterisk nor plus, defaulting to dash");
+                                ListSignStyle::Minus
+                            }
+                        } else {
+                            log::debug!("File has no unordered lists, defaulting to dash");
+                            ListSignStyle::Minus
+                        }
+                    }
+                    common::UnorderedListStyle::Asterisk => ListSignStyle::Asterisk,
+                    common::UnorderedListStyle::Plus => ListSignStyle::Plus,
+                    common::UnorderedListStyle::Dash => ListSignStyle::Minus,
+                },
+                num_spaces_after_list_marker: config
+                    .style
+                    .num_spaces_after_list_marker
+                    .unwrap_or(1),
+            },
+            header: HeaderOptions {
+                style: match config.style.headings {
+                    common::HeadingStyle::Consistent => {
+                        log::debug!("Detecting heading style from the file {:#?}", &source.path);
+                        let ast = common::parse(&source.content).unwrap();
+                        let mut headings: Vec<&markdown::mdast::Heading> = vec![];
+                        common::for_each(&ast, |node| {
+                            if let markdown::mdast::Node::Heading(h) = node {
+                                headings.push(h);
+                            }
+                        });
+                        if let Some(first_heading) = headings.first() {
+                            log::debug!("First heading in a file: {:#?}", &first_heading);
+
+                            if is_heading_atx(first_heading, &source.content) {
+                                log::debug!("First heading has ATX style");
+                                HeaderStyle::Atx
+                            } else {
+                                log::debug!("First heading has SetExt style");
+                                HeaderStyle::SetExt
+                            }
+                        } else {
+                            log::debug!("There are no headings in a file, defaulting to ATX");
+                            HeaderStyle::Atx
+                        }
+                    }
+                    common::HeadingStyle::Setext => HeaderStyle::SetExt,
+                    common::HeadingStyle::Atx => HeaderStyle::Atx,
+                },
+            },
+            strong: StrongOptions {
+                style: match config.style.bold {
+                    common::BoldStyle::Consistent => {
+                        log::debug!(
+                            "Detecting bold(strong) style from the file {:#?}",
+                            &source.path
+                        );
+
+                        let ast = common::parse(&source.content).unwrap();
+                        let mut strong_els: Vec<&markdown::mdast::Strong> = vec![];
+                        common::for_each(&ast, |node| {
+                            if let markdown::mdast::Node::Strong(s) = node {
+                                strong_els.push(s);
+                            }
+                        });
+                        if let Some(first_strong_el) = strong_els.first() {
+                            log::debug!("First bold(strong) el in a file: {:#?}", &first_strong_el);
+
+                            if is_string_underscored(first_strong_el, &source.content) {
+                                log::debug!("First bold(strong) el is underscored");
+                                StrongStyle::Underscore
+                            } else {
+                                log::debug!(
+                                    "First bold(strong) not underscored, defaulting to the asterisk"
+                                );
+                                StrongStyle::Asterisk
+                            }
+                        } else {
+                            log::debug!(
+                                "There are no bold(strong) els in a file, defaulting to asterisk"
+                            );
+                            StrongStyle::Asterisk
+                        }
+                    }
+                    common::BoldStyle::Asterisk => StrongStyle::Asterisk,
+                    common::BoldStyle::Underscore => StrongStyle::Underscore,
+                },
+            },
+            code_block: CodeBlockOptions {
+                default_language: config
+                    .style
+                    .default_code_block_language
+                    .clone()
+                    .unwrap_or(String::from("text")),
+            },
+        }
+    }
 }
 
 /// It is possible to pass single "~" and it wold be interpreted
@@ -101,4 +256,31 @@ pub fn is_heading_atx(d: &markdown::mdast::Heading, source: &str) -> bool {
         atx = slice.contains('#');
     }
     atx
+}
+
+/// Returns true when link it either auto or bare
+/// Autolink: "<http://example.com>"
+/// Bare link: "http://example.com"
+pub fn is_auto_or_bare_link(l: &markdown::mdast::Link) -> bool {
+    // Detect this structure
+    //    Link {
+    //       children: [ Text {} ]
+    //       title: None
+    //    }
+    if l.title.is_none() && l.children.len() == 1 {
+        if let markdown::mdast::Node::Text(t) = l.children.first().unwrap() {
+            // Check that text is === as url
+            // "mailto:" stripped because parser adds it
+            // for all e-mails
+            if let Some(email) = l.url.strip_prefix("mailto:") {
+                t.value.eq(&email)
+            } else {
+                t.value.eq(&l.url)
+            }
+        } else {
+            false
+        }
+    } else {
+        false
+    }
 }

@@ -29,6 +29,8 @@ num_spaces_after_list_marker=1
 # Possible values are: "asterisk", "underscore" or "consistent"
 # Reference: https://www.markdownguide.org/basic-syntax/#bold
 bold="consistent"
+# Default code block language to use. Defaults to "text"
+default_code_block_language="text"
 
 
 ############################  Formatter  ############################

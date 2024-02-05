@@ -168,6 +168,9 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
             log::warn!("Unknown bold style: {}", &style_bold);
         }
     }
+    if let Some(default_code_block_language) = &cli.style_default_code_block_language {
+        config.style.default_code_block_language = Some(default_code_block_language.clone());
+    }
     log::debug!("Config after merging with CLI: {:#?}", &config);
 
     config
