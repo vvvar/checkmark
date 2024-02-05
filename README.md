@@ -1,6 +1,6 @@
 # checkmark
 
-Checkmark is a CLI tool designed to streamline your Markdown workflow. It provides a suite of features including auto-formatting, linting, AI-assisted document review, link checking, spell checking, AI-assisted document composition and HTML rendering.
+Checkmark is a CLI tool designed to streamline your Markdown workflow. It provides a suite of features including auto-formatting, linting, AI-assisted document review, link checking, spell checking, AI-assisted document composition, and HTML rendering.
 
 ![main](./assets/fmt.svg)
 
@@ -12,7 +12,7 @@ Checkmark is a tool designed to help maintain high-quality Markdown documentatio
 - **links**: Check broken links in your documents, covering both web and local file links.
 - **lint**: Runs a linter (partial port of [markdownlint](https://github.com/DavidAnson/markdownlint)) to ensure your Markdown files adhere to best practices.
 - **review**: Uses OpenAI's API to review your documents, providing AI-assisted insights and suggestions. Requires OpenAI API key.
-- **compose**: Assists in composing new Markdown documents from a prompt in a context of an existing document. Powered by OpenAI. Requires OpenAI API key.
+- **compose**: Assists in composing new Markdown documents from a prompt in the context of an existing document. Powered by OpenAI. Requires OpenAI API key.
 - **spelling**: Check your documents for spelling errors.
 - **render**: Convert your documents into HTML. Suitable for deploying to a simple HTTP server.
 - **remote check**: Check documents from the remote Git repository.
@@ -42,19 +42,19 @@ Checkmark has a bunch of different commands. Each serves its purpose. Below you 
 
 ![fmt](./assets/fmt.svg)
 
-Recursively auto-format all Markdown files inside the current directory with:
+To recursively auto-format all Markdown files inside the current directory, please use the following command:
 
 ```sh
 checkmark fmt .
 ```
 
-Verify that all Markdown files have been formatted with:
+To verify that all Markdown files have been formatted, you can use:
 
 ```sh
 checkmark fmt . --check
 ```
 
-Additionally, you can print a diff to see what exactly will be re-formatted:
+Additionally, you can print a diff to see what exactly will be reformatted:
 
 ```sh
 checkmark fmt . --check --show-diff
@@ -76,9 +76,9 @@ checkmark fmt --help
 export OPEN_AI_API_KEY=<YOUR_API_KEY>
 ```
 
-or by creating a `.env` file with it(see [this](https://github.com/motdotla/dotenv) if you're not familiar). See [here](https://openai.com/blog/openai-api) how to find an API key.
+or by creating a `.env` file with it (see [this](https://github.com/motdotla/dotenv) if you're not familiar). See [here](https://openai.com/blog/openai-api) how to find an API key.
 
-They, you can recursively review all your Markdown documents with:
+Then, you can recursively review all your Markdown documents with:
 
 ```sh
 checkmark review .
@@ -87,9 +87,9 @@ checkmark review .
 This will:
 
 1. take all your Markdown files
-2. split them in chunks (by headings)
+2. split them into chunks (by headings)
 3. one by one send them to Open.AI for review with the following prompt:
-   > Review this project documentation for grammar, readability and clarity of the content.
+   > Review this project documentation for grammar, readability, and clarity of the content.
    > Provide a summary and improvement suggestions.
    > Each suggestion should identify the issue, its location, and a proposed fix.
    > Each suggestion should have 'description', 'original', and 'replacement'
@@ -121,7 +121,7 @@ You can control the level of creativity of the AI with (values between 0 and 100
 checkmark review . --creativity 80
 ```
 
-You can provide a custom prompt for Open.AI with:
+You can provide a custom prompt for OpenAI with:
 
 ```sh
 checkmark review . --prompt "Review grammar"
@@ -137,7 +137,7 @@ checkmark review --help
 
 ![compose](./assets/compose.svg)
 
-`checkmark` is capable of composing documentation using [Open.AI](https://openai.com) based on your prompts with:
+`checkmark` is capable of composing documentation using [Open AI](https://openai.com) based on your prompts with:
 
 ```sh
 checkmark compose --prompt "Write me a dummy documentation" --output DOCUMENT.MD
@@ -145,7 +145,7 @@ checkmark compose --prompt "Write me a dummy documentation" --output DOCUMENT.MD
 
 This will generate a file `DOCUMENT.MD` with content generated, using your prompt.
 
-You can control the level of creativity of an AI with(values between 0 and 100 are accepted):
+You can control the level of creativity of an AI with (values between 0 and 100 are accepted):
 
 ```sh
 checkmark review . --creativity 80
@@ -157,7 +157,7 @@ Additionally, you can provide a file and ask `checkmark` to use it as an additio
 checkmark compose --context README.md --prompt "Re-write this file in a manner of pirates" --output DOCUMENT.MD
 ```
 
-This will take `README.md`, rewrite it using your prompt and store it in `DOCUMENT.MD`.
+This will take `README.md`, rewrite it using your prompt, and store it in `DOCUMENT.MD`.
 
 Run this command to see a full list of review options:
 
@@ -175,7 +175,7 @@ Recursively check all links in Markdown files inside the current directory with:
 checkmark linkcheck .
 ```
 
-This will extract all hyperlinks, file links(for e.x. `\[File\]\(./image.png\)`), and e-mails and check whether they are reachable or not.
+This will extract all hyperlinks, file links (for example, `\[File\]\(./image.png\)`), and e-mails and check whether they are reachable or not.
 If you want to ignore some links, use:
 
 ```sh
@@ -200,7 +200,7 @@ Recursively lint all Markdown files inside the current directory with:
 checkmark lint .
 ```
 
-This will test all your files against linting rules. Linting rules are ported from [markdownlint](https://github.com/DavidAnson/markdownlint)(work in progress).
+This will test all your files against linting rules. Linting rules are ported from [markdownlint](https://github.com/DavidAnson/markdownlint) (work in progress).
 
 Run this command to see a full list of linter options:
 
@@ -218,7 +218,7 @@ Recursively spell-check all Markdown files inside the current directory with:
 checkmark spellcheck .
 ```
 
-This will check all Markdown files for spelling errors. If you need to white-list words:
+This will check all Markdown files for spelling errors. If you need to whitelist words:
 
 ```sh
 checkmark spellcheck . --words-whitelist checkmark,OPEN_AI_API_KEY
@@ -234,19 +234,19 @@ checkmark spellcheck --help
 
 ### `render`
 
-Recursively render all Markdown files inside the current directory with into HTML:
+Recursively render all Markdown files inside the current directory into HTML:
 
 ```sh
 checkmark render .
 ```
 
-This will collect all Markdown files and convert them into HTML. Results will be stored in the `output` folder. If you need to render them in another folder, then use `--output` flag:
+This will collect all Markdown files and convert them into HTML. Results will be stored in the `output` folder. If you need to render them in another folder, then use the `--output` flag:
 
 ```sh
 checkmark render . --out custom_folder
 ```
 
-Additionally, you can switch between themes with `--theme` flag:
+Additionally, you can switch between them with the `--theme` flag:
 
 ```sh
 checkmark render . --theme gfm
@@ -262,13 +262,13 @@ checkmark render --help
 
 ### `generate-config`
 
-`checkmark` can be controlled via CLI and config file. Although it is completely fine to use CLI, when setting up a `checkmark` in a project it is useful to have all settings under version control. `checkmark` has a command that can generate a default config file for you:
+`checkmark` can be controlled via CLI and config file. Although it is completely fine to use CLI, when setting up a `checkmark` in a project, it is useful to have all settings under version control. `checkmark` has a command that can generate a default config file for you:
 
 ```sh
 checkmark generate-config
 ```
 
-Executing this command will generate a file named `checkmark.toml` in the current directory. The generated `checkmark.toml` file contains a full list of options with their default values. Each configuration option has documentation that describes how to use it. You can modify it to suit your requirements. You can store this file in the following folders(lookup will be done exactly in this order, the first match is picked up):
+Executing this command will generate a file named `checkmark.toml` in the current directory. The generated `checkmark.toml` file contains a full list of options with their default values. Each configuration option has documentation that describes how to use it. You can modify it to suit your requirements. You can store this file in the following folders (lookup will be done exactly in this order, the first match is picked up):
 
 1. project root
 2. `config`
@@ -284,7 +284,7 @@ checkmark <command> --config "/path/to/your/config.toml"
 
 ### Remote check
 
-You can perform any check mentioned above on a remote Git repository. For that, provide link to the remote Git repo instead of a local file path like this:
+You can perform any check mentioned above on a remote Git repository. For that, provide a link to the remote Git repo instead of a local file path like this:
 
 ```sh
 checkmark fmt --check https://github.com/vvvar/checkmark.git
@@ -296,7 +296,7 @@ Or use SSH:
 checkmark fmt --check git@github.com:vvvar/checkmark.git
 ```
 
-> **NOTE**: checkmark will try to use your existing SSH keys in the default location (`~/.ssh`). If you're having problems ensure that you can do a normal clone using your local git client.
+> **NOTE**: checkmark will try to use your existing SSH keys in the default location (`~/.ssh`). If you're having problems, ensure that you can do a normal clone using your local git client.
 
 ## Contributing
 
