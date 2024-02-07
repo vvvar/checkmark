@@ -6,7 +6,8 @@ use std::ops::Range;
 
 /// We want to ignore spell-checking for certain exceptions
 fn is_ignored_word(word: &str) -> bool {
-    word.chars().all(|c| !c.is_alphabetic())
+    word.chars().all(|c| !c.is_alphabetic()) || // When all characters are not alphabetic
+    word.chars().skip(1).any(|c| c.is_numeric()) // When number is within string, but not at the beginning
 }
 
 /// Struct to hold information about
@@ -143,8 +144,8 @@ mod tests {
             vec!["get", "your", "double", "edged", "sword"]
         );
         assert_eq!(
-            extract(&text_node("Hello(there)World!?")),
-            vec!["hello", "there", "world"]
+            extract(&text_node("Hello(there)World fr1end 4real!?")),
+            vec!["hello", "there", "world", "4real"]
         );
     }
 }
