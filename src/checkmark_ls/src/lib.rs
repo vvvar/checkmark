@@ -1,6 +1,10 @@
 use auth_git2::GitAuthenticator;
 use log::warn;
+use path_slash::PathExt as _;
+use std::borrow::Cow;
+use std::path::Path;
 use std::sync::{Arc, Mutex};
+use wildmatch::WildMatch;
 
 /// Returns a path to a tmp dir based on input URI
 fn tmp_dir(uri: &str) -> std::path::PathBuf {
@@ -173,8 +177,11 @@ pub async fn ls(
 
     // Filter files by exclude patterns
     markdown_files.retain(|markdown_file| {
+        let unix_style_file_path = Path::new(&markdown_file.path)
+            .to_slash()
+            .unwrap_or(Cow::from(markdown_file.path.clone()));
         for exclude_pattern in exclude {
-            if wildmatch::WildMatch::new(exclude_pattern).matches(markdown_file.path.as_str()) {
+            if WildMatch::new(exclude_pattern).matches(&unix_style_file_path) {
                 log::debug!("Ignoring {:#?}", &markdown_file.path);
                 return false;
             }

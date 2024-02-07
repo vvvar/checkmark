@@ -721,7 +721,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_cli"
-version = "0.4.1"
+version = "0.4.2"
 dependencies = [
  "assert_cmd",
  "checkmark_fmt",
@@ -807,6 +807,7 @@ dependencies = [
  "glob",
  "is-url",
  "log",
+ "path-slash",
  "reqwest",
  "tokio",
  "wildmatch",
@@ -3160,6 +3161,12 @@ name = "path-clean"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "17359afc20d7ab31fdb42bb844c8b3bb1dabd7dcf7e68428492da7f16966fcef"
+
+[[package]]
+name = "path-slash"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e91099d4268b0e11973f036e885d652fb0b21fedcf69738c627f94db6a44f42"
 
 [[package]]
 name = "pathdiff"
