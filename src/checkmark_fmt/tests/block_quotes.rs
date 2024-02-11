@@ -108,3 +108,16 @@ fn three_level_block_quote() {
 ",
     );
 }
+
+/// When there is a paragraph right after the code block
+/// then it should be merged into this block quote
+#[test]
+fn paragraph_after_block_quote_converted_to_block_quote() {
+    utils::assert_changed_after_formatting(
+        "> Block quote
+Paragraph",
+        "> Block quote
+> Paragraph
+",
+    );
+}
