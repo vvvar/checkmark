@@ -4,10 +4,57 @@ use rayon::prelude::*;
 use std::fmt::{Display, Formatter, Result};
 use std::ops::Range;
 
+/// Return true when the word is an ordinal number.
+/// Will return false when the word is not a valid ordinal number like 5st, 5nd, 5rd.
+///
+/// Most ordinal numbers end in "th" except when the final word is:
+///     one → first (1st)
+///     two → second (2nd)
+///     three → third (3rd)
+fn is_valid_ordinal_number(src: &str) -> bool {
+    let is_ordinal = src.chars().nth(0).unwrap_or(' ').is_numeric()
+        && (src.ends_with("st")
+            || src.ends_with("nd")
+            || src.ends_with("rd")
+            || src.ends_with("th"));
+    if is_ordinal {
+        let mut last_num_char = ' ';
+        let mut ending = String::from("");
+        for char in src.chars() {
+            if char.is_numeric() {
+                last_num_char = char;
+            } else {
+                ending.push(char);
+            }
+        }
+        return match last_num_char {
+            '1' => ending == "st",
+            '2' => ending == "nd",
+            '3' => ending == "rd",
+            _ => ending == "th",
+        };
+    } else {
+        return false;
+    }
+}
+
+/// Return true when all characters in word are not alphabetic.
+/// or example "123" or "1234"
+fn is_whole_word_non_alphabetic(word: &str) -> bool {
+    word.chars().all(|c| !c.is_alphabetic())
+}
+
+/// Return true when the word contains a number within the string
+/// bun not at the beginning. For example "hello1" or "hello123
+fn is_word_with_number_within(word: &str) -> bool {
+    word.chars().skip(1).any(|c| c.is_numeric())
+}
+
 /// We want to ignore spell-checking for certain exceptions
 fn is_ignored_word(word: &str) -> bool {
-    word.chars().all(|c| !c.is_alphabetic()) || // When all characters are not alphabetic
-    word.chars().skip(1).any(|c| c.is_numeric()) // When number is within string, but not at the beginning
+    is_whole_word_non_alphabetic(word)
+        || is_word_with_number_within(word)
+        || is_valid_ordinal_number(word)
 }
 
 /// Struct to hold information about
@@ -129,6 +176,38 @@ mod tests {
             value: value.to_string(),
             position: None,
         }
+    }
+
+    #[test]
+    fn detect_ordinal_number() {
+        assert!(is_valid_ordinal_number("1st"));
+        assert!(is_valid_ordinal_number("2nd"));
+        assert!(is_valid_ordinal_number("3rd"));
+        assert!(is_valid_ordinal_number("4th"));
+        assert!(is_valid_ordinal_number("5th"));
+        assert!(is_valid_ordinal_number("21st"));
+        assert!(is_valid_ordinal_number("22nd"));
+        assert!(is_valid_ordinal_number("23rd"));
+        assert!(is_valid_ordinal_number("23rd"));
+        assert!(is_valid_ordinal_number("24th"));
+        assert!(!is_valid_ordinal_number("5"));
+        assert!(!is_valid_ordinal_number("5st"));
+        assert!(!is_valid_ordinal_number("5nd"));
+        assert!(!is_valid_ordinal_number("5rd"));
+    }
+
+    #[test]
+    fn detect_words_with_num_within() {
+        assert!(is_word_with_number_within("hello1"));
+        assert!(is_word_with_number_within("hello123"));
+        assert!(!is_word_with_number_within("hello"));
+    }
+
+    #[test]
+    fn detect_whole_word_non_alphabetic() {
+        assert!(is_whole_word_non_alphabetic("123"));
+        assert!(is_whole_word_non_alphabetic("1234"));
+        assert!(!is_whole_word_non_alphabetic("hello"));
     }
 
     #[test]

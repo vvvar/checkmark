@@ -137,6 +137,7 @@ mod test {
         };
         let actual_issues = spell_check(&SPELL_CHECKER, &markdown, &config);
         // Custom assertion because we won't check "fixes" field
+        assert_eq!(expected_issues.len(), actual_issues.len());
         for (index, issue) in expected_issues.iter().enumerate() {
             assert_eq!(issue.category, actual_issues.get(index).unwrap().category);
             assert_eq!(issue.severity, actual_issues.get(index).unwrap().severity);
@@ -256,6 +257,11 @@ mod test {
     #[test]
     fn spelling_skip_numbers() {
         assert_has_no_issues("# Number here 42", &vec![]);
+    }
+
+    #[test]
+    fn spelling_allow_ordinal_numbers() {
+        assert_has_no_issues("# 1st 2nd 3rd 4th 21st 22nd 23rd 24th", &vec![]);
     }
 
     #[test]
