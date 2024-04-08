@@ -1,5 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
+use common::MarkDownFile;
 use markdown::mdast::{Html, Node};
 
 fn violation_builder() -> ViolationBuilder {
@@ -17,9 +17,9 @@ pub fn md033_inline_html(file: &MarkDownFile, allowed_tags: &Vec<String>) -> Vec
         &allowed_tags
     );
 
-    let ast = parse(&file.content).unwrap();
+    let ast = common::ast::parse(&file.content).unwrap();
     let mut html_nodes: Vec<&Html> = vec![];
-    for_each(&ast, |node| {
+    common::ast::for_each(&ast, |node| {
         if let Node::Html(t) = node {
             html_nodes.push(t);
         }

@@ -1,5 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
+use common::MarkDownFile;
 use markdown::mdast::{ListItem, Node};
 use regex::Regex;
 
@@ -40,9 +40,9 @@ pub fn md030_spaces_after_list_markers(
     expected_num_spaces: u8,
 ) -> Vec<Violation> {
     log::debug!("[MD030] File: {:#?}", &file.path);
-    let ast = parse(&file.content).unwrap();
+    let ast = common::ast::parse(&file.content).unwrap();
     let mut list_items: Vec<&ListItem> = vec![];
-    for_each(&ast, |node| {
+    common::ast::for_each(&ast, |node| {
         if let Node::ListItem(li) = node {
             list_items.push(li);
         }
@@ -69,9 +69,9 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     fn to_list_items_ast(src: &str) -> Vec<ListItem> {
-        let ast = parse(&src).unwrap();
+        let ast = common::ast::parse(&src).unwrap();
         let mut list_items: Vec<ListItem> = vec![];
-        for_each(&ast, |node| {
+        common::ast::for_each(&ast, |node| {
             if let Node::ListItem(li) = node {
                 list_items.push(li.clone());
             }

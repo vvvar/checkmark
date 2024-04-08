@@ -1,5 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
+use common::MarkDownFile;
 use markdown::mdast::{Heading, Node};
 use std::collections::VecDeque;
 
@@ -15,10 +15,10 @@ fn violation_builder() -> ViolationBuilder {
 pub fn md025_multiple_top_level_headings(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD025] File: {:#?}", &file.path);
 
-    let ast = parse(&file.content).unwrap();
+    let ast = common::ast::parse(&file.content).unwrap();
 
     let mut h1_headings = VecDeque::<&Heading>::new();
-    for_each(&ast, |node| {
+    common::ast::for_each(&ast, |node| {
         if let Node::Heading(h) = node {
             if h.depth == 1 {
                 h1_headings.push_back(h);

@@ -1,5 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
+use common::MarkDownFile;
 use markdown::mdast::{Heading, Node};
 
 fn violation_builder() -> ViolationBuilder {
@@ -36,10 +36,10 @@ fn ends_with_trailing_punctuation(h: &Heading) -> bool {
 
 pub fn md026_trailing_punctuation_in_heading(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD026] File: {:#?}", &file.path);
-    let ast = parse(&file.content).unwrap();
+    let ast = common::ast::parse(&file.content).unwrap();
 
     let mut headings = Vec::<&Heading>::new();
-    for_each(&ast, |node| {
+    common::ast::for_each(&ast, |node| {
         if let Node::Heading(h) = node {
             headings.push(h);
         }

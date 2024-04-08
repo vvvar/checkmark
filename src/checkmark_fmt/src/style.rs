@@ -79,9 +79,9 @@ impl FormattingOptions {
                 sign_style: match config.style.unordered_lists {
                     common::UnorderedListStyle::Consistent => {
                         log::debug!("Detect unordered list style in {:#?}", &source.path);
-                        let ast = common::parse(&source.content).unwrap();
+                        let ast = common::ast::parse(&source.content).unwrap();
                         let mut unordered_list_items: Vec<&markdown::mdast::ListItem> = vec![];
-                        common::for_each(&ast, |node| {
+                        common::ast::for_each(&ast, |node| {
                             if let markdown::mdast::Node::List(l) = node {
                                 if !l.ordered {
                                     for child in &l.children {
@@ -145,9 +145,9 @@ impl FormattingOptions {
                 style: match config.style.headings {
                     common::HeadingStyle::Consistent => {
                         log::debug!("Detecting heading style from the file {:#?}", &source.path);
-                        let ast = common::parse(&source.content).unwrap();
+                        let ast = common::ast::parse(&source.content).unwrap();
                         let mut headings: Vec<&markdown::mdast::Heading> = vec![];
-                        common::for_each(&ast, |node| {
+                        common::ast::for_each(&ast, |node| {
                             if let markdown::mdast::Node::Heading(h) = node {
                                 headings.push(h);
                             }
@@ -179,9 +179,9 @@ impl FormattingOptions {
                             &source.path
                         );
 
-                        let ast = common::parse(&source.content).unwrap();
+                        let ast = common::ast::parse(&source.content).unwrap();
                         let mut strong_els: Vec<&markdown::mdast::Strong> = vec![];
-                        common::for_each(&ast, |node| {
+                        common::ast::for_each(&ast, |node| {
                             if let markdown::mdast::Node::Strong(s) = node {
                                 strong_els.push(s);
                             }

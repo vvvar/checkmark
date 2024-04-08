@@ -1,4 +1,4 @@
-use common::{filter_text_nodes, find_index, parse};
+use common::find_index;
 use markdown::unist::Position;
 use rayon::prelude::*;
 use std::fmt::{Display, Formatter, Result};
@@ -159,8 +159,8 @@ fn extract(node: &markdown::mdast::Text) -> Vec<Word> {
 }
 
 pub fn text_to_words(text: &str) -> Vec<Word> {
-    let ast = parse(text).unwrap();
-    filter_text_nodes(&ast)
+    let ast = common::ast::parse(text).unwrap();
+    common::ast::filter_text_nodes(&ast)
         .par_iter()
         .flat_map(|text_node| extract(text_node))
         .collect()

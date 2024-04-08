@@ -1,5 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
+use common::MarkDownFile;
 use markdown::mdast::{Heading, Node};
 use regex::Regex;
 
@@ -32,11 +32,11 @@ impl HeadingStyle {
 pub fn md003_heading_style(file: &MarkDownFile, style: &HeadingStyle) -> Vec<Violation> {
     log::debug!("[MD003] File: {:#?}, style: {:#?}", &file.path, &style);
 
-    let ast = parse(&file.content).unwrap();
+    let ast = common::ast::parse(&file.content).unwrap();
 
     // Get all headings
     let mut headings: Vec<&Heading> = vec![];
-    for_each(&ast, |node| {
+    common::ast::for_each(&ast, |node| {
         if let Node::Heading(h) = node {
             headings.push(h);
         }

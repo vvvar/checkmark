@@ -1,5 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
+use common::MarkDownFile;
 use markdown::mdast::{List, ListItem, Node};
 
 fn violation_builder() -> ViolationBuilder {
@@ -13,10 +13,10 @@ fn violation_builder() -> ViolationBuilder {
 pub fn md005_consistent_list_items_indentation(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD005] File: {:#?}", &file.path);
 
-    let ast = parse(&file.content).unwrap();
+    let ast = common::ast::parse(&file.content).unwrap();
 
     let mut lists: Vec<&List> = vec![];
-    for_each(&ast, |node| {
+    common::ast::for_each(&ast, |node| {
         if let Node::List(l) = node {
             lists.push(l);
         }

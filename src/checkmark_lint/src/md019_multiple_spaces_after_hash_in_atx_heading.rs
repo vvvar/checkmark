@@ -1,5 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
+use common::MarkDownFile;
 use markdown::mdast::{Heading, Node};
 use regex::Regex;
 
@@ -31,9 +31,9 @@ pub fn md019_multiple_spaces_after_hash_on_atx_style_heading(
 ) -> Vec<Violation> {
     log::debug!("[MD019] File: {:#?}", &file.path);
 
-    let ast = parse(&file.content).unwrap();
+    let ast = common::ast::parse(&file.content).unwrap();
     let mut headings: Vec<&Heading> = vec![];
-    for_each(&ast, |node| {
+    common::ast::for_each(&ast, |node| {
         if let Node::Heading(h) = node {
             headings.push(h);
         }

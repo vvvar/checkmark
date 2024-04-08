@@ -1,5 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
+use common::MarkDownFile;
 use markdown::mdast::{Heading, Node};
 use regex::Regex;
 
@@ -30,11 +30,11 @@ pub fn md023_headings_must_start_at_the_beginning_of_the_line(
 ) -> Vec<Violation> {
     log::debug!("[MD023] File: {:#?}", &file.path);
 
-    let ast = parse(&file.content).unwrap();
+    let ast = common::ast::parse(&file.content).unwrap();
 
     // Get all block quotes
     let mut headings: Vec<&Heading> = vec![];
-    for_each(&ast, |node| {
+    common::ast::for_each(&ast, |node| {
         if let Node::Heading(h) = node {
             headings.push(h);
         }

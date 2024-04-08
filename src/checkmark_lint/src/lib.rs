@@ -21,6 +21,7 @@ mod md027_multiple_spaces_after_block_quote_symbol;
 mod md028_blank_line_inside_block_quote;
 mod md029_ordered_list_item_prefix;
 mod md030_spaces_after_list_markers;
+mod md031_fenced_code_blocks_surrounded_with_blank_lines;
 mod md033_inline_html;
 mod md046_code_block_style;
 mod md051_link_fragments_should_be_valid;
@@ -51,6 +52,7 @@ use md027_multiple_spaces_after_block_quote_symbol::*;
 use md028_blank_line_inside_block_quote::*;
 use md029_ordered_list_item_prefix::*;
 use md030_spaces_after_list_markers::*;
+use md031_fenced_code_blocks_surrounded_with_blank_lines::*;
 use md033_inline_html::*;
 use md046_code_block_style::*;
 use md051_link_fragments_should_be_valid::*;
@@ -103,6 +105,7 @@ pub fn lint(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
                 None => DEFAULT_NUM_SPACES_AFTER_MARKER,
             },
         ),
+        md031_fenced_code_blocks_surrounded_with_blank_lines(file),
         md033_inline_html(file, &config.linter.allowed_html_tags),
         md046_code_block_style(file, &CodeBlockStyle::Consistent),
         md051_link_fragments_should_be_valid(file),

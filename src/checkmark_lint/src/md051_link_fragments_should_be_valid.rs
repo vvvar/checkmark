@@ -1,5 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
+use common::MarkDownFile;
 use markdown::mdast::{Heading, Link, Node};
 
 fn violation_builder() -> ViolationBuilder {
@@ -17,7 +17,7 @@ fn violation_builder() -> ViolationBuilder {
 /// For example: [About](#about-us)
 fn extract_links_with_fragments(ast: &Node) -> Vec<&Link> {
     let mut link_nodes: Vec<&Link> = vec![];
-    for_each(ast, |node| {
+    common::ast::for_each(ast, |node| {
         if let Node::Link(l) = node {
             if l.url.starts_with('#') {
                 link_nodes.push(l);
@@ -30,7 +30,7 @@ fn extract_links_with_fragments(ast: &Node) -> Vec<&Link> {
 
 fn extract_headings(ast: &Node) -> Vec<&Heading> {
     let mut heading_nodes: Vec<&Heading> = vec![];
-    for_each(ast, |node| {
+    common::ast::for_each(ast, |node| {
         if let Node::Heading(h) = node {
             heading_nodes.push(h);
         }
@@ -63,7 +63,7 @@ fn heading_to_fragment(heading: &Heading) -> String {
 /// At least one of them shall contain an anchor.
 fn extract_html_elements(ast: &Node) -> Vec<scraper::Node> {
     let mut html_elements: Vec<scraper::Node> = vec![];
-    for_each(ast, |node| {
+    common::ast::for_each(ast, |node| {
         if let Node::Html(h) = node {
             let fragment = scraper::Html::parse_fragment(&h.value);
             html_elements.append(&mut fragment.tree.clone().into_iter().collect::<Vec<_>>())
@@ -115,7 +115,7 @@ fn find_violations(
 
 pub fn md051_link_fragments_should_be_valid(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD051] File: {:#?}", &file.path);
-    let ast = parse(&file.content).unwrap();
+    let ast = common::ast::parse(&file.content).unwrap();
     let links = extract_links_with_fragments(&ast);
     let headings = extract_headings(&ast);
     let html_elements = extract_html_elements(&ast);

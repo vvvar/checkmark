@@ -1,5 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
+use common::MarkDownFile;
 use markdown::mdast::{Code, Node};
 
 fn violation_builder() -> ViolationBuilder {
@@ -26,9 +26,9 @@ fn to_issue(code: &Code) -> Violation {
 
 pub fn md014_dollar_sign_before_command_without_output(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD014] File: {:#?}", &file.path);
-    let ast = parse(&file.content).unwrap();
+    let ast = common::ast::parse(&file.content).unwrap();
     let mut code_blocks: Vec<&Code> = vec![];
-    for_each(&ast, |node| {
+    common::ast::for_each(&ast, |node| {
         if let Node::Code(c) = node {
             code_blocks.push(c);
         }

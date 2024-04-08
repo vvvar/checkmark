@@ -1,5 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
+use common::MarkDownFile;
 use markdown::mdast::{Code, Node};
 
 fn violation_builder() -> ViolationBuilder {
@@ -45,11 +45,11 @@ fn code_block_is_fenced_and_indented(c: &Code, source: &str) -> bool {
 pub fn md046_code_block_style(file: &MarkDownFile, style: &CodeBlockStyle) -> Vec<Violation> {
     log::debug!("[MD046] File: {:#?}, style: {:#?}", &file.path, &style);
 
-    let ast = parse(&file.content).unwrap();
+    let ast = common::ast::parse(&file.content).unwrap();
 
     // Get all code blocks
     let mut code_blocks: Vec<&Code> = vec![];
-    for_each(&ast, |node| {
+    common::ast::for_each(&ast, |node| {
         if let Node::Code(c) = node {
             code_blocks.push(c);
         }

@@ -1,5 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
+use common::MarkDownFile;
 use markdown::mdast::{Heading, Node};
 
 fn violation_builder() -> ViolationBuilder {
@@ -15,11 +15,11 @@ pub fn md001_heading_level_should_increment_by_one_level_at_time(
 ) -> Vec<Violation> {
     log::debug!("[MD001] File: {:#?}", &file.path);
 
-    let ast = parse(&file.content).unwrap();
+    let ast = common::ast::parse(&file.content).unwrap();
 
     // Get all headings
     let mut headings: Vec<&Heading> = vec![];
-    for_each(&ast, |node| {
+    common::ast::for_each(&ast, |node| {
         if let Node::Heading(h) = node {
             headings.push(h);
         }

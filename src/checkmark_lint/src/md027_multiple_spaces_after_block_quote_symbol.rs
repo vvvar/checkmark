@@ -1,5 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
+use common::MarkDownFile;
 use markdown::mdast::{BlockQuote, Node};
 use regex::Regex;
 
@@ -25,11 +25,11 @@ fn has_multiple_spaces_after_bq_symbol(bq: &BlockQuote, source: &str) -> bool {
 pub fn md027_multiple_spaces_after_block_quote_symbol(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD027] File: {:#?}", &file.path);
 
-    let ast = parse(&file.content).unwrap();
+    let ast = common::ast::parse(&file.content).unwrap();
 
     // Get all block quotes
     let mut block_quotes: Vec<&BlockQuote> = vec![];
-    for_each(&ast, |node| {
+    common::ast::for_each(&ast, |node| {
         if let Node::BlockQuote(bq) = node {
             block_quotes.push(bq);
         }
