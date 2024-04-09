@@ -1,6 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
 use common::MarkDownFile;
-use markdown::mdast::{Html, Node};
+use markdown::mdast::Node;
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()

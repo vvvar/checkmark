@@ -15,9 +15,9 @@ impl<'a> BfsIterator<'a> {
         let mut stack: Vec<&Node> = vec![];
         stack.push(ast);
         while let Some(current) = stack.pop() {
+            bfs.values.push(current);
             if let Some(children) = current.children() {
                 for child in children.iter().rev() {
-                    bfs.values.push(child);
                     stack.push(child);
                 }
             }
