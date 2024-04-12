@@ -42,20 +42,24 @@ pub fn md004_unordered_list_style(
 
     let ast = common::ast::parse(&file.content).unwrap();
 
-    // Get all unordered list items
-    let mut unordered_list_items: Vec<&ListItem> = vec![];
-    common::ast::for_each(&ast, |node| {
-        if let Node::List(l) = node {
-            if !l.ordered {
-                for child in &l.children {
-                    if let Node::ListItem(li) = child {
-                        unordered_list_items.push(li);
+    let unordered_list_items = common::ast::BfsIterator::from(&ast)
+        .filter_map(|node| match node {
+            Node::List(l) => match l.ordered {
+                false => {
+                    let mut unordered_list_items = vec![];
+                    for child in &l.children {
+                        if let Node::ListItem(li) = child {
+                            unordered_list_items.push(li);
+                        }
                     }
+                    Some(unordered_list_items)
                 }
-            }
-        }
-    });
-    log::debug!("[MD004] Unordered list items: {:#?}", &unordered_list_items);
+                _ => None,
+            },
+            _ => None,
+        })
+        .flatten()
+        .collect::<Vec<_>>();
 
     // Get style of unordered list item
     let get_list_item_style = |li: &ListItem, source: &str| -> UnorderedListStyle {
