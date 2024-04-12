@@ -32,15 +32,11 @@ pub fn md019_multiple_spaces_after_hash_on_atx_style_heading(
     log::debug!("[MD019] File: {:#?}", &file.path);
 
     let ast = common::ast::parse(&file.content).unwrap();
-    let mut headings: Vec<&Heading> = vec![];
-    common::ast::for_each(&ast, |node| {
-        if let Node::Heading(h) = node {
-            headings.push(h);
-        }
-    });
-
-    headings
-        .iter()
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|node| match node {
+            Node::Heading(e) => Some(e),
+            _ => None,
+        })
         .filter(|h| start_with_atx_heading_without_space(h, &file.content))
         .map(|h| violation_builder().position(&h.position).build())
         .collect()
