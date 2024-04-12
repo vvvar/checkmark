@@ -14,13 +14,12 @@ pub fn md005_consistent_list_items_indentation(file: &MarkDownFile) -> Vec<Viola
     log::debug!("[MD005] File: {:#?}", &file.path);
 
     let ast = common::ast::parse(&file.content).unwrap();
-
-    let mut lists: Vec<&List> = vec![];
-    common::ast::for_each(&ast, |node| {
-        if let Node::List(l) = node {
-            lists.push(l);
-        }
-    });
+    let lists = common::ast::BfsIterator::from(&ast)
+        .filter_map(|node| match node {
+            Node::List(e) => Some(e),
+            _ => None,
+        })
+        .collect::<Vec<&List>>();
 
     let get_list_item_alignment = |li: &ListItem, source: &str| -> usize {
         let mut padding: usize = 0;
