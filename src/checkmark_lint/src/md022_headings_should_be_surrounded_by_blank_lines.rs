@@ -45,18 +45,11 @@ pub fn md022_headings_should_be_surrounded_by_blank_lines(file: &MarkDownFile) -
     log::debug!("[MD022] File: {:#?}", &file.path);
 
     let ast = common::ast::parse(&file.content).unwrap();
-
-    // Get all block quotes
-    let mut headings: Vec<&Heading> = vec![];
-    common::ast::for_each(&ast, |node| {
-        if let Node::Heading(h) = node {
-            headings.push(h);
-        }
-    });
-    log::debug!("[MD022] Headings: {:#?}", &headings);
-
-    headings
-        .iter()
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|node| match node {
+            Node::Heading(e) => Some(e),
+            _ => None,
+        })
         .enumerate()
         .filter(|(i, h)| !surrounded_by_blank_lines(i, h, &file.content))
         .map(|(i, h)| to_violation(i, h))
