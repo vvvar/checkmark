@@ -31,18 +31,11 @@ pub fn md023_headings_must_start_at_the_beginning_of_the_line(
     log::debug!("[MD023] File: {:#?}", &file.path);
 
     let ast = common::ast::parse(&file.content).unwrap();
-
-    // Get all block quotes
-    let mut headings: Vec<&Heading> = vec![];
-    common::ast::for_each(&ast, |node| {
-        if let Node::Heading(h) = node {
-            headings.push(h);
-        }
-    });
-    log::debug!("[MD023] Headings: {:#?}", &headings);
-
-    headings
-        .iter()
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|node| match node {
+            Node::Heading(e) => Some(e),
+            _ => None,
+        })
         .filter(|h| heading_is_indented(h, &file.content))
         .map(|h| violation_builder().position(&h.position).build())
         .collect::<Vec<Violation>>()
