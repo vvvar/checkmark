@@ -16,15 +16,10 @@ pub fn md025_multiple_top_level_headings(file: &MarkDownFile) -> Vec<Violation> 
     log::debug!("[MD025] File: {:#?}", &file.path);
     let ast = common::ast::parse(&file.content).unwrap();
     common::ast::BfsIterator::from(&ast)
-        .filter_map(|node| match node {
-            Node::Heading(e) => match e.depth {
-                1 => Some(e), // We only need 1st level headings
-                _ => None,
-            },
-            _ => None,
-        })
-        .skip(1) // First heading is always legit, others are violations
-        .map(|h| violation_builder().position(&h.position).build())
+        .filter_map(|n| common::ast::try_cast_to_heading(n))
+        .filter(|h| h.depth == 1) // We only need 1st level headings
+        .skip(1) // First heading is always legit
+        .map(|h| violation_builder().position(&h.position).build()) // Others are violations
         .collect::<Vec<Violation>>()
 }
 

@@ -38,10 +38,7 @@ pub fn md026_trailing_punctuation_in_heading(file: &MarkDownFile) -> Vec<Violati
     log::debug!("[MD026] File: {:#?}", &file.path);
     let ast = common::ast::parse(&file.content).unwrap();
     common::ast::BfsIterator::from(&ast)
-        .filter_map(|node| match node {
-            Node::Heading(e) => Some(e),
-            _ => None,
-        })
+        .filter_map(|n| common::ast::try_cast_to_heading(n))
         .filter(|h| ends_with_trailing_punctuation(h))
         .map(|h| violation_builder().position(&h.position).build())
         .collect::<Vec<Violation>>()

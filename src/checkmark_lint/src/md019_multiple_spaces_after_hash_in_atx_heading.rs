@@ -33,10 +33,7 @@ pub fn md019_multiple_spaces_after_hash_on_atx_style_heading(
 
     let ast = common::ast::parse(&file.content).unwrap();
     common::ast::BfsIterator::from(&ast)
-        .filter_map(|node| match node {
-            Node::Heading(e) => Some(e),
-            _ => None,
-        })
+        .filter_map(|n| common::ast::try_cast_to_heading(n))
         .filter(|h| start_with_atx_heading_without_space(h, &file.content))
         .map(|h| violation_builder().position(&h.position).build())
         .collect()

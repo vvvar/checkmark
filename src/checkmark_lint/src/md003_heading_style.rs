@@ -58,10 +58,7 @@ pub fn md003_heading_style(file: &MarkDownFile, style: &HeadingStyle) -> Vec<Vio
 
     let ast = common::ast::parse(&file.content).unwrap();
     let headings = common::ast::BfsIterator::from(&ast)
-        .filter_map(|node| match node {
-            Node::Heading(e) => Some(e),
-            _ => None,
-        })
+        .filter_map(|n| common::ast::try_cast_to_heading(n))
         .collect::<Vec<&Heading>>();
     log::debug!("[MD003] Headings: {:#?}", &headings);
 

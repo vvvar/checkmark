@@ -28,10 +28,7 @@ pub fn md024_multiple_headings_with_the_same_content(file: &MarkDownFile) -> Vec
     let mut headings_content = std::collections::HashSet::new();
     let ast = common::ast::parse(&file.content).unwrap();
     common::ast::BfsIterator::from(&ast)
-        .filter_map(|node| match node {
-            Node::Heading(e) => Some(e),
-            _ => None,
-        })
+        .filter_map(|n| common::ast::try_cast_to_heading(n))
         .filter(|h| {
             let text = to_text(h, &file.content);
             if headings_content.contains(&text) {

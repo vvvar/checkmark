@@ -32,10 +32,7 @@ pub fn md023_headings_must_start_at_the_beginning_of_the_line(
 
     let ast = common::ast::parse(&file.content).unwrap();
     common::ast::BfsIterator::from(&ast)
-        .filter_map(|node| match node {
-            Node::Heading(e) => Some(e),
-            _ => None,
-        })
+        .filter_map(|n| common::ast::try_cast_to_heading(n))
         .filter(|h| heading_is_indented(h, &file.content))
         .map(|h| violation_builder().position(&h.position).build())
         .collect::<Vec<Violation>>()

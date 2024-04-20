@@ -1,4 +1,4 @@
-use markdown::mdast::{Node, Paragraph, Text};
+use markdown::mdast::{Heading, Node, Paragraph, Text};
 
 #[derive(Debug)]
 pub struct BfsIterator<'a> {
@@ -35,6 +35,22 @@ impl<'a> Iterator for BfsIterator<'a> {
         }
         self.index += 1;
         Some(&self.values[self.index - 1])
+    }
+}
+
+// Return the heading node if the provided generic node is a heading
+// Meant to be used in a filter_map statement to filter heading nodes
+// from a generic AST
+// Example:
+// ```
+// let ast = common::ast::parse(&file.content)?;
+// let headings = common::ast::BfsIterator::from(&ast)
+//                   .filter_map(|n| common::ast::try_cast_to_heading(n));
+// ```
+pub fn try_cast_to_heading(node: &Node) -> Option<&Heading> {
+    match node {
+        Node::Heading(e) => Some(e),
+        _ => None,
     }
 }
 

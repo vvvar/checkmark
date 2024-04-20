@@ -46,10 +46,7 @@ pub fn md022_headings_should_be_surrounded_by_blank_lines(file: &MarkDownFile) -
 
     let ast = common::ast::parse(&file.content).unwrap();
     common::ast::BfsIterator::from(&ast)
-        .filter_map(|node| match node {
-            Node::Heading(e) => Some(e),
-            _ => None,
-        })
+        .filter_map(|n| common::ast::try_cast_to_heading(n))
         .enumerate()
         .filter(|(i, h)| !surrounded_by_blank_lines(i, h, &file.content))
         .map(|(i, h)| to_violation(i, h))
