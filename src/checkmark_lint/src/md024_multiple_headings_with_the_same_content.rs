@@ -23,31 +23,25 @@ fn to_text(h: &Heading, source: &str) -> String {
     heading.to_string()
 }
 
-fn is_in(lhs: &Heading, slice: &[&Heading], source: &str) -> bool {
-    slice
-        .iter()
-        .any(|rhs| to_text(lhs, source).eq(&to_text(rhs, source)))
-}
-
 pub fn md024_multiple_headings_with_the_same_content(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD024] File: {:#?}", &file.path);
-
+    let mut headings_content = std::collections::HashSet::new();
     let ast = common::ast::parse(&file.content).unwrap();
-
-    // Get all block quotes
-    let mut headings: Vec<&Heading> = vec![];
-    common::ast::for_each(&ast, |node| {
-        if let Node::Heading(h) = node {
-            headings.push(h);
-        }
-    });
-    log::debug!("[MD024] Headings: {:#?}", &headings);
-
-    headings
-        .iter()
-        .enumerate()
-        .filter(|(i, h)| is_in(h, &headings[0..*i], &file.content))
-        .map(|(_, h)| violation_builder().position(&h.position).build())
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|node| match node {
+            Node::Heading(e) => Some(e),
+            _ => None,
+        })
+        .filter(|h| {
+            let text = to_text(h, &file.content);
+            if headings_content.contains(&text) {
+                return true;
+            } else {
+                headings_content.insert(text);
+                return false;
+            }
+        })
+        .map(|h| violation_builder().position(&h.position).build())
         .collect::<Vec<Violation>>()
 }
 
@@ -61,7 +55,7 @@ mod tests {
     fn md024() {
         let file = MarkDownFile {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
-            content: "# Some text\n\n## Some text".to_string(),
+            content: "# Some text\n\n## Some text\n\n## Some another text".to_string(),
             issues: vec![],
         };
         assert_eq!(
