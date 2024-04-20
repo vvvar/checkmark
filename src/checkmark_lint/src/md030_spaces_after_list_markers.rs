@@ -63,13 +63,10 @@ mod tests {
 
     fn to_list_items_ast(src: &str) -> Vec<ListItem> {
         let ast = common::ast::parse(&src).unwrap();
-        let mut list_items: Vec<ListItem> = vec![];
-        common::ast::for_each(&ast, |node| {
-            if let Node::ListItem(li) = node {
-                list_items.push(li.clone());
-            }
-        });
-        list_items
+        common::ast::BfsIterator::from(&ast)
+            .filter_map(|n| common::ast::try_cast_to_list_item(n))
+            .map(|li| li.clone())
+            .collect::<Vec<ListItem>>()
     }
 
     #[test]

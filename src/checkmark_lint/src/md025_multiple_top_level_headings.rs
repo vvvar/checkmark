@@ -1,7 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
 use common::MarkDownFile;
-use markdown::mdast::{Heading, Node};
-use std::collections::VecDeque;
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()

@@ -1,6 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
 use common::MarkDownFile;
-use markdown::mdast::{Heading, Node};
+use markdown::mdast::Heading;
 use regex::Regex;
 
 fn violation_builder() -> ViolationBuilder {

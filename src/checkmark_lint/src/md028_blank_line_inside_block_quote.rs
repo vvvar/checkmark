@@ -1,6 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
 use common::MarkDownFile;
-use markdown::mdast::{BlockQuote, Node};
+use markdown::mdast::BlockQuote;
 use markdown::unist::Position;
 
 fn violation_builder() -> ViolationBuilder {
