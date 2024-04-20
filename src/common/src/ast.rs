@@ -1,4 +1,4 @@
-use markdown::mdast::{BlockQuote, Code, Heading, List, Node, Paragraph, Text};
+use markdown::mdast::{BlockQuote, Code, Heading, List, ListItem, Node, Paragraph, Text};
 
 #[derive(Debug)]
 pub struct BfsIterator<'a> {
@@ -43,7 +43,7 @@ impl<'a> Iterator for BfsIterator<'a> {
 /// from a generic AST
 /// Example:
 /// ```
-/// # use markdown::mdast::{BlockQuote, Code, Heading, List, Node, Paragraph, Text};
+/// # use markdown::mdast::{Heading, Node};
 /// let ast = common::ast::parse("# Heading").unwrap();
 /// let headings = common::ast::BfsIterator::from(&ast)
 ///                  .filter_map(|n| common::ast::try_cast_to_heading(n))
@@ -61,7 +61,7 @@ pub fn try_cast_to_heading(node: &Node) -> Option<&Heading> {
 /// from a generic AST
 /// Example:
 /// ```
-/// # use markdown::mdast::{BlockQuote, Code, Heading, List, Node, Paragraph, Text};
+/// # use markdown::mdast::{List, Node};
 /// let ast = common::ast::parse("- Item\n\n- Item\n\n").unwrap();
 /// let lists = common::ast::BfsIterator::from(&ast)
 ///                  .filter_map(|n| common::ast::try_cast_to_list(n))
@@ -74,12 +74,30 @@ pub fn try_cast_to_list(node: &Node) -> Option<&List> {
     }
 }
 
+/// Return the list item node if the provided generic node is a list item
+/// Meant to be used in a filter_map statement to filter list item nodes
+/// from a generic AST
+/// Example:
+/// ```
+/// # use markdown::mdast::{ListItem, Node};
+/// let ast = common::ast::parse("- Item\n\n- Item\n\n").unwrap();
+/// let lists = common::ast::BfsIterator::from(&ast)
+///                  .filter_map(|n| common::ast::try_cast_to_list_item(n))
+///                  .collect::<Vec<&ListItem>>();
+/// ```
+pub fn try_cast_to_list_item(node: &Node) -> Option<&ListItem> {
+    match node {
+        Node::ListItem(e) => Some(e),
+        _ => None,
+    }
+}
+
 /// Return the code node if the provided generic node is a code
 /// Meant to be used in a filter_map statement to filter code nodes
 /// from a generic AST
 /// Example:
 /// ```
-/// # use markdown::mdast::{BlockQuote, Code, Heading, List, Node, Paragraph, Text};
+/// # use markdown::mdast::{Code, Node};
 /// let ast = common::ast::parse("   Code Block").unwrap();
 /// let lists = common::ast::BfsIterator::from(&ast)
 ///                  .filter_map(|n| common::ast::try_cast_to_code(n))
@@ -97,7 +115,7 @@ pub fn try_cast_to_code(node: &Node) -> Option<&Code> {
 /// from a generic AST.
 /// Example:
 /// ```
-/// # use markdown::mdast::{BlockQuote, Code, Heading, List, Node, Paragraph, Text};
+/// # use markdown::mdast::{BlockQuote, Node};
 /// let ast = common::ast::parse("> Block Quote").unwrap();
 /// let lists = common::ast::BfsIterator::from(&ast)
 ///                  .filter_map(|n| common::ast::try_cast_to_block_quote(n))

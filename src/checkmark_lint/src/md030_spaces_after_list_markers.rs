@@ -1,6 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
 use common::MarkDownFile;
-use markdown::mdast::{ListItem, Node};
+use markdown::mdast::ListItem;
 use regex::Regex;
 
 pub const DEFAULT_NUM_SPACES_AFTER_MARKER: u8 = 1;
@@ -41,15 +41,8 @@ pub fn md030_spaces_after_list_markers(
 ) -> Vec<Violation> {
     log::debug!("[MD030] File: {:#?}", &file.path);
     let ast = common::ast::parse(&file.content).unwrap();
-    let mut list_items: Vec<&ListItem> = vec![];
-    common::ast::for_each(&ast, |node| {
-        if let Node::ListItem(li) = node {
-            list_items.push(li);
-        }
-    });
-    log::debug!("[MD030] List items: {:#?}", &list_items);
-    list_items
-        .iter()
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_list_item(n))
         .filter(|li| !assert_spaces_after_list_marker(li, &file.content, expected_num_spaces))
         .map(|li| {
             violation_builder()
