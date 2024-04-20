@@ -94,10 +94,7 @@ pub fn md005_consistent_list_items_indentation(file: &MarkDownFile) -> Vec<Viola
 
     let ast = common::ast::parse(&file.content).unwrap();
     common::ast::BfsIterator::from(&ast)
-        .filter_map(|node| match node {
-            Node::List(e) => Some(e),
-            _ => None,
-        })
+        .filter_map(|n| common::ast::try_cast_to_list(n))
         .filter(|l| !get_miss_aligned_items(l).is_empty())
         .flat_map(|l| {
             let expected_alignment = &first_list_item_alignment(l, &file.content);
