@@ -1,4 +1,4 @@
-use markdown::mdast::{Heading, List, Node, Paragraph, Text};
+use markdown::mdast::{BlockQuote, Code, Heading, List, Node, Paragraph, Text};
 
 #[derive(Debug)]
 pub struct BfsIterator<'a> {
@@ -66,6 +66,38 @@ pub fn try_cast_to_heading(node: &Node) -> Option<&Heading> {
 pub fn try_cast_to_list(node: &Node) -> Option<&List> {
     match node {
         Node::List(e) => Some(e),
+        _ => None,
+    }
+}
+
+// Return the code node if the provided generic node is a code
+// Meant to be used in a filter_map statement to filter code nodes
+// from a generic AST
+// Example:
+// ```
+// let ast = common::ast::parse(&file.content)?;
+// let lists = common::ast::BfsIterator::from(&ast)
+//                   .filter_map(|n| common::ast::try_cast_to_code(n));
+// ```
+pub fn try_cast_to_code(node: &Node) -> Option<&Code> {
+    match node {
+        Node::Code(e) => Some(e),
+        _ => None,
+    }
+}
+
+// Return the block quote node if the provided generic node is a block quote
+// Meant to be used in a filter_map statement to filter block quote nodes
+// from a generic AST
+// Example:
+// ```
+// let ast = common::ast::parse(&file.content)?;
+// let lists = common::ast::BfsIterator::from(&ast)
+//                   .filter_map(|n| common::ast::try_cast_to_block_quote(n));
+// ```
+pub fn try_cast_to_block_quote(node: &Node) -> Option<&BlockQuote> {
+    match node {
+        Node::BlockQuote(e) => Some(e),
         _ => None,
     }
 }

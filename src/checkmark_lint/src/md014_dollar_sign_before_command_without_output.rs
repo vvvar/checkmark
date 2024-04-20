@@ -28,10 +28,7 @@ pub fn md014_dollar_sign_before_command_without_output(file: &MarkDownFile) -> V
     log::debug!("[MD014] File: {:#?}", &file.path);
     let ast = common::ast::parse(&file.content).unwrap();
     common::ast::BfsIterator::from(&ast)
-        .filter_map(|node| match node {
-            Node::Code(e) => Some(e),
-            _ => None,
-        })
+        .filter_map(|n| common::ast::try_cast_to_code(n))
         .filter(|c| is_code_start_always_with_dollar(c))
         .map(|c| to_issue(c))
         .collect()
