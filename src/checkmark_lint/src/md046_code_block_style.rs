@@ -46,15 +46,9 @@ pub fn md046_code_block_style(file: &MarkDownFile, style: &CodeBlockStyle) -> Ve
     log::debug!("[MD046] File: {:#?}, style: {:#?}", &file.path, &style);
 
     let ast = common::ast::parse(&file.content).unwrap();
-
-    // Get all code blocks
-    let mut code_blocks: Vec<&Code> = vec![];
-    common::ast::for_each(&ast, |node| {
-        if let Node::Code(c) = node {
-            code_blocks.push(c);
-        }
-    });
-    log::debug!("[MD046] Code blocks: {:#?}", &code_blocks);
+    let code_blocks = common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_code(n))
+        .collect::<Vec<&Code>>();
 
     // Take code node and original file and determine which style it is.
     let get_code_block_style = |c: &Code, source: &str| -> CodeBlockStyle {
@@ -80,7 +74,7 @@ pub fn md046_code_block_style(file: &MarkDownFile, style: &CodeBlockStyle) -> Ve
         CodeBlockStyle::Indented => CodeBlockStyle::Indented,
     };
     log::debug!(
-        "[MD046] Document should have code block style: {:#?}",
+        "[MD046] Preferred code block style: {:#?}",
         &preferred_style
     );
 
