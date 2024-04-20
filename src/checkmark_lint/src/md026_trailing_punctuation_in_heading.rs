@@ -37,17 +37,11 @@ fn ends_with_trailing_punctuation(h: &Heading) -> bool {
 pub fn md026_trailing_punctuation_in_heading(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD026] File: {:#?}", &file.path);
     let ast = common::ast::parse(&file.content).unwrap();
-
-    let mut headings = Vec::<&Heading>::new();
-    common::ast::for_each(&ast, |node| {
-        if let Node::Heading(h) = node {
-            headings.push(h);
-        }
-    });
-    log::debug!("[MD026] Headings: {:#?}", &headings);
-
-    headings
-        .iter()
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|node| match node {
+            Node::Heading(e) => Some(e),
+            _ => None,
+        })
         .filter(|h| ends_with_trailing_punctuation(h))
         .map(|h| violation_builder().position(&h.position).build())
         .collect::<Vec<Violation>>()
@@ -62,7 +56,7 @@ mod tests {
     pub fn md026() {
         let file = common::MarkDownFile {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
-            content: "# This is a heading.".to_string(),
+            content: "# This is a heading.\n\n## This is fine\n".to_string(),
             issues: vec![],
         };
 
