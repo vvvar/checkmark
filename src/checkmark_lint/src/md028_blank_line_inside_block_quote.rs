@@ -19,12 +19,9 @@ pub fn md028_blank_line_inside_block_quote(file: &MarkDownFile) -> Vec<Violation
     let ast = common::ast::parse(&file.content).unwrap();
 
     // Get all block quotes
-    let mut block_quotes: Vec<&BlockQuote> = vec![];
-    common::ast::for_each(&ast, |node| {
-        if let Node::BlockQuote(bq) = node {
-            block_quotes.push(bq);
-        }
-    });
+    let block_quotes = common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_block_quote(n))
+        .collect::<Vec<&BlockQuote>>();
     log::debug!("[MD028] Block quotes(in sequence): {:#?}", &block_quotes);
 
     let mut violations: Vec<Violation> = vec![];

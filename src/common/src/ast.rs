@@ -38,15 +38,17 @@ impl<'a> Iterator for BfsIterator<'a> {
     }
 }
 
-// Return the heading node if the provided generic node is a heading
-// Meant to be used in a filter_map statement to filter heading nodes
-// from a generic AST
-// Example:
-// ```
-// let ast = common::ast::parse(&file.content)?;
-// let headings = common::ast::BfsIterator::from(&ast)
-//                   .filter_map(|n| common::ast::try_cast_to_heading(n));
-// ```
+/// Return the heading node if the provided generic node is a heading
+/// Meant to be used in a filter_map statement to filter heading nodes
+/// from a generic AST
+/// Example:
+/// ```
+/// # use markdown::mdast::{BlockQuote, Code, Heading, List, Node, Paragraph, Text};
+/// let ast = common::ast::parse("# Heading").unwrap();
+/// let headings = common::ast::BfsIterator::from(&ast)
+///                  .filter_map(|n| common::ast::try_cast_to_heading(n))
+///                  .collect::<Vec<&Heading>>();
+/// ```
 pub fn try_cast_to_heading(node: &Node) -> Option<&Heading> {
     match node {
         Node::Heading(e) => Some(e),
@@ -54,15 +56,17 @@ pub fn try_cast_to_heading(node: &Node) -> Option<&Heading> {
     }
 }
 
-// Return the list node if the provided generic node is a list
-// Meant to be used in a filter_map statement to filter list nodes
-// from a generic AST
-// Example:
-// ```
-// let ast = common::ast::parse(&file.content)?;
-// let lists = common::ast::BfsIterator::from(&ast)
-//                   .filter_map(|n| common::ast::try_cast_to_list(n));
-// ```
+/// Return the list node if the provided generic node is a list
+/// Meant to be used in a filter_map statement to filter list nodes
+/// from a generic AST
+/// Example:
+/// ```
+/// # use markdown::mdast::{BlockQuote, Code, Heading, List, Node, Paragraph, Text};
+/// let ast = common::ast::parse("- Item\n\n- Item\n\n").unwrap();
+/// let lists = common::ast::BfsIterator::from(&ast)
+///                  .filter_map(|n| common::ast::try_cast_to_list(n))
+///                  .collect::<Vec<&List>>();
+/// ```
 pub fn try_cast_to_list(node: &Node) -> Option<&List> {
     match node {
         Node::List(e) => Some(e),
@@ -70,15 +74,17 @@ pub fn try_cast_to_list(node: &Node) -> Option<&List> {
     }
 }
 
-// Return the code node if the provided generic node is a code
-// Meant to be used in a filter_map statement to filter code nodes
-// from a generic AST
-// Example:
-// ```
-// let ast = common::ast::parse(&file.content)?;
-// let lists = common::ast::BfsIterator::from(&ast)
-//                   .filter_map(|n| common::ast::try_cast_to_code(n));
-// ```
+/// Return the code node if the provided generic node is a code
+/// Meant to be used in a filter_map statement to filter code nodes
+/// from a generic AST
+/// Example:
+/// ```
+/// # use markdown::mdast::{BlockQuote, Code, Heading, List, Node, Paragraph, Text};
+/// let ast = common::ast::parse("   Code Block").unwrap();
+/// let lists = common::ast::BfsIterator::from(&ast)
+///                  .filter_map(|n| common::ast::try_cast_to_code(n))
+///                  .collect::<Vec<&Code>>();
+/// ```
 pub fn try_cast_to_code(node: &Node) -> Option<&Code> {
     match node {
         Node::Code(e) => Some(e),
@@ -86,15 +92,17 @@ pub fn try_cast_to_code(node: &Node) -> Option<&Code> {
     }
 }
 
-// Return the block quote node if the provided generic node is a block quote
-// Meant to be used in a filter_map statement to filter block quote nodes
-// from a generic AST
-// Example:
-// ```
-// let ast = common::ast::parse(&file.content)?;
-// let lists = common::ast::BfsIterator::from(&ast)
-//                   .filter_map(|n| common::ast::try_cast_to_block_quote(n));
-// ```
+/// Return the block quote node if the provided generic node is a block quote.
+/// Meant to be used in a filter_map statement to filter block quote nodes
+/// from a generic AST.
+/// Example:
+/// ```
+/// # use markdown::mdast::{BlockQuote, Code, Heading, List, Node, Paragraph, Text};
+/// let ast = common::ast::parse("> Block Quote").unwrap();
+/// let lists = common::ast::BfsIterator::from(&ast)
+///                  .filter_map(|n| common::ast::try_cast_to_block_quote(n))
+///                  .collect::<Vec<&BlockQuote>>();
+/// ```
 pub fn try_cast_to_block_quote(node: &Node) -> Option<&BlockQuote> {
     match node {
         Node::BlockQuote(e) => Some(e),
