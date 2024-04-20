@@ -127,20 +127,9 @@ pub fn md029_ordered_list_item_prefix(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD029] File: {:#?}", &file.path);
 
     let ast = common::ast::parse(&file.content).unwrap();
-
-    // Get all block quotes
-    let mut ordered_lists: Vec<&List> = vec![];
-    common::ast::for_each(&ast, |node| {
-        if let Node::List(l) = node {
-            if l.ordered {
-                ordered_lists.push(l);
-            }
-        }
-    });
-    log::debug!("[MD029] Ordered lists: {:#?}", &ordered_lists);
-
-    let mut violations = ordered_lists
-        .iter()
+    let mut violations = common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_list(n))
+        .filter(|l| l.ordered)
         .filter(|h| {
             let counts_from_zero = counts_from_zero(h, &file.content);
             let counts_from_one = counts_from_one(h, &file.content);
