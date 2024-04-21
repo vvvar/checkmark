@@ -80,18 +80,20 @@ impl FormattingOptions {
                     common::UnorderedListStyle::Consistent => {
                         log::debug!("Detect unordered list style in {:#?}", &source.path);
                         let ast = common::ast::parse(&source.content).unwrap();
-                        let mut unordered_list_items: Vec<&markdown::mdast::ListItem> = vec![];
-                        common::ast::for_each(&ast, |node| {
-                            if let markdown::mdast::Node::List(l) = node {
-                                if !l.ordered {
-                                    for child in &l.children {
-                                        if let markdown::mdast::Node::ListItem(li) = child {
-                                            unordered_list_items.push(li);
-                                        }
+                        let unordered_list_items = common::ast::BfsIterator::from(&ast)
+                            .filter_map(|n| common::ast::try_cast_to_list(n))
+                            .filter(|l| l.ordered == false) // We only care about unordered lists
+                            .flat_map(|l| {
+                                // Get all list items from them
+                                let mut items = vec![];
+                                for child in &l.children {
+                                    if let markdown::mdast::Node::ListItem(li) = child {
+                                        items.push(li);
                                     }
                                 }
-                            }
-                        });
+                                items
+                            })
+                            .collect::<Vec<_>>();
                         if let Some(first_unordered_list_item) = unordered_list_items.first() {
                             log::debug!(
                                 "First unordered list item: {:#?}",
@@ -146,12 +148,9 @@ impl FormattingOptions {
                     common::HeadingStyle::Consistent => {
                         log::debug!("Detecting heading style from the file {:#?}", &source.path);
                         let ast = common::ast::parse(&source.content).unwrap();
-                        let mut headings: Vec<&markdown::mdast::Heading> = vec![];
-                        common::ast::for_each(&ast, |node| {
-                            if let markdown::mdast::Node::Heading(h) = node {
-                                headings.push(h);
-                            }
-                        });
+                        let headings = common::ast::BfsIterator::from(&ast)
+                            .filter_map(|n| common::ast::try_cast_to_heading(n))
+                            .collect::<Vec<&markdown::mdast::Heading>>();
                         if let Some(first_heading) = headings.first() {
                             log::debug!("First heading in a file: {:#?}", &first_heading);
 
@@ -180,12 +179,9 @@ impl FormattingOptions {
                         );
 
                         let ast = common::ast::parse(&source.content).unwrap();
-                        let mut strong_els: Vec<&markdown::mdast::Strong> = vec![];
-                        common::ast::for_each(&ast, |node| {
-                            if let markdown::mdast::Node::Strong(s) = node {
-                                strong_els.push(s);
-                            }
-                        });
+                        let strong_els = common::ast::BfsIterator::from(&ast)
+                            .filter_map(|n| common::ast::try_cast_to_strong(n))
+                            .collect::<Vec<&markdown::mdast::Strong>>();
                         if let Some(first_strong_el) = strong_els.first() {
                             log::debug!("First bold(strong) el in a file: {:#?}", &first_strong_el);
 

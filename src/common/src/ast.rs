@@ -1,5 +1,5 @@
 use markdown::mdast::{
-    BlockQuote, Code, Heading, Html, Link, List, ListItem, Node, Paragraph, Text,
+    BlockQuote, Code, Heading, Html, Link, List, ListItem, Node, Paragraph, Strong, Text,
 };
 
 #[derive(Debug)]
@@ -54,6 +54,42 @@ impl<'a> Iterator for BfsIterator<'a> {
 pub fn try_cast_to_heading(node: &Node) -> Option<&Heading> {
     match node {
         Node::Heading(e) => Some(e),
+        _ => None,
+    }
+}
+
+/// Return the strong node if the provided generic node is a string.
+/// Meant to be used in a filter_map statement to filter strong nodes
+/// from a generic AST.
+/// Example:
+/// ```
+/// # use markdown::mdast::{Strong, Node};
+/// let ast = common::ast::parse("**Strong**").unwrap();
+/// let strong_elements = common::ast::BfsIterator::from(&ast)
+///                  .filter_map(|n| common::ast::try_cast_to_strong(n))
+///                  .collect::<Vec<&Strong>>();
+/// ```
+pub fn try_cast_to_strong(node: &Node) -> Option<&Strong> {
+    match node {
+        Node::Strong(e) => Some(e),
+        _ => None,
+    }
+}
+
+/// Return the text node if the provided generic node is an text node.
+/// Meant to be used in a filter_map statement to filter text nodes
+/// from a generic AST.
+/// Example:
+/// ```
+/// # use markdown::mdast::{Text, Node};
+/// let ast = common::ast::parse("Text").unwrap();
+/// let text_nodes = common::ast::BfsIterator::from(&ast)
+///                     .filter_map(|n| common::ast::try_cast_to_text(n))
+///                     .collect::<Vec<&Text>>();
+/// ```
+pub fn try_cast_to_text(node: &Node) -> Option<&Text> {
+    match node {
+        Node::Text(e) => Some(e),
         _ => None,
     }
 }
@@ -164,50 +200,6 @@ pub fn try_cast_to_block_quote(node: &Node) -> Option<&BlockQuote> {
         Node::BlockQuote(e) => Some(e),
         _ => None,
     }
-}
-
-// Collect nodes of type from provided AST
-pub fn for_each<'a>(ast: &'a Node, mut f: impl FnMut(&'a Node)) {
-    let mut stack: Vec<&Node> = vec![];
-    stack.push(ast);
-    while let Some(current) = stack.pop() {
-        f(current);
-        if let Some(children) = current.children() {
-            for child in children.iter().rev() {
-                stack.push(child);
-            }
-        }
-    }
-}
-
-pub fn filter<'a>(ast: &'a Node, mut p: impl FnMut(&'a Node) -> bool) -> Vec<&'a Node> {
-    let mut stack: Vec<&Node> = vec![];
-    for_each(ast, |node| {
-        if p(node) {
-            stack.push(node);
-        }
-    });
-    stack
-}
-
-pub fn filter_text_nodes(ast: &Node) -> Vec<&Text> {
-    let mut text_nodes: Vec<&Text> = vec![];
-    for_each(ast, |node| {
-        if let Node::Text(t) = node {
-            text_nodes.push(t)
-        }
-    });
-    text_nodes
-}
-
-pub fn filter_paragraph_nodes(ast: &Node) -> Vec<&Paragraph> {
-    let mut p_nodes: Vec<&Paragraph> = vec![];
-    for_each(ast, |node| {
-        if let Node::Paragraph(t) = node {
-            p_nodes.push(t)
-        }
-    });
-    p_nodes
 }
 
 /// Parse Markdown file into an AST

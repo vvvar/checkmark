@@ -1,4 +1,5 @@
 use common::find_index;
+use markdown::mdast::Text;
 use markdown::unist::Position;
 use rayon::prelude::*;
 use std::fmt::{Display, Formatter, Result};
@@ -160,10 +161,12 @@ fn extract(node: &markdown::mdast::Text) -> Vec<Word> {
 
 pub fn text_to_words(text: &str) -> Vec<Word> {
     let ast = common::ast::parse(text).unwrap();
-    common::ast::filter_text_nodes(&ast)
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_text(n))
+        .collect::<Vec<&Text>>() // Need to collect because .par_iter() is not available for iterators
         .par_iter()
-        .flat_map(|text_node| extract(text_node))
-        .collect()
+        .flat_map(|t| extract(t))
+        .collect::<Vec<Word>>()
 }
 
 #[cfg(test)]

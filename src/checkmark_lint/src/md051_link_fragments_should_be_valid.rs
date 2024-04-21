@@ -51,15 +51,13 @@ fn heading_to_fragment(heading: &Heading) -> String {
 /// Get all HTML links(<a/>).
 /// At least one of them shall contain an anchor.
 fn extract_html_elements(ast: &Node) -> Vec<scraper::Node> {
-    let mut html_elements: Vec<scraper::Node> = vec![];
-    common::ast::for_each(ast, |node| {
-        if let Node::Html(h) = node {
-            let fragment = scraper::Html::parse_fragment(&h.value);
-            html_elements.append(&mut fragment.tree.clone().into_iter().collect::<Vec<_>>())
-        }
-    });
-    log::debug!("[MD051] HTML elements: {:#?}", &html_elements);
-    html_elements
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_html(n))
+        .flat_map(|html| {
+            let fragment = scraper::Html::parse_fragment(&html.value);
+            fragment.tree.clone().into_iter().collect::<Vec<_>>()
+        })
+        .collect::<Vec<scraper::Node>>()
 }
 
 /// Takes a list of links with fragment and for each of them tries to find whether it:
