@@ -1,4 +1,6 @@
-use markdown::mdast::{BlockQuote, Code, Heading, Html, List, ListItem, Node, Paragraph, Text};
+use markdown::mdast::{
+    BlockQuote, Code, Heading, Html, Link, List, ListItem, Node, Paragraph, Text,
+};
 
 #[derive(Debug)]
 pub struct BfsIterator<'a> {
@@ -70,6 +72,24 @@ pub fn try_cast_to_heading(node: &Node) -> Option<&Heading> {
 pub fn try_cast_to_html(node: &Node) -> Option<&Html> {
     match node {
         Node::Html(e) => Some(e),
+        _ => None,
+    }
+}
+
+/// Return the link node if the provided generic node is a link.
+/// Meant to be used in a filter_map statement to filter link nodes
+/// from a generic AST.
+/// Example:
+/// ```
+/// # use markdown::mdast::{Link, Node};
+/// let ast = common::ast::parse("[Text](http://example.com)").unwrap();
+/// let links = common::ast::BfsIterator::from(&ast)
+///                  .filter_map(|n| common::ast::try_cast_to_link(n))
+///                  .collect::<Vec<&Link>>();
+/// ```
+pub fn try_cast_to_link(node: &Node) -> Option<&Link> {
+    match node {
+        Node::Link(e) => Some(e),
         _ => None,
     }
 }

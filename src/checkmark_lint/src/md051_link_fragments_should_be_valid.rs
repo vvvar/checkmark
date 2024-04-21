@@ -16,27 +16,16 @@ fn violation_builder() -> ViolationBuilder {
 /// Get all Markdown links that points to a document fragment.
 /// For example: [About](#about-us)
 fn extract_links_with_fragments(ast: &Node) -> Vec<&Link> {
-    let mut link_nodes: Vec<&Link> = vec![];
-    common::ast::for_each(ast, |node| {
-        if let Node::Link(l) = node {
-            if l.url.starts_with('#') {
-                link_nodes.push(l);
-            }
-        }
-    });
-    log::debug!("[MD051] Link nodes: {:#?}", &link_nodes);
-    link_nodes
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_link(n))
+        .filter(|l| l.url.starts_with('#'))
+        .collect::<Vec<&Link>>()
 }
 
 fn extract_headings(ast: &Node) -> Vec<&Heading> {
-    let mut heading_nodes: Vec<&Heading> = vec![];
-    common::ast::for_each(ast, |node| {
-        if let Node::Heading(h) = node {
-            heading_nodes.push(h);
-        }
-    });
-    log::debug!("[MD051] Heading nodes: {:#?}", &heading_nodes);
-    heading_nodes
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_heading(n))
+        .collect::<Vec<&Heading>>()
 }
 
 /// Takes heading and returns fragment link of it.
