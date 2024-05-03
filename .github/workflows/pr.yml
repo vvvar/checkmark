@@ -8,6 +8,20 @@ env:
 on: [pull_request]
 
 jobs:
+  build:
+    name: cargo test
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macOS-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - run: cargo build --release
+
   test:
     name: cargo test
     strategy:
