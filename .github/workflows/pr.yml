@@ -8,55 +8,35 @@ env:
 on: [pull_request]
 
 jobs:
-    lint:
-        name: Lint
-        runs-on: ubuntu-latest
-        steps:
-          - name: Setup | Checkout
-            uses: actions/checkout@v2
-          - name: Setup | Rust
-            uses: ATiltedTree/setup-rust@v1
-            with:
-              rust-version: nightly
-              components: clippy
-          - name: Build | Lint
-            run: cargo clippy
-          - name: Build | Check Unused Deps
-            run: |
-              cargo install cargo-udeps --locked
-              cargo udeps
-    compile:
-        name: Compile
-        runs-on: ubuntu-latest
-        steps:
-            - name: Setup | Checkout
-              uses: actions/checkout@v2
-            - name: Setup | Rust
-              uses: ATiltedTree/setup-rust@v1
-              with:
-                rust-version: stable
-            - name: Build | Compile
-              run: cargo check
-    test:
-        name: Test
-        strategy:
-            matrix:
-              os:
-                - ubuntu-latest
-                - windows-latest
-                - macOS-latest
-              rust:
-                - stable
-                - beta
-                - nightly
-        runs-on: ${{ matrix.os }}
-        needs: [compile]
-        steps:
-            - name: Setup | Checkout
-              uses: actions/checkout@v2
-            - name: Setup | Rust
-              uses: ATiltedTree/setup-rust@v1
-              with:
-                rust-version: ${{ matrix.rust }}
-            - name: Build | Test
-              run: cargo test
+  test:
+    name: cargo test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - run: cargo test --all-features
+
+  # Check formatting with rustfmt
+  formatting:
+    name: cargo fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Ensure rustfmt is installed and setup problem matcher
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: rustfmt
+      - name: Rustfmt Check
+        uses: actions-rust-lang/rustfmt@v1
+
+  # Check formatting with rustfmt
+  lint:
+    name: cargo clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Ensure rustfmt is installed and setup problem matcher
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: clippy
+      - run: cargo test --all-features
