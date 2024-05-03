@@ -148,10 +148,7 @@ pub fn try_cast_to_list(node: &Node) -> Option<&List> {
 
 /// Return true only when given node is ListItem
 pub fn is_list_item(node: &Node) -> bool {
-    match node {
-        Node::ListItem(_) => true,
-        _ => false,
-    }
+    matches!(node, Node::ListItem(_))
 }
 
 /// Return the list item node if the provided generic node is a list item
