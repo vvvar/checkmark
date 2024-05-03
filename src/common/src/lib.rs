@@ -539,6 +539,10 @@ fn get_default_check_emails() -> bool {
     true
 }
 
+fn get_default_md031_list_items() -> bool {
+    true
+}
+
 #[derive(Debug, Default, Clone, serde::Deserialize)]
 pub struct LinkCheckerConfig {
     #[serde(default)]
@@ -568,8 +572,11 @@ pub struct LinkCheckerConfig {
 
 #[derive(Debug, Default, Clone, serde::Deserialize)]
 pub struct LinterConfig {
+    #[serde(default = "get_default_md031_list_items")]
+    pub md031_list_items: bool,
+
     #[serde(default)]
-    pub allowed_html_tags: Vec<String>,
+    pub md033_allowed_html_tags: Vec<String>,
 }
 
 #[derive(Debug, Default, Clone, serde::Deserialize)]

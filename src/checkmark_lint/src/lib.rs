@@ -105,8 +105,8 @@ pub fn lint(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
                 None => DEFAULT_NUM_SPACES_AFTER_MARKER,
             },
         ),
-        md031_fenced_code_blocks_surrounded_with_blank_lines(file),
-        md033_inline_html(file, &config.linter.allowed_html_tags),
+        md031_fenced_code_blocks_surrounded_with_blank_lines(file, config.linter.md031_list_items),
+        md033_inline_html(file, &config.linter.md033_allowed_html_tags),
         md046_code_block_style(file, &CodeBlockStyle::Consistent),
         md051_link_fragments_should_be_valid(file),
     ]

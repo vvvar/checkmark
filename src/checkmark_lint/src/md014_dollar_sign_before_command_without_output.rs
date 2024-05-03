@@ -30,7 +30,7 @@ pub fn md014_dollar_sign_before_command_without_output(file: &MarkDownFile) -> V
     common::ast::BfsIterator::from(&ast)
         .filter_map(|n| common::ast::try_cast_to_code(n))
         .filter(|c| is_code_start_always_with_dollar(c))
-        .map(|c| to_issue(c))
+        .map(to_issue)
         .collect()
 }
 

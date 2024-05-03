@@ -32,10 +32,10 @@ pub fn md024_multiple_headings_with_the_same_content(file: &MarkDownFile) -> Vec
         .filter(|h| {
             let text = to_text(h, &file.content);
             if headings_content.contains(&text) {
-                return true;
+                true
             } else {
                 headings_content.insert(text);
-                return false;
+                false
             }
         })
         .map(|h| violation_builder().position(&h.position).build())

@@ -1,6 +1,4 @@
-use markdown::mdast::{
-    BlockQuote, Code, Heading, Html, Link, List, ListItem, Node, Paragraph, Strong, Text,
-};
+use markdown::mdast::{BlockQuote, Code, Heading, Html, Link, List, ListItem, Node, Strong, Text};
 
 #[derive(Debug)]
 pub struct BfsIterator<'a> {
@@ -36,7 +34,7 @@ impl<'a> Iterator for BfsIterator<'a> {
             return None;
         }
         self.index += 1;
-        Some(&self.values[self.index - 1])
+        Some(self.values[self.index - 1])
     }
 }
 
@@ -145,6 +143,14 @@ pub fn try_cast_to_list(node: &Node) -> Option<&List> {
     match node {
         Node::List(e) => Some(e),
         _ => None,
+    }
+}
+
+/// Return true only when given node is ListItem
+pub fn is_list_item(node: &Node) -> bool {
+    match node {
+        Node::ListItem(_) => true,
+        _ => false,
     }
 }
 

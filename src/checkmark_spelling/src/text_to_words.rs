@@ -13,7 +13,7 @@ use std::ops::Range;
 ///     two → second (2nd)
 ///     three → third (3rd)
 fn is_valid_ordinal_number(src: &str) -> bool {
-    let is_ordinal = src.chars().nth(0).unwrap_or(' ').is_numeric()
+    let is_ordinal = src.chars().next().unwrap_or(' ').is_numeric()
         && (src.ends_with("st")
             || src.ends_with("nd")
             || src.ends_with("rd")
@@ -28,14 +28,14 @@ fn is_valid_ordinal_number(src: &str) -> bool {
                 ending.push(char);
             }
         }
-        return match last_num_char {
+        match last_num_char {
             '1' => ending == "st",
             '2' => ending == "nd",
             '3' => ending == "rd",
             _ => ending == "th",
-        };
+        }
     } else {
-        return false;
+        false
     }
 }
 

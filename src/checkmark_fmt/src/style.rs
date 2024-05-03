@@ -82,7 +82,7 @@ impl FormattingOptions {
                         let ast = common::ast::parse(&source.content).unwrap();
                         let unordered_list_items = common::ast::BfsIterator::from(&ast)
                             .filter_map(|n| common::ast::try_cast_to_list(n))
-                            .filter(|l| l.ordered == false) // We only care about unordered lists
+                            .filter(|l| !l.ordered) // We only care about unordered lists
                             .flat_map(|l| {
                                 // Get all list items from them
                                 let mut items = vec![];

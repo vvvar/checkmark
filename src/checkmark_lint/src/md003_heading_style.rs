@@ -45,7 +45,7 @@ fn get_heading_style(h: &Heading, source: &str) -> HeadingStyle {
 
 // When first heading exist, detects it's style
 // Otherwise - fallback to Atx
-fn get_first_heading_style(headings: &Vec<&Heading>, source: &str) -> HeadingStyle {
+fn get_first_heading_style(headings: &[&Heading], source: &str) -> HeadingStyle {
     if let Some(h) = headings.first() {
         get_heading_style(h, source)
     } else {

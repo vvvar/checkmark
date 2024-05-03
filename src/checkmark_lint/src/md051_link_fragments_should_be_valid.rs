@@ -16,14 +16,14 @@ fn violation_builder() -> ViolationBuilder {
 /// Get all Markdown links that points to a document fragment.
 /// For example: [About](#about-us)
 fn extract_links_with_fragments(ast: &Node) -> Vec<&Link> {
-    common::ast::BfsIterator::from(&ast)
+    common::ast::BfsIterator::from(ast)
         .filter_map(|n| common::ast::try_cast_to_link(n))
         .filter(|l| l.url.starts_with('#'))
         .collect::<Vec<&Link>>()
 }
 
 fn extract_headings(ast: &Node) -> Vec<&Heading> {
-    common::ast::BfsIterator::from(&ast)
+    common::ast::BfsIterator::from(ast)
         .filter_map(|n| common::ast::try_cast_to_heading(n))
         .collect::<Vec<&Heading>>()
 }
@@ -51,7 +51,7 @@ fn heading_to_fragment(heading: &Heading) -> String {
 /// Get all HTML links(<a/>).
 /// At least one of them shall contain an anchor.
 fn extract_html_elements(ast: &Node) -> Vec<scraper::Node> {
-    common::ast::BfsIterator::from(&ast)
+    common::ast::BfsIterator::from(ast)
         .filter_map(|n| common::ast::try_cast_to_html(n))
         .flat_map(|html| {
             let fragment = scraper::Html::parse_fragment(&html.value);
