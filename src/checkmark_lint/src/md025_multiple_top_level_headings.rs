@@ -1,7 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
-use markdown::mdast::{Heading, Node};
-use std::collections::VecDeque;
+use common::MarkDownFile;
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
@@ -14,24 +12,12 @@ fn violation_builder() -> ViolationBuilder {
 
 pub fn md025_multiple_top_level_headings(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD025] File: {:#?}", &file.path);
-
-    let ast = parse(&file.content).unwrap();
-
-    let mut h1_headings = VecDeque::<&Heading>::new();
-    for_each(&ast, |node| {
-        if let Node::Heading(h) = node {
-            if h.depth == 1 {
-                h1_headings.push_back(h);
-            }
-        }
-    });
-    log::debug!("[MD025] H1 Headings: {:#?}", &h1_headings);
-    // First element is legit
-    h1_headings.pop_front();
-    // Everything else - violation
-    h1_headings
-        .iter()
-        .map(|h| violation_builder().position(&h.position).build())
+    let ast = common::ast::parse(&file.content).unwrap();
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_heading(n))
+        .filter(|h| h.depth == 1) // We only need 1st level headings
+        .skip(1) // First heading is always legit
+        .map(|h| violation_builder().position(&h.position).build()) // Others are violations
         .collect::<Vec<Violation>>()
 }
 
@@ -45,7 +31,8 @@ mod tests {
     fn md025() {
         let file = MarkDownFile {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
-            content: "# Top level heading\n\n# Another top-level heading".to_string(),
+            content: "# Top level heading\n\n# Another top-level heading\n\n## Legit heading"
+                .to_string(),
             issues: vec![],
         };
         assert_eq!(

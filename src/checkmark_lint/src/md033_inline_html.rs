@@ -1,6 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
-use markdown::mdast::{Html, Node};
+use common::MarkDownFile;
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
@@ -11,23 +10,10 @@ fn violation_builder() -> ViolationBuilder {
 }
 
 pub fn md033_inline_html(file: &MarkDownFile, allowed_tags: &Vec<String>) -> Vec<Violation> {
-    log::debug!(
-        "[MD033] File: {:#?}, Allowed tags: {:#?}",
-        &file.path,
-        &allowed_tags
-    );
-
-    let ast = parse(&file.content).unwrap();
-    let mut html_nodes: Vec<&Html> = vec![];
-    for_each(&ast, |node| {
-        if let Node::Html(t) = node {
-            html_nodes.push(t);
-        }
-    });
-    log::debug!("[MD033] HTML nodes: {:#?}", &html_nodes);
-
-    let violations = html_nodes
-        .iter()
+    log::debug!("[MD033] {:#?} Allowed: {:#?}", &file.path, &allowed_tags);
+    let ast = common::ast::parse(&file.content).unwrap();
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_html(n))
         .filter(|node| {
             // Markdown parser parses closing tags(e.x. "</a>")
             // as separate nodes. We need to filter them out.
@@ -62,10 +48,7 @@ pub fn md033_inline_html(file: &MarkDownFile, allowed_tags: &Vec<String>) -> Vec
                 .push_fix("If this HTML tag is needed, then consider adding a name of this element to the list of allowed tags. Use \"allowed_html_tags\" option from the \"[lint]\" section in the config file")
                 .build()
         })
-        .collect();
-    log::debug!("[MD033] Violations: {:#?}", &violations);
-
-    violations
+        .collect::<Vec<Violation>>()
 }
 
 #[cfg(test)]

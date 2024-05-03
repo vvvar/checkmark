@@ -1,5 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
+use common::MarkDownFile;
 use markdown::mdast::{Heading, Link, Node};
 
 fn violation_builder() -> ViolationBuilder {
@@ -16,27 +16,16 @@ fn violation_builder() -> ViolationBuilder {
 /// Get all Markdown links that points to a document fragment.
 /// For example: [About](#about-us)
 fn extract_links_with_fragments(ast: &Node) -> Vec<&Link> {
-    let mut link_nodes: Vec<&Link> = vec![];
-    for_each(ast, |node| {
-        if let Node::Link(l) = node {
-            if l.url.starts_with('#') {
-                link_nodes.push(l);
-            }
-        }
-    });
-    log::debug!("[MD051] Link nodes: {:#?}", &link_nodes);
-    link_nodes
+    common::ast::BfsIterator::from(ast)
+        .filter_map(|n| common::ast::try_cast_to_link(n))
+        .filter(|l| l.url.starts_with('#'))
+        .collect::<Vec<&Link>>()
 }
 
 fn extract_headings(ast: &Node) -> Vec<&Heading> {
-    let mut heading_nodes: Vec<&Heading> = vec![];
-    for_each(ast, |node| {
-        if let Node::Heading(h) = node {
-            heading_nodes.push(h);
-        }
-    });
-    log::debug!("[MD051] Heading nodes: {:#?}", &heading_nodes);
-    heading_nodes
+    common::ast::BfsIterator::from(ast)
+        .filter_map(|n| common::ast::try_cast_to_heading(n))
+        .collect::<Vec<&Heading>>()
 }
 
 /// Takes heading and returns fragment link of it.
@@ -62,15 +51,13 @@ fn heading_to_fragment(heading: &Heading) -> String {
 /// Get all HTML links(<a/>).
 /// At least one of them shall contain an anchor.
 fn extract_html_elements(ast: &Node) -> Vec<scraper::Node> {
-    let mut html_elements: Vec<scraper::Node> = vec![];
-    for_each(ast, |node| {
-        if let Node::Html(h) = node {
-            let fragment = scraper::Html::parse_fragment(&h.value);
-            html_elements.append(&mut fragment.tree.clone().into_iter().collect::<Vec<_>>())
-        }
-    });
-    log::debug!("[MD051] HTML elements: {:#?}", &html_elements);
-    html_elements
+    common::ast::BfsIterator::from(ast)
+        .filter_map(|n| common::ast::try_cast_to_html(n))
+        .flat_map(|html| {
+            let fragment = scraper::Html::parse_fragment(&html.value);
+            fragment.tree.clone().into_iter().collect::<Vec<_>>()
+        })
+        .collect::<Vec<scraper::Node>>()
 }
 
 /// Takes a list of links with fragment and for each of them tries to find whether it:
@@ -115,7 +102,7 @@ fn find_violations(
 
 pub fn md051_link_fragments_should_be_valid(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD051] File: {:#?}", &file.path);
-    let ast = parse(&file.content).unwrap();
+    let ast = common::ast::parse(&file.content).unwrap();
     let links = extract_links_with_fragments(&ast);
     let headings = extract_headings(&ast);
     let html_elements = extract_html_elements(&ast);

@@ -1,6 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
-use markdown::mdast::{ListItem, Node};
+use common::MarkDownFile;
+use markdown::mdast::ListItem;
 use regex::Regex;
 
 pub const DEFAULT_NUM_SPACES_AFTER_MARKER: u8 = 1;
@@ -40,16 +40,9 @@ pub fn md030_spaces_after_list_markers(
     expected_num_spaces: u8,
 ) -> Vec<Violation> {
     log::debug!("[MD030] File: {:#?}", &file.path);
-    let ast = parse(&file.content).unwrap();
-    let mut list_items: Vec<&ListItem> = vec![];
-    for_each(&ast, |node| {
-        if let Node::ListItem(li) = node {
-            list_items.push(li);
-        }
-    });
-    log::debug!("[MD030] List items: {:#?}", &list_items);
-    list_items
-        .iter()
+    let ast = common::ast::parse(&file.content).unwrap();
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_list_item(n))
         .filter(|li| !assert_spaces_after_list_marker(li, &file.content, expected_num_spaces))
         .map(|li| {
             violation_builder()
@@ -69,14 +62,11 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     fn to_list_items_ast(src: &str) -> Vec<ListItem> {
-        let ast = parse(&src).unwrap();
-        let mut list_items: Vec<ListItem> = vec![];
-        for_each(&ast, |node| {
-            if let Node::ListItem(li) = node {
-                list_items.push(li.clone());
-            }
-        });
-        list_items
+        let ast = common::ast::parse(&src).unwrap();
+        common::ast::BfsIterator::from(&ast)
+            .filter_map(|n| common::ast::try_cast_to_list_item(n))
+            .map(|li| li.clone())
+            .collect::<Vec<ListItem>>()
     }
 
     #[test]

@@ -1,5 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
+use common::MarkDownFile;
 use markdown::mdast::{List, ListItem, Node};
 
 fn violation_builder() -> ViolationBuilder {
@@ -12,15 +12,6 @@ fn violation_builder() -> ViolationBuilder {
 
 pub fn md005_consistent_list_items_indentation(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD005] File: {:#?}", &file.path);
-
-    let ast = parse(&file.content).unwrap();
-
-    let mut lists: Vec<&List> = vec![];
-    for_each(&ast, |node| {
-        if let Node::List(l) = node {
-            lists.push(l);
-        }
-    });
 
     let get_list_item_alignment = |li: &ListItem, source: &str| -> usize {
         let mut padding: usize = 0;
@@ -101,7 +92,9 @@ pub fn md005_consistent_list_items_indentation(file: &MarkDownFile) -> Vec<Viola
         miss_indented_items
     };
 
-    lists.iter()
+    let ast = common::ast::parse(&file.content).unwrap();
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_list(n))
         .filter(|l| !get_miss_aligned_items(l).is_empty())
         .flat_map(|l| {
             let expected_alignment = &first_list_item_alignment(l, &file.content);

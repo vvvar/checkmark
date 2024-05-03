@@ -1,5 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
+use common::MarkDownFile;
 use markdown::mdast::{ListItem, Node};
 
 fn violation_builder() -> ViolationBuilder {
@@ -40,22 +40,22 @@ pub fn md004_unordered_list_style(
 ) -> Vec<Violation> {
     log::debug!("[MD004] File: {:#?}", &file.path);
 
-    let ast = parse(&file.content).unwrap();
+    let ast = common::ast::parse(&file.content).unwrap();
 
-    // Get all unordered list items
-    let mut unordered_list_items: Vec<&ListItem> = vec![];
-    for_each(&ast, |node| {
-        if let Node::List(l) = node {
-            if !l.ordered {
-                for child in &l.children {
-                    if let Node::ListItem(li) = child {
-                        unordered_list_items.push(li);
-                    }
+    let unordered_list_items = common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_list(n))
+        .filter(|l| !l.ordered) // We only care about unordered lists
+        .flat_map(|l| {
+            // Get all list items from them
+            let mut items = vec![];
+            for child in &l.children {
+                if let Node::ListItem(li) = child {
+                    items.push(li);
                 }
             }
-        }
-    });
-    log::debug!("[MD004] Unordered list items: {:#?}", &unordered_list_items);
+            items
+        })
+        .collect::<Vec<_>>();
 
     // Get style of unordered list item
     let get_list_item_style = |li: &ListItem, source: &str| -> UnorderedListStyle {

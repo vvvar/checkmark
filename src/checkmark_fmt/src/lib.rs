@@ -587,7 +587,7 @@ pub fn fmt_markdown(file: &common::MarkDownFile, config: &common::Config) -> com
     log::debug!("Formatting options: {:#?}", &fmt_options);
 
     let mut buffer: String = String::from("");
-    let ast = common::parse(&file.content).unwrap();
+    let ast = common::ast::parse(&file.content).unwrap();
     to_md(
         &ast,
         &mut buffer,

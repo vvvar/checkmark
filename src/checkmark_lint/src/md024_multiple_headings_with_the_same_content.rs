@@ -1,6 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
-use markdown::mdast::{Heading, Node};
+use common::MarkDownFile;
+use markdown::mdast::Heading;
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
@@ -23,31 +23,22 @@ fn to_text(h: &Heading, source: &str) -> String {
     heading.to_string()
 }
 
-fn is_in(lhs: &Heading, slice: &[&Heading], source: &str) -> bool {
-    slice
-        .iter()
-        .any(|rhs| to_text(lhs, source).eq(&to_text(rhs, source)))
-}
-
 pub fn md024_multiple_headings_with_the_same_content(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD024] File: {:#?}", &file.path);
-
-    let ast = parse(&file.content).unwrap();
-
-    // Get all block quotes
-    let mut headings: Vec<&Heading> = vec![];
-    for_each(&ast, |node| {
-        if let Node::Heading(h) = node {
-            headings.push(h);
-        }
-    });
-    log::debug!("[MD024] Headings: {:#?}", &headings);
-
-    headings
-        .iter()
-        .enumerate()
-        .filter(|(i, h)| is_in(h, &headings[0..*i], &file.content))
-        .map(|(_, h)| violation_builder().position(&h.position).build())
+    let mut headings_content = std::collections::HashSet::new();
+    let ast = common::ast::parse(&file.content).unwrap();
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_heading(n))
+        .filter(|h| {
+            let text = to_text(h, &file.content);
+            if headings_content.contains(&text) {
+                true
+            } else {
+                headings_content.insert(text);
+                false
+            }
+        })
+        .map(|h| violation_builder().position(&h.position).build())
         .collect::<Vec<Violation>>()
 }
 
@@ -61,7 +52,7 @@ mod tests {
     fn md024() {
         let file = MarkDownFile {
             path: String::from("this/is/a/dummy/path/to/a/file.md"),
-            content: "# Some text\n\n## Some text".to_string(),
+            content: "# Some text\n\n## Some text\n\n## Some another text".to_string(),
             issues: vec![],
         };
         assert_eq!(

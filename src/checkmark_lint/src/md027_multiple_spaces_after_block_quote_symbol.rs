@@ -1,6 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
-use markdown::mdast::{BlockQuote, Node};
+use common::MarkDownFile;
+use markdown::mdast::BlockQuote;
 use regex::Regex;
 
 fn violation_builder() -> ViolationBuilder {
@@ -24,20 +24,9 @@ fn has_multiple_spaces_after_bq_symbol(bq: &BlockQuote, source: &str) -> bool {
 
 pub fn md027_multiple_spaces_after_block_quote_symbol(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD027] File: {:#?}", &file.path);
-
-    let ast = parse(&file.content).unwrap();
-
-    // Get all block quotes
-    let mut block_quotes: Vec<&BlockQuote> = vec![];
-    for_each(&ast, |node| {
-        if let Node::BlockQuote(bq) = node {
-            block_quotes.push(bq);
-        }
-    });
-    log::debug!("[MD027] Block quotes: {:#?}", &block_quotes);
-
-    block_quotes
-        .iter()
+    let ast = common::ast::parse(&file.content).unwrap();
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_block_quote(n))
         .filter(|bq| has_multiple_spaces_after_bq_symbol(bq, &file.content))
         .map(|bq| {
             violation_builder()

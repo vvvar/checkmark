@@ -1,5 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{parse, MarkDownFile};
+use common::MarkDownFile;
 use markdown::mdast::Node;
 
 fn violation_builder() -> ViolationBuilder {
@@ -119,7 +119,7 @@ fn analyze_list(
 pub fn md007_unordered_list_indentation(file: &MarkDownFile, indent: usize) -> Vec<Violation> {
     log::debug!("[MD007] File: {:#?}", &file.path);
 
-    let ast = parse(&file.content).unwrap();
+    let ast = common::ast::parse(&file.content).unwrap();
 
     // Extract all root-level lists
     let mut top_level_lists: Vec<&Node> = vec![];

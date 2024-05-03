@@ -1,6 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
-use markdown::mdast::{Code, Node};
+use common::MarkDownFile;
+use markdown::mdast::Code;
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
@@ -45,16 +45,10 @@ fn code_block_is_fenced_and_indented(c: &Code, source: &str) -> bool {
 pub fn md046_code_block_style(file: &MarkDownFile, style: &CodeBlockStyle) -> Vec<Violation> {
     log::debug!("[MD046] File: {:#?}, style: {:#?}", &file.path, &style);
 
-    let ast = parse(&file.content).unwrap();
-
-    // Get all code blocks
-    let mut code_blocks: Vec<&Code> = vec![];
-    for_each(&ast, |node| {
-        if let Node::Code(c) = node {
-            code_blocks.push(c);
-        }
-    });
-    log::debug!("[MD046] Code blocks: {:#?}", &code_blocks);
+    let ast = common::ast::parse(&file.content).unwrap();
+    let code_blocks = common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_code(n))
+        .collect::<Vec<&Code>>();
 
     // Take code node and original file and determine which style it is.
     let get_code_block_style = |c: &Code, source: &str| -> CodeBlockStyle {
@@ -80,7 +74,7 @@ pub fn md046_code_block_style(file: &MarkDownFile, style: &CodeBlockStyle) -> Ve
         CodeBlockStyle::Indented => CodeBlockStyle::Indented,
     };
     log::debug!(
-        "[MD046] Document should have code block style: {:#?}",
+        "[MD046] Preferred code block style: {:#?}",
         &preferred_style
     );
 

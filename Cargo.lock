@@ -721,7 +721,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_cli"
-version = "0.4.5"
+version = "0.6.0"
 dependencies = [
  "assert_cmd",
  "checkmark_fmt",
@@ -748,7 +748,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_fmt"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "colored",
  "common",
@@ -763,7 +763,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_link_checker"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "async-std",
  "colored",
@@ -780,7 +780,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_lint"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "colored",
  "common",
@@ -797,7 +797,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_ls"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "auth-git2",
  "common",
@@ -815,7 +815,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_open_ai"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "colored",
  "common",
@@ -857,7 +857,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_spelling"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "colored",
  "common",
@@ -973,7 +973,7 @@ dependencies = [
 
 [[package]]
 name = "common"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "codespan-reporting",
  "colored",
@@ -2029,9 +2029,9 @@ dependencies = [
 
 [[package]]
 name = "h2"
-version = "0.3.24"
+version = "0.3.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb2c4422095b67ee78da96fbb51a4cc413b3b25883c7717ff7ca1ab31022c9c9"
+checksum = "81fe527a889e1532da5c525686d96d4c2e74cdd345badf8dfef9f6b39dd5f5e8"
 dependencies = [
  "bytes",
  "fnv",
@@ -2246,7 +2246,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2 0.5.5",
+ "socket2 0.4.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -2577,9 +2577,9 @@ checksum = "9c198f91728a82281a64e1f4f9eeb25d82cb32a5de251c6bd1b5154d63a8e7bd"
 
 [[package]]
 name = "libgit2-sys"
-version = "0.16.1+1.7.1"
+version = "0.16.2+1.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2a2bb3680b094add03bb3732ec520ece34da31a8cd2d633d1389d0f0fb60d0c"
+checksum = "ee4126d8b4ee5c9d9ea891dd875cfdc1e9d0950437179104b183d7d8a74d24e8"
 dependencies = [
  "cc",
  "libc",
@@ -2834,9 +2834,9 @@ dependencies = [
 
 [[package]]
 name = "mio"
-version = "0.8.10"
+version = "0.8.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f3d0b296e374a4e6f3c7b0a1f5a51d748a0d34c85e7dc48fc3fa9a87657fe09"
+checksum = "a4a650543ca06a924e8b371db273b2756685faae30f8487da1b56505a8f78b0c"
 dependencies = [
  "libc",
  "wasi",
@@ -3774,9 +3774,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.21.10"
+version = "0.21.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9d5a6813c0759e4609cd494e8e725babae6a2ca7b62a5536a13daaec6fcb7ba"
+checksum = "3f56a14d1f48b391359b22f731fd4bd7e43c97f3c50eee276f3aa09c94784d3e"
 dependencies = [
  "log",
  "ring",

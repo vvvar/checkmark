@@ -101,11 +101,7 @@ pub struct LinkcheckCommand {
 
 #[derive(Debug, clap::Parser)]
 #[command(long_about = None)]
-pub struct LintCommand {
-    /// MD033: List of HTML tags to allow in the document
-    #[arg(long, short)]
-    pub allowed_html_tags: Vec<String>,
-}
+pub struct LintCommand {}
 
 #[derive(Debug, clap::Parser)]
 #[command(long_about = None)]

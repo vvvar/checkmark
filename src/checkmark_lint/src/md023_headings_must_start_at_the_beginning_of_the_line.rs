@@ -1,6 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
-use markdown::mdast::{Heading, Node};
+use common::MarkDownFile;
+use markdown::mdast::Heading;
 use regex::Regex;
 
 fn violation_builder() -> ViolationBuilder {
@@ -30,19 +30,9 @@ pub fn md023_headings_must_start_at_the_beginning_of_the_line(
 ) -> Vec<Violation> {
     log::debug!("[MD023] File: {:#?}", &file.path);
 
-    let ast = parse(&file.content).unwrap();
-
-    // Get all block quotes
-    let mut headings: Vec<&Heading> = vec![];
-    for_each(&ast, |node| {
-        if let Node::Heading(h) = node {
-            headings.push(h);
-        }
-    });
-    log::debug!("[MD023] Headings: {:#?}", &headings);
-
-    headings
-        .iter()
+    let ast = common::ast::parse(&file.content).unwrap();
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_heading(n))
         .filter(|h| heading_is_indented(h, &file.content))
         .map(|h| violation_builder().position(&h.position).build())
         .collect::<Vec<Violation>>()

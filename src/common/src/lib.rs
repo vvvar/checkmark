@@ -28,6 +28,7 @@
 //! CheckIssueBuilder::build() panics if any of the required fields has not been set.
 //! CheckIssue::to_sarif_result() panics if any of the required fields has not been set.
 
+pub mod ast;
 pub mod tui;
 
 /// Represents single markdown file under check
@@ -304,56 +305,6 @@ impl CheckIssue {
     }
 }
 
-// Collect nodes of type from provided AST
-pub fn for_each<'node_lifetime>(
-    ast: &'node_lifetime markdown::mdast::Node,
-    mut f: impl FnMut(&'node_lifetime markdown::mdast::Node),
-) {
-    let mut stack: Vec<&markdown::mdast::Node> = vec![];
-    stack.push(ast);
-    while let Some(current) = stack.pop() {
-        f(current);
-        if let Some(children) = current.children() {
-            for child in children.iter().rev() {
-                stack.push(child);
-            }
-        }
-    }
-}
-
-pub fn filter<'node_lifetime>(
-    ast: &'node_lifetime markdown::mdast::Node,
-    mut predicate: impl FnMut(&'node_lifetime markdown::mdast::Node) -> bool,
-) -> Vec<&'node_lifetime markdown::mdast::Node> {
-    let mut stack: Vec<&markdown::mdast::Node> = vec![];
-    for_each(ast, |node| {
-        if predicate(node) {
-            stack.push(node);
-        }
-    });
-    stack
-}
-
-pub fn filter_text_nodes(ast: &markdown::mdast::Node) -> Vec<&markdown::mdast::Text> {
-    let mut text_nodes: Vec<&markdown::mdast::Text> = vec![];
-    for_each(ast, |node| {
-        if let markdown::mdast::Node::Text(t) = node {
-            text_nodes.push(t)
-        }
-    });
-    text_nodes
-}
-
-pub fn filter_paragraph_nodes(ast: &markdown::mdast::Node) -> Vec<&markdown::mdast::Paragraph> {
-    let mut p_nodes: Vec<&markdown::mdast::Paragraph> = vec![];
-    for_each(ast, |node| {
-        if let markdown::mdast::Node::Paragraph(t) = node {
-            p_nodes.push(t)
-        }
-    });
-    p_nodes
-}
-
 /// Find index of substring in source string
 pub fn find_index(source: &str, sub_str: &str) -> core::ops::Range<usize> {
     let mut index_start = 0;
@@ -588,6 +539,10 @@ fn get_default_check_emails() -> bool {
     true
 }
 
+fn get_default_md031_list_items() -> bool {
+    true
+}
+
 #[derive(Debug, Default, Clone, serde::Deserialize)]
 pub struct LinkCheckerConfig {
     #[serde(default)]
@@ -617,8 +572,11 @@ pub struct LinkCheckerConfig {
 
 #[derive(Debug, Default, Clone, serde::Deserialize)]
 pub struct LinterConfig {
+    #[serde(default = "get_default_md031_list_items")]
+    pub md031_list_items: bool,
+
     #[serde(default)]
-    pub allowed_html_tags: Vec<String>,
+    pub md033_allowed_html_tags: Vec<String>,
 }
 
 #[derive(Debug, Default, Clone, serde::Deserialize)]
@@ -631,16 +589,4 @@ pub struct SpellingConfig {
 pub struct OpenAiConfig {
     #[serde(default)]
     pub api_key: Option<String>,
-}
-
-/// Parse Markdown file into an AST
-pub fn parse(source: &str) -> Result<markdown::mdast::Node, String> {
-    let options = markdown::ParseOptions {
-        constructs: markdown::Constructs {
-            frontmatter: true,
-            ..markdown::Constructs::gfm()
-        },
-        ..markdown::ParseOptions::gfm()
-    };
-    markdown::to_mdast(source, &options)
 }

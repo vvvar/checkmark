@@ -1,6 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
-use markdown::mdast::{Heading, Node};
+use common::MarkDownFile;
+use markdown::mdast::Heading;
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
@@ -44,19 +44,9 @@ fn to_violation(i: usize, h: &Heading) -> Violation {
 pub fn md022_headings_should_be_surrounded_by_blank_lines(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD022] File: {:#?}", &file.path);
 
-    let ast = parse(&file.content).unwrap();
-
-    // Get all block quotes
-    let mut headings: Vec<&Heading> = vec![];
-    for_each(&ast, |node| {
-        if let Node::Heading(h) = node {
-            headings.push(h);
-        }
-    });
-    log::debug!("[MD022] Headings: {:#?}", &headings);
-
-    headings
-        .iter()
+    let ast = common::ast::parse(&file.content).unwrap();
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_heading(n))
         .enumerate()
         .filter(|(i, h)| !surrounded_by_blank_lines(i, h, &file.content))
         .map(|(i, h)| to_violation(i, h))

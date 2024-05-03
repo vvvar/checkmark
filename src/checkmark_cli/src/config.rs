@@ -88,11 +88,7 @@ pub fn read_config(cli: &crate::cli::Cli) -> common::Config {
                 config.link_checker.allow_insecure = true;
             }
         }
-        crate::cli::Subcommands::Lint(lint) => {
-            if !lint.allowed_html_tags.is_empty() {
-                config.linter.allowed_html_tags = lint.allowed_html_tags.clone();
-            }
-        }
+        crate::cli::Subcommands::Lint(_) => {}
         crate::cli::Subcommands::Review(review) => {
             config.review.no_suggestions = review.no_suggestions;
             if let Some(prompt) = &review.prompt {

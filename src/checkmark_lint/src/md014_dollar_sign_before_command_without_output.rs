@@ -1,6 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
-use markdown::mdast::{Code, Node};
+use common::MarkDownFile;
+use markdown::mdast::Code;
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
@@ -26,17 +26,11 @@ fn to_issue(code: &Code) -> Violation {
 
 pub fn md014_dollar_sign_before_command_without_output(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD014] File: {:#?}", &file.path);
-    let ast = parse(&file.content).unwrap();
-    let mut code_blocks: Vec<&Code> = vec![];
-    for_each(&ast, |node| {
-        if let Node::Code(c) = node {
-            code_blocks.push(c);
-        }
-    });
-    code_blocks
-        .iter()
+    let ast = common::ast::parse(&file.content).unwrap();
+    common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_code(n))
         .filter(|c| is_code_start_always_with_dollar(c))
-        .map(|c| to_issue(c))
+        .map(to_issue)
         .collect()
 }
 

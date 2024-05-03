@@ -1,5 +1,5 @@
 use crate::violation::{Violation, ViolationBuilder};
-use common::{for_each, parse, MarkDownFile};
+use common::MarkDownFile;
 use markdown::mdast::{List, Node};
 use std::collections::VecDeque;
 
@@ -126,21 +126,10 @@ fn two_lists_split_by_code_or_block_quote(
 pub fn md029_ordered_list_item_prefix(file: &MarkDownFile) -> Vec<Violation> {
     log::debug!("[MD029] File: {:#?}", &file.path);
 
-    let ast = parse(&file.content).unwrap();
-
-    // Get all block quotes
-    let mut ordered_lists: Vec<&List> = vec![];
-    for_each(&ast, |node| {
-        if let Node::List(l) = node {
-            if l.ordered {
-                ordered_lists.push(l);
-            }
-        }
-    });
-    log::debug!("[MD029] Ordered lists: {:#?}", &ordered_lists);
-
-    let mut violations = ordered_lists
-        .iter()
+    let ast = common::ast::parse(&file.content).unwrap();
+    let mut violations = common::ast::BfsIterator::from(&ast)
+        .filter_map(|n| common::ast::try_cast_to_list(n))
+        .filter(|l| l.ordered)
         .filter(|h| {
             let counts_from_zero = counts_from_zero(h, &file.content);
             let counts_from_one = counts_from_one(h, &file.content);
@@ -175,7 +164,7 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     fn to_list_ast(src: &str) -> List {
-        let ast = parse(&src).unwrap();
+        let ast = common::ast::parse(&src).unwrap();
         if let Some(node) = &ast.children().unwrap().first() {
             match node {
                 Node::List(l) => l.clone(),
@@ -325,18 +314,23 @@ mod tests {
     fn md029_detect_list_items_separated_by_element() {
         // Happy paths
         let two_lists_and_code = "1. First list\n\n```text\nCode block\n```\n\n1. Second list\n";
-        assert!(
-            two_lists_split_by_code_or_block_quote(&parse(&two_lists_and_code).unwrap()).is_some()
-        );
+        assert!(two_lists_split_by_code_or_block_quote(
+            &common::ast::parse(&two_lists_and_code).unwrap()
+        )
+        .is_some());
 
         let two_lists_quote = "1. First list\n\n> Quote\n\n1. Second list\n";
-        assert!(
-            two_lists_split_by_code_or_block_quote(&parse(&two_lists_quote).unwrap()).is_some()
-        );
+        assert!(two_lists_split_by_code_or_block_quote(
+            &common::ast::parse(&two_lists_quote).unwrap()
+        )
+        .is_some());
 
         // Negative cases
         let one_list = "1. First list\n1. Second list\n";
-        assert!(!two_lists_split_by_code_or_block_quote(&parse(&one_list).unwrap()).is_some());
+        assert!(
+            !two_lists_split_by_code_or_block_quote(&common::ast::parse(&one_list).unwrap())
+                .is_some()
+        );
     }
 
     #[test]
