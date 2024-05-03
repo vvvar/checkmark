@@ -721,7 +721,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_cli"
-version = "0.4.5"
+version = "0.6.0"
 dependencies = [
  "assert_cmd",
  "checkmark_fmt",
@@ -748,7 +748,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_fmt"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "colored",
  "common",
@@ -763,7 +763,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_link_checker"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "async-std",
  "colored",
@@ -780,7 +780,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_lint"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "colored",
  "common",
@@ -797,7 +797,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_ls"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "auth-git2",
  "common",
@@ -815,7 +815,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_open_ai"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "colored",
  "common",
@@ -857,7 +857,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_spelling"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "colored",
  "common",
@@ -973,7 +973,7 @@ dependencies = [
 
 [[package]]
 name = "common"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "codespan-reporting",
  "colored",
