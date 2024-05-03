@@ -206,7 +206,7 @@ pub fn try_cast_to_block_quote(node: &Node) -> Option<&BlockQuote> {
 }
 
 /// Parse Markdown file into an AST
-pub fn parse(source: &str) -> Result<Node, String> {
+pub fn parse(source: &str) -> Result<Node, markdown::message::Message> {
     let options = markdown::ParseOptions {
         constructs: markdown::Constructs {
             frontmatter: true,
