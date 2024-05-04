@@ -73,14 +73,14 @@ pub async fn ls(
             log::trace!("progress callback, total: {}", &total);
         });
 
-        let mut fo = git2::FetchOptions::new();
-        fo.remote_callbacks(cb);
+        let mut fetch_options = git2::FetchOptions::new();
+        fetch_options.remote_callbacks(cb);
 
         let tmp_dir = tmp_dir(&input_path);
 
         log::debug!("Cloning into the {:#?}", &tmp_dir);
         git2::build::RepoBuilder::new()
-            .fetch_options(fo)
+            .fetch_options(fetch_options)
             .with_checkout(co)
             .clone(&input_path, std::path::Path::new(&tmp_dir))
             .unwrap();

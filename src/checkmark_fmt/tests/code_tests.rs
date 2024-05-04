@@ -22,7 +22,7 @@ console.log('Hello');
     );
 
     // Force convert indented style to the block quoted style
-    // because whe we want to preserve indents we cant distinguish
+    // because when we want to preserve indents we cant distinguish
     // between tabs(indents) from code and from markdown
     utils::assert_changed_after_formatting(
         "    console.log('Hello');",
