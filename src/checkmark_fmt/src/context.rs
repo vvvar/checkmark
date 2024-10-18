@@ -9,15 +9,15 @@ pub struct ListContext {
 
 /// Represents the context of a block quote in a markdown document.
 #[derive(Debug)]
-pub struct BlockQuoteContext {
+pub struct BlockquoteContext {
     pub depth: usize,
 }
 
 /// Represents the context of a block quote within a list in a markdown document.
 #[derive(Debug)]
-pub struct BlockQuoteInListContext {
+pub struct BlockquoteInListContext {
     pub list_ctx: ListContext,
-    pub block_quote_ctx: BlockQuoteContext,
+    pub block_quote_ctx: BlockquoteContext,
 }
 
 /// Represents the current rendering context of a markdown document.
@@ -25,6 +25,6 @@ pub struct BlockQuoteInListContext {
 pub enum Context {
     Document,
     List(ListContext),
-    BlockQuote(BlockQuoteContext),
-    BlockQuoteInList(BlockQuoteInListContext),
+    Blockquote(BlockquoteContext),
+    BlockquoteInList(BlockquoteInListContext),
 }

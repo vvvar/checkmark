@@ -1,6 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
 use common::MarkDownFile;
-use markdown::mdast::BlockQuote;
+use markdown::mdast::Blockquote;
 use regex::Regex;
 
 fn violation_builder() -> ViolationBuilder {
@@ -14,7 +14,7 @@ fn violation_builder() -> ViolationBuilder {
 
 // Check that block quote has multiple spaces after bq symbol:
 // Example: >  text
-fn has_multiple_spaces_after_bq_symbol(bq: &BlockQuote, source: &str) -> bool {
+fn has_multiple_spaces_after_bq_symbol(bq: &Blockquote, source: &str) -> bool {
     let line_start = bq.position.as_ref().unwrap().start.line;
     let text = source.lines().nth(line_start - 1).unwrap_or("");
     // Pattern: ">" symbol followed by one space and one or more whitespace

@@ -1,6 +1,6 @@
 use crate::violation::{Violation, ViolationBuilder};
 use common::MarkDownFile;
-use markdown::mdast::BlockQuote;
+use markdown::mdast::Blockquote;
 use markdown::unist::Position;
 
 fn violation_builder() -> ViolationBuilder {
@@ -21,7 +21,7 @@ pub fn md028_blank_line_inside_block_quote(file: &MarkDownFile) -> Vec<Violation
     // Get all block quotes
     let block_quotes = common::ast::BfsIterator::from(&ast)
         .filter_map(|n| common::ast::try_cast_to_block_quote(n))
-        .collect::<Vec<&BlockQuote>>();
+        .collect::<Vec<&Blockquote>>();
     log::debug!("[MD028] Block quotes(in sequence): {:#?}", &block_quotes);
 
     let mut violations: Vec<Violation> = vec![];

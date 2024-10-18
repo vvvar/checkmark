@@ -1,4 +1,4 @@
-use markdown::mdast::{BlockQuote, Code, Heading, Html, Link, List, ListItem, Node, Strong, Text};
+use markdown::mdast::{Blockquote, Code, Heading, Html, Link, List, ListItem, Node, Strong, Text};
 
 #[derive(Debug)]
 pub struct BfsIterator<'a> {
@@ -192,15 +192,15 @@ pub fn try_cast_to_code(node: &Node) -> Option<&Code> {
 /// from a generic AST.
 /// Example:
 /// ```
-/// # use markdown::mdast::{BlockQuote, Node};
+/// # use markdown::mdast::{Blockquote, Node};
 /// let ast = common::ast::parse("> Block Quote").unwrap();
 /// let block_quotes = common::ast::BfsIterator::from(&ast)
 ///                  .filter_map(|n| common::ast::try_cast_to_block_quote(n))
-///                  .collect::<Vec<&BlockQuote>>();
+///                  .collect::<Vec<&Blockquote>>();
 /// ```
-pub fn try_cast_to_block_quote(node: &Node) -> Option<&BlockQuote> {
+pub fn try_cast_to_block_quote(node: &Node) -> Option<&Blockquote> {
     match node {
-        Node::BlockQuote(e) => Some(e),
+        Node::Blockquote(e) => Some(e),
         _ => None,
     }
 }

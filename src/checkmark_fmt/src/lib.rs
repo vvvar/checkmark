@@ -152,7 +152,7 @@ fn to_md(
         Node::Text(t) => {
             let text = escape_special_characters(&t.value);
             match context {
-                Context::BlockQuote(ctx) => buffer.push_str(
+                Context::Blockquote(ctx) => buffer.push_str(
                     &text.replace('\n', &format!("\n{}", "> ".repeat(ctx.depth).as_str())),
                 ),
                 Context::List(ctx) => {
@@ -170,7 +170,7 @@ fn to_md(
                         ));
                     }
                 }
-                Context::BlockQuoteInList(ctx) => {
+                Context::BlockquoteInList(ctx) => {
                     // Very special case - we have a block quote inside a list
                     // we want to align it with list so it will be rendered
                     // by engines like a quote inside a list.
@@ -214,7 +214,7 @@ fn to_md(
                 nesting_level = ctx.nesting_level + 1
             }
             for child in &l.children {
-                if let Context::BlockQuote(_) = context {
+                if let Context::Blockquote(_) = context {
                     if child != l.children.first().unwrap() {
                         buffer.push_str("> ");
                     }
@@ -290,7 +290,7 @@ fn to_md(
                                     "  ".repeat(ctx.nesting_level + 1).as_str()
                                 ));
                             }
-                        } else if let Node::BlockQuote(_) = &child {
+                        } else if let Node::Blockquote(_) = &child {
                             if ctx.is_ordered {
                                 buffer.push_str("   ");
                             } else {
@@ -310,7 +310,7 @@ fn to_md(
                 syntax_highlight = &lang;
             }
             match context {
-                Context::BlockQuote(_) => buffer.push_str(
+                Context::Blockquote(_) => buffer.push_str(
                     &format!("```{}\n{}\n```\n", syntax_highlight, c.value,).replace('\n', "\n> "),
                 ),
                 Context::List(ctx) => {
@@ -408,18 +408,18 @@ fn to_md(
             }
             buffer.push(')');
         }
-        Node::BlockQuote(b) => {
+        Node::Blockquote(b) => {
             for child in &b.children {
                 buffer.push_str(&match &context {
-                    Context::BlockQuote(ctx) => "> ".repeat(ctx.depth),
-                    Context::BlockQuoteInList(ctx) => "> ".repeat(ctx.block_quote_ctx.depth),
+                    Context::Blockquote(ctx) => "> ".repeat(ctx.depth),
+                    Context::BlockquoteInList(ctx) => "> ".repeat(ctx.block_quote_ctx.depth),
                     _ => "> ".to_string(),
                 });
                 match &context {
-                    Context::BlockQuote(ctx) => to_md(
+                    Context::Blockquote(ctx) => to_md(
                         child,
                         buffer,
-                        &Context::BlockQuote(BlockQuoteContext {
+                        &Context::Blockquote(BlockquoteContext {
                             depth: ctx.depth + 1,
                         }),
                         source,
@@ -428,29 +428,29 @@ fn to_md(
                     Context::List(ctx) => to_md(
                         child,
                         buffer,
-                        &Context::BlockQuoteInList(BlockQuoteInListContext {
+                        &Context::BlockquoteInList(BlockquoteInListContext {
                             list_ctx: ListContext {
                                 nesting_level: ctx.nesting_level,
                                 is_ordered: ctx.is_ordered,
                                 num_item: ctx.num_item,
                                 spread: ctx.spread,
                             },
-                            block_quote_ctx: BlockQuoteContext { depth: 1 },
+                            block_quote_ctx: BlockquoteContext { depth: 1 },
                         }),
                         source,
                         options,
                     ),
-                    Context::BlockQuoteInList(ctx) => to_md(
+                    Context::BlockquoteInList(ctx) => to_md(
                         child,
                         buffer,
-                        &Context::BlockQuoteInList(BlockQuoteInListContext {
+                        &Context::BlockquoteInList(BlockquoteInListContext {
                             list_ctx: ListContext {
                                 nesting_level: ctx.list_ctx.nesting_level,
                                 is_ordered: ctx.list_ctx.is_ordered,
                                 num_item: ctx.list_ctx.num_item,
                                 spread: ctx.list_ctx.spread,
                             },
-                            block_quote_ctx: BlockQuoteContext {
+                            block_quote_ctx: BlockquoteContext {
                                 depth: ctx.block_quote_ctx.depth + 1,
                             },
                         }),
@@ -460,7 +460,7 @@ fn to_md(
                     _ => to_md(
                         child,
                         buffer,
-                        &Context::BlockQuote(BlockQuoteContext { depth: 1 }),
+                        &Context::Blockquote(BlockquoteContext { depth: 1 }),
                         source,
                         options,
                     ),
@@ -469,12 +469,12 @@ fn to_md(
                 if child != b.children.last().unwrap() {
                     match &context {
                         Context::Document => buffer.push_str(">\n"),
-                        Context::BlockQuote(ctx) => buffer.push_str(&format!(
+                        Context::Blockquote(ctx) => buffer.push_str(&format!(
                             "{}\n",
                             "> ".repeat(ctx.depth + 1).strip_suffix(' ').unwrap()
                         )),
                         Context::List(_) => {}
-                        Context::BlockQuoteInList(_) => {}
+                        Context::BlockquoteInList(_) => {}
                     }
                 }
             }

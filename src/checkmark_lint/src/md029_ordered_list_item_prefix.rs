@@ -106,7 +106,7 @@ fn two_lists_split_by_code_or_block_quote(
             if let Node::Code(_) = el {
                 is_second_code_or_quote = true;
             }
-            if let Node::BlockQuote(_) = el {
+            if let Node::Blockquote(_) = el {
                 is_second_code_or_quote = true;
             }
         }
