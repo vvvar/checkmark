@@ -1,3 +1,8 @@
+[workspace.package]
+version = "0.6.0"
+edition = "2021"
+publish = false
+
 [workspace]
 members = [
     "src/checkmark_cli",
@@ -10,3 +15,54 @@ members = [
     "src/common",
 ]
 resolver = "2"
+
+[workspace.dependencies]
+checkmark_fmt = { path = "src/checkmark_fmt" }
+checkmark_link_checker = { path = "src/checkmark_link_checker" }
+checkmark_lint = { path = "src/checkmark_lint" }
+checkmark_ls = { path = "src/checkmark_ls" }
+checkmark_open_ai = { path = "src/checkmark_open_ai" }
+checkmark_render = { path = "src/checkmark_render" }
+checkmark_spelling = { path = "src/checkmark_spelling" }
+common = { path = "src/common" }
+clap = { version = "4.4.11", features = [ "derive", "cargo" ] }
+tokio = { version = "1.35.0", features = ["full"] }
+serde = { version = "1.0.193", features = ["derive"] }
+serde-sarif = "0.4.2"
+serde_json = "1.0.108"
+colored = "2.1.0"
+dunce = "1.0.4"
+rayon = "1.8.0"
+futures = "0.3.30"
+log = "0.4.2"
+env_logger = "0.10.1"
+markdown = { version = "1.0.0-alpha.14", features = [ "json", "log", "serde" ] }
+prettydiff = "0.6.4"
+async-std = "1.12.0"
+reqwest = { version = "0.11.22", features = ["blocking", "json"] }
+wildmatch = "2.3.0"
+lychee-lib = { version = "0.14.1", features = [ "email-check", "vendored-openssl" ] }
+secrecy = { version = "0.8.0", features = ["serde"] }
+scraper = "0.18.1"
+line-numbers = "0.3.0"
+regex = "1.10.2"
+once_cell = "1.19.0"
+glob = "0.3.1"
+is-url = "1.0.4"
+git2 = { version = "0.18.1", features = ["vendored-libgit2"] }
+auth-git2 = "0.5.3"
+path-slash = "0.2.1"
+dotenv = "0.15.0"
+os_info = "3"
+fs_extra = "1.3.0"
+html_editor = "0.7.0"
+rouille = "3.6.2"
+open = "5.0.1"
+symspell = { git = "https://github.com/vvvar/symspell.git", branch = "no_print_progress" }
+strsim = "0.10.0"
+toml = "0.8.8"
+spinners = "4.1.1"
+codespan-reporting = "0.11.1"
+assert_cmd = "2.0.12"
+predicates = "3.0.4"
+pretty_assertions = "1.4.0"

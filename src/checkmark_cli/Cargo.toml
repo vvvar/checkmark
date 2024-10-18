@@ -1,36 +1,35 @@
 [package]
 name = "checkmark_cli"
 description = "A CLI tool that helps maintain high-quality Markdown documentation by checking for formatting, grammatical, and spelling errors, as well as broken links"
-version = "0.6.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
 
 [[bin]]
 name = "checkmark"
 path = "src/main.rs"
 
 [dependencies]
-checkmark_fmt = { path = "../checkmark_fmt" }
-checkmark_link_checker = { path = "../checkmark_link_checker" }
-checkmark_lint = { path = "../checkmark_lint" }
-checkmark_ls = { path = "../checkmark_ls" }
-checkmark_open_ai = { path = "../checkmark_open_ai" }
-checkmark_render = { path = "../checkmark_render" }
-checkmark_spelling = { path = "../checkmark_spelling" }
-common = { path = "../common" }
-
-clap = { version = "4.4.11", features = [ "derive", "cargo" ] }
-tokio = { version = "1.32.0", features = ["full"] }
-serde = "1.0.193"
-serde-sarif = "0.4.2"
-serde_json = "1.0.107"
-colored = "2.1.0"
-dunce = "1.0.4"
-rayon = "1.8.0"
-futures = "0.3.30"
-
-log = "0.4.2"
-env_logger = "0.10.1"
+checkmark_fmt.workspace = true
+checkmark_link_checker.workspace = true
+checkmark_lint.workspace = true
+checkmark_ls.workspace = true
+checkmark_open_ai.workspace = true
+checkmark_render.workspace = true
+checkmark_spelling.workspace = true
+common.workspace = true
+clap.workspace = true
+tokio.workspace = true
+serde.workspace = true
+serde-sarif.workspace = true
+serde_json.workspace = true
+colored.workspace = true
+dunce.workspace = true
+rayon.workspace = true
+futures.workspace = true
+log.workspace = true
+env_logger.workspace = true
 
 [dev-dependencies]
-assert_cmd = "2.0.12"
-predicates = "3.0.4"
+assert_cmd.workspace = true
+predicates.workspace = true

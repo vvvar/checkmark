@@ -1,22 +1,22 @@
 [package]
 name = "checkmark_ls"
 description = "Library that lists Markdown files in provided dir"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
 
 [dependencies]
-common = { path = "../common" }
-
-glob = "0.3.1"
-log = "0.4.20"
-is-url = "1.0.4"
-reqwest = { version="0.11.22", features = ["blocking", "json"] }
-git2 = { version = "0.18.1", features = ["vendored-libgit2"] }
-auth-git2 = "0.5.3"
-wildmatch = "2.3.0"
-dunce = "1.0.4"
-path-slash = "0.2.1"
+common.workspace = true
+glob.workspace = true
+log.workspace = true
+is-url.workspace = true
+reqwest.workspace = true
+git2.workspace = true
+auth-git2.workspace = true
+wildmatch.workspace = true
+dunce.workspace = true
+path-slash.workspace = true
 
 [dev-dependencies]
-env_logger = "0.10.1"
-tokio = { version = "1.32.0", features = ["full"] }
+env_logger.workspace = true
+tokio.workspace = true

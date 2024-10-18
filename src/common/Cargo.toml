@@ -1,17 +1,18 @@
 [package]
 name = "common"
 description = "Common types, traits and helpers shared across libraries"
-version = "0.2.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
 
 [dependencies]
-serde = "1.0.193"
-serde-sarif = "0.4.2"
-markdown = { version = "1.0.0-alpha.14", features = [ "json", "log", "serde" ] }
-strsim = "0.10.0"
-env_logger = "0.10.1"
-log = "0.4.2"
-toml = "0.8.8"
-spinners = "4.1.1"
-codespan-reporting = "0.11.1"
-colored = "2.1.0"
+serde.workspace = true
+serde-sarif.workspace = true
+markdown.workspace = true
+strsim.workspace = true
+env_logger.workspace = true
+log.workspace = true
+toml.workspace = true
+spinners.workspace = true
+codespan-reporting.workspace = true
+colored.workspace = true

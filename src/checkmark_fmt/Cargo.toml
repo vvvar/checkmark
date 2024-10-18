@@ -1,19 +1,19 @@
 [package]
 name = "checkmark_fmt"
 description = "Library to work with Markdown formatting"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
 
 [dependencies]
-common = { path = "../common" }
-
-markdown = { version = "1.0.0-alpha.14", features = [ "json", "log", "serde" ] }
-serde-sarif = "0.4.2"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0.108"
-prettydiff = "0.6.4"
-log = "0.4.2"
-colored = "2.1.0"
+common.workspace = true
+markdown.workspace = true
+serde-sarif.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+prettydiff.workspace = true
+log.workspace = true
+colored.workspace = true
 
 [dev-dependencies]
-pretty_assertions = "1.4.0"
+pretty_assertions.workspace = true

@@ -725,7 +725,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_fmt"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "colored",
  "common",
@@ -740,7 +740,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_link_checker"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "async-std",
  "colored",
@@ -757,7 +757,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_lint"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "colored",
  "common",
@@ -774,7 +774,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_ls"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "auth-git2",
  "common",
@@ -792,7 +792,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_open_ai"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "colored",
  "common",
@@ -809,7 +809,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_render"
-version = "0.0.1"
+version = "0.6.0"
 dependencies = [
  "async-std",
  "colored",
@@ -834,7 +834,7 @@ dependencies = [
 
 [[package]]
 name = "checkmark_spelling"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "colored",
  "common",
@@ -950,7 +950,7 @@ dependencies = [
 
 [[package]]
 name = "common"
-version = "0.2.0"
+version = "0.6.0"
 dependencies = [
  "codespan-reporting",
  "colored",
@@ -3961,9 +3961,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.129"
+version = "1.0.130"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6dbcf9b78a125ee667ae19388837dd12294b858d101fdd393cb9d5501ef09eb2"
+checksum = "610f75ff4a8e3cb29b85da56eabdd1bff5b06739059a4b8e2967fef32e5d9944"
 dependencies = [
  "itoa",
  "memchr",
@@ -4813,12 +4813,9 @@ checksum = "42ff0bf0c66b8238c6f3b578df37d0b7848e55df8577b3f74f92a69acceeb825"
 
 [[package]]
 name = "unicase"
-version = "2.7.0"
+version = "2.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7d2d4dafb69621809a81864c9c1b864479e1235c0dd4e199924b9742439ed89"
-dependencies = [
- "version_check",
-]
+checksum = "7e51b68083f157f853b6379db119d1c1be0e6e4dec98101079dec41f6f5cf6df"
 
 [[package]]
 name = "unicode-bidi"
