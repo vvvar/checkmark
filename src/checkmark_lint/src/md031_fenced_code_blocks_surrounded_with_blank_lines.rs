@@ -29,7 +29,6 @@ pub fn md031_fenced_code_blocks_surrounded_with_blank_lines(
     file: &MarkDownFile,
     list_items: bool,
 ) -> Vec<Violation> {
-    dbg!(list_items);
     let ast = common::ast::parse(&file.content).unwrap();
     common::ast::BfsIterator::from(&ast)
         .filter(|n| {
