@@ -11,7 +11,7 @@ pub fn run(static_dir: &Path) {
             response
         } else {
             let default_file = Path::new("/").join("README.html");
-            return rouille::Response::redirect_302(default_file.display().to_string());
+            rouille::Response::redirect_302(default_file.display().to_string())
         }
     })
 }

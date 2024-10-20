@@ -307,7 +307,7 @@ fn to_md(
         Node::Code(c) => {
             let mut syntax_highlight = options.code_block.default_language.as_str();
             if let Some(lang) = &c.lang {
-                syntax_highlight = &lang;
+                syntax_highlight = lang;
             }
             match context {
                 Context::Blockquote(_) => buffer.push_str(

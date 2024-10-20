@@ -35,7 +35,7 @@ pub async fn render(files: &Vec<MarkDownFile>, config: &Config) {
         //    Change ext from ".md" to ".html"
         let mut out_file_path = Path::new(&output_dir).join(
             Path::new(&file.path)
-                .strip_prefix(&current_dir().unwrap())
+                .strip_prefix(current_dir().unwrap())
                 .unwrap(),
         );
         out_file_path.set_extension("html");

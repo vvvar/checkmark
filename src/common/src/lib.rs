@@ -243,7 +243,7 @@ impl CheckIssue {
         let mut fixes: Vec<serde_sarif::sarif::Fix> = vec![];
         for issue_fix in &self.fixes {
             let artifact_content = serde_sarif::sarif::ArtifactContentBuilder::default()
-                .text(&issue_fix.clone())
+                .text(issue_fix.clone())
                 .build()
                 .unwrap();
 

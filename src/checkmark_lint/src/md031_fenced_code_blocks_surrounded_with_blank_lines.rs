@@ -22,7 +22,7 @@ fn is_code_block_surrounded_with_blank_lines(c: &Code, source: &str) -> bool {
     let end = c.position.as_ref().unwrap().end.line;
     let line_before = source.lines().nth(start - 2).unwrap_or("MISSING_LINE");
     let line_after = source.lines().nth(end).unwrap_or("MISSING_LINE");
-    line_before.eq("") && line_after.eq("")
+    line_before.is_empty() && line_after.is_empty()
 }
 
 pub fn md031_fenced_code_blocks_surrounded_with_blank_lines(
