@@ -8,8 +8,8 @@ env:
 on: [pull_request]
 
 jobs:
-  check:
-    name: cargo check
+  build:
+    name: build
     strategy:
       matrix:
         os:
@@ -20,10 +20,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - run: cargo check --release
+      - uses: extractions/setup-just@v1
+      - run: just build --release
 
   test:
-    name: cargo test
+    name: test
     strategy:
       matrix:
         os:
@@ -34,28 +35,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - run: cargo test --all-features
+      - uses: taiki-e/install-action@nextest
+      - uses: extractions/setup-just@v1
+      - run: just test
 
-  formatting:
-    name: cargo fmt
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      # Ensure rustfmt is installed and setup problem matcher
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          components: rustfmt
-      - name: Rustfmt Check
-        uses: actions-rust-lang/rustfmt@v1
-
-  # Check formatting with rustfmt
   lint:
-    name: cargo clippy
+    name: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Ensure rustfmt is installed and setup problem matcher
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          components: clippy
-      - run: cargo test --all-features
+          components: rustfmt, clippy
+      - uses: extractions/setup-just@v1
+      - run: cargo install taplo-cli --locked
+      - run: cargo install cargo-nextest --locked
+      - run: cargo install --path . --locked
+      - run: just lint

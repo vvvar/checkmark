@@ -1,38 +1,38 @@
 [global]
-exclude = [         
-    "*LICENSE*",
-    "*/.github/*",
-    "*/tests/*"
-]
+exclude = ["*LICENSE*", "*/.github/*", "*/tests/*"]
 
 [style]
-headings="consistent"
-unordered_lists="consistent"
-num_spaces_after_list_marker=1
-bold="consistent"
-default_code_block_language="text"
+headings = "consistent"
+unordered_lists = "consistent"
+num_spaces_after_list_marker = 1
+bold = "consistent"
+default_code_block_language = "text"
 
 [fmt]
-check=false
-show_diff=false
+check = false
+show_diff = false
 
 [link_checker]
-ignore_wildcards=["**gffffffffffoooooogel**", "/**.rs"]
-timeout=10
-max_retries=1
-user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
-allow_insecure=false
+ignore_wildcards = [
+  "**gffffffffffoooooogel**",
+  "/**.rs",
+  "https://openai.com**",
+]
+timeout = 10
+max_retries = 1
+user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+allow_insecure = false
 
 [linter]
-md031_list_items=true
-md033_allowed_html_tags=["img"]
+md031_list_items = true
+md033_allowed_html_tags = ["img"]
 
-[review]                          
-no_suggestions=false
-creativity=10
+[review]
+no_suggestions = false
+creativity = 10
 
 [compose]
-creativity=20
+creativity = 20
 
 [spelling]
-words_whitelist=["checkmark", "OpenAI"]
+words_whitelist = ["checkmark", "nextest", "taplo", "OpenAI"]

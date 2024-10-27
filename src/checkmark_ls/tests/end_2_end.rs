@@ -1,10 +1,3 @@
-#[cfg(test)]
-#[allow(dead_code)]
-fn activate_logging() {
-    std::env::set_var("RUST_LOG", "debug");
-    if let Ok(_) = env_logger::try_init() {}
-}
-
 /// List files in folder
 #[ignore = "Involves real HTTP req - unstable. Use manual invocation and verification."]
 #[tokio::test]

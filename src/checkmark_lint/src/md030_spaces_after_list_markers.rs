@@ -62,56 +62,56 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     fn to_list_items_ast(src: &str) -> Vec<ListItem> {
-        let ast = common::ast::parse(&src).unwrap();
+        let ast = common::ast::parse(src).unwrap();
         common::ast::BfsIterator::from(&ast)
             .filter_map(|n| common::ast::try_cast_to_list_item(n))
-            .map(|li| li.clone())
+            .cloned()
             .collect::<Vec<ListItem>>()
     }
 
     #[test]
     fn md030_assert_spaces_after_list_marker() {
         let numbered = "0. One\n1. Two\n2. Three";
-        for li in to_list_items_ast(&numbered) {
+        for li in to_list_items_ast(numbered) {
             assert!(assert_spaces_after_list_marker(
                 &li,
-                &numbered,
+                numbered,
                 DEFAULT_NUM_SPACES_AFTER_MARKER
             ));
         }
 
         let asterisk = "* One\n* Two\n* Three";
-        for li in to_list_items_ast(&asterisk) {
+        for li in to_list_items_ast(asterisk) {
             assert!(assert_spaces_after_list_marker(
                 &li,
-                &asterisk,
+                asterisk,
                 DEFAULT_NUM_SPACES_AFTER_MARKER
             ));
         }
 
         let dash = "- One\n- Two\n- Three";
-        for li in to_list_items_ast(&dash) {
+        for li in to_list_items_ast(dash) {
             assert!(assert_spaces_after_list_marker(
                 &li,
-                &dash,
+                dash,
                 DEFAULT_NUM_SPACES_AFTER_MARKER
             ));
         }
 
         let plus = "+ One\n+ Two\n+ Three";
-        for li in to_list_items_ast(&plus) {
+        for li in to_list_items_ast(plus) {
             assert!(assert_spaces_after_list_marker(
                 &li,
-                &plus,
+                plus,
                 DEFAULT_NUM_SPACES_AFTER_MARKER
             ));
         }
 
         let nested_mix = "1. One\n   + Two\n   - Three";
-        for li in to_list_items_ast(&nested_mix) {
+        for li in to_list_items_ast(nested_mix) {
             assert!(assert_spaces_after_list_marker(
                 &li,
-                &nested_mix,
+                nested_mix,
                 DEFAULT_NUM_SPACES_AFTER_MARKER
             ));
         }

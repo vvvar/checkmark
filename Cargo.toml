@@ -5,14 +5,14 @@ publish = false
 
 [workspace]
 members = [
-    "src/checkmark_cli",
-    "src/checkmark_fmt",
-    "src/checkmark_link_checker",
-    "src/checkmark_lint",
-    "src/checkmark_ls",
-    "src/checkmark_open_ai",
-    "src/checkmark_spelling",
-    "src/common",
+  "src/checkmark_cli",
+  "src/checkmark_fmt",
+  "src/checkmark_link_checker",
+  "src/checkmark_lint",
+  "src/checkmark_ls",
+  "src/checkmark_open_ai",
+  "src/checkmark_spelling",
+  "src/common",
 ]
 resolver = "2"
 
@@ -25,7 +25,7 @@ checkmark_open_ai = { path = "src/checkmark_open_ai" }
 checkmark_render = { path = "src/checkmark_render" }
 checkmark_spelling = { path = "src/checkmark_spelling" }
 common = { path = "src/common" }
-clap = { version = "4.4.11", features = [ "derive", "cargo" ] }
+clap = { version = "4.4.11", features = ["derive", "cargo"] }
 tokio = { version = "1.35.0", features = ["full"] }
 serde = { version = "1.0.193", features = ["derive"] }
 serde-sarif = "0.4.2"
@@ -36,12 +36,15 @@ rayon = "1.8.0"
 futures = "0.3.30"
 log = "0.4.2"
 env_logger = "0.10.1"
-markdown = { version = "1.0.0-alpha.14", features = [ "json", "log", "serde" ] }
+markdown = { version = "1.0.0-alpha.14", features = ["json", "log", "serde"] }
 prettydiff = "0.6.4"
 async-std = "1.12.0"
 reqwest = { version = "0.11.22", features = ["blocking", "json"] }
 wildmatch = "2.3.0"
-lychee-lib = { version = "0.14.1", features = [ "email-check", "vendored-openssl" ] }
+lychee-lib = { version = "0.14.1", features = [
+  "email-check",
+  "vendored-openssl",
+] }
 secrecy = { version = "0.8.0", features = ["serde"] }
 scraper = "0.18.1"
 line-numbers = "0.3.0"

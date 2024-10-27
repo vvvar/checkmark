@@ -115,13 +115,13 @@ mod test {
     /// to avoid re-creating it for each test
     #[cfg(test)]
     static SPELL_CHECKER: once_cell::sync::Lazy<SymSpell<AsciiStringStrategy>> =
-        once_cell::sync::Lazy::new(|| create_spell_checker(&vec![]));
+        once_cell::sync::Lazy::new(|| create_spell_checker(&[]));
 
     #[cfg(test)]
     fn assert_has_issues(
         content: &str,
-        whitelist: &Vec<String>,
-        expected_issues: &Vec<common::CheckIssue>,
+        whitelist: &[String],
+        expected_issues: &[common::CheckIssue],
     ) {
         let markdown = common::MarkDownFile {
             path: DUMMY_FILE_PATH.to_owned(),
@@ -130,8 +130,7 @@ mod test {
         };
         let config = common::Config {
             spelling: common::SpellingConfig {
-                words_whitelist: whitelist.clone(),
-                ..common::SpellingConfig::default()
+                words_whitelist: whitelist.to_owned(),
             },
             ..common::Config::default()
         };
@@ -171,14 +170,14 @@ mod test {
     }
 
     #[cfg(test)]
-    fn assert_has_no_issues(content: &str, whitelist: &Vec<String>) {
-        assert_has_issues(&content, whitelist, &vec![]);
+    fn assert_has_no_issues(content: &str, whitelist: &[String]) {
+        assert_has_issues(content, whitelist, &[]);
     }
 
     /// Basic spell checking tests
     #[test]
     fn spelling_plain_misspelled_word() {
-        assert_has_issues("# This is a headr\n", &vec![], &vec![
+        assert_has_issues("# This is a headr\n", &[], &[
         common::CheckIssue {
             category: common::IssueCategory::Spelling,
             severity: common::IssueSeverity::Warning,
@@ -202,7 +201,7 @@ mod test {
 
     #[test]
     fn spelling_several_misspelled_words() {
-        assert_has_issues("\n\nHere is sommm additnal txt\n", &vec![], &vec![
+        assert_has_issues("\n\nHere is sommm additnal txt\n", &[], &vec![
         common::CheckIssue {
             category: common::IssueCategory::Spelling,
             severity: common::IssueSeverity::Warning,
@@ -244,29 +243,29 @@ mod test {
 
     #[test]
     fn spelling_apostrophe_supported() {
-        assert_has_no_issues("# Don't", &vec![]);
-        assert_has_no_issues("# Couldn't", &vec![]);
-        assert_has_no_issues("# Won't", &vec![]);
+        assert_has_no_issues("# Don't", &[]);
+        assert_has_no_issues("# Couldn't", &[]);
+        assert_has_no_issues("# Won't", &[]);
     }
 
     #[test]
     fn spelling_respect_owned_form() {
-        assert_has_no_issues("# Project's", &vec![]);
+        assert_has_no_issues("# Project's", &[]);
     }
 
     #[test]
     fn spelling_skip_numbers() {
-        assert_has_no_issues("# Number here 42", &vec![]);
+        assert_has_no_issues("# Number here 42", &[]);
     }
 
     #[test]
     fn spelling_allow_ordinal_numbers() {
-        assert_has_no_issues("# 1st 2nd 3rd 4th 21st 22nd 23rd 24th", &vec![]);
+        assert_has_no_issues("# 1st 2nd 3rd 4th 21st 22nd 23rd 24th", &[]);
     }
 
     #[test]
     fn spelling_gibberish_handled() {
-        assert_has_issues("# fdssryyukiuu's ", &vec![], &vec![common::CheckIssue {
+        assert_has_issues("# fdssryyukiuu's ", &[], &[common::CheckIssue {
         category: common::IssueCategory::Spelling,
         severity: common::IssueSeverity::Warning,
         file_path: DUMMY_FILE_PATH.to_owned(),
@@ -289,7 +288,7 @@ mod test {
     fn spelling_consider_abbreviation() {
         assert_has_no_issues(
             "# p.s. this is an example a.k.a. Example e.g. yeah, and etc.",
-            &vec![],
+            &[],
         );
     }
 }
