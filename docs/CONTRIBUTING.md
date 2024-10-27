@@ -4,9 +4,12 @@
 
 - Install [rust](https://rustup.rs).
 - Install [nextest](https://nexte.st/docs/installation/from-source/).
+- Install [cargo audit](https://github.com/rustsec/rustsec/tree/main/cargo-audit).
 - Install [just](https://github.com/casey/just).
 - Install [taplo](https://taplo.tamasfe.dev/cli/installation/cargo.html).
 - Install [checkmark](../#installation) (we check ourselves with our own tool on a CI).
+
+> Once `just` is installed, you can can install most of the tools with `just setup`.
 
 ## Building this project
 
@@ -31,6 +34,16 @@ Run in your terminal:
 ```sh
 just lint
 ```
+
+## Checking how tool will work on the end-user machine
+
+Run in your terminal:
+
+```sh
+just install
+```
+
+This will install checkmark on your PC.
 
 ## Git Workflow
 

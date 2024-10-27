@@ -25,8 +25,8 @@ jobs:
         run: |
           echo "PERL=$((where.exe perl)[0])" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           echo "OPENSSL_SRC_PERL=$((where.exe perl)[0])" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-      - uses: taiki-e/install-action@nextest
       - uses: extractions/setup-just@v1
+      - run: just setup
       - run: just test --release
 
   lint:
@@ -38,7 +38,5 @@ jobs:
         with:
           components: rustfmt, clippy
       - uses: extractions/setup-just@v1
-      - run: cargo install taplo-cli --locked
-      - run: cargo install cargo-nextest --locked
-      - run: cargo install --path src/checkmark_cli --locked
+      - run: just setup
       - run: just lint
