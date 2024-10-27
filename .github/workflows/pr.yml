@@ -20,6 +20,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Set Perl environment variables for Windows
+        if: runner.os == 'Windows'
+        run: |
+          echo "PERL=$((where.exe perl)[0])" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          echo "OPENSSL_SRC_PERL=$((where.exe perl)[0])" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
       - uses: taiki-e/install-action@nextest
       - uses: extractions/setup-just@v1
       - run: just test --release
@@ -33,11 +38,6 @@ jobs:
         with:
           components: rustfmt, clippy
       - uses: extractions/setup-just@v1
-      - name: Set Perl environment variables for Windows
-        if: matrix.os == 'windows-latest'
-        run: |
-          echo "PERL=$((where.exe perl)[0])" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          echo "OPENSSL_SRC_PERL=$((where.exe perl)[0])" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
       - run: cargo install taplo-cli --locked
       - run: cargo install cargo-nextest --locked
       - run: cargo install --path src/checkmark_cli --locked
