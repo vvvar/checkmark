@@ -7,7 +7,7 @@
 [global]
 # List of file patterns to ignore when discovering Markdown files.
 # Example: ["*LICENSE*", "*/.github/*"]  
-exclude=[]
+exclude = []
 
 ##############################  Style  ##############################
 # Configure Markdown code style. Affects fmt and linter. When not
@@ -16,21 +16,21 @@ exclude=[]
 # Heading.
 # Possible values are: "atx", "setext" or "consistent"
 # Reference: https://www.markdownguide.org/basic-syntax/#headings
-headings="consistent"
+headings = "consistent"
 # Unordered list.
 # Possible values are: "asterisk", "plus", "dash" or "consistent"
 # Reference: https://www.markdownguide.org/basic-syntax/#lists-1
-unordered_lists="consistent"
+unordered_lists = "consistent"
 # Amount of spaces to use after list markers. Defaults to 1.
 # WARN: It is highly unrecommended to change this value because
 #       some parsers may start miss-interpreting your lists
-num_spaces_after_list_marker=1
+num_spaces_after_list_marker = 1
 # Bold(string) emphasis.
 # Possible values are: "asterisk", "underscore" or "consistent"
 # Reference: https://www.markdownguide.org/basic-syntax/#bold
-bold="consistent"
+bold = "consistent"
 # Default code block language to use. Defaults to "text"
-default_code_block_language="text"
+default_code_block_language = "text"
 
 
 ############################  Formatter  ############################
@@ -38,11 +38,11 @@ default_code_block_language="text"
 # Enables check mode. When enabled then fmt will only print the diff
 # without applying it. Exit with status code "1" if any formatting
 # issues are found and "0" otherwise
-check=false
+check = false
 # When used with check then fmt will print the full diff instead of
 # a summary. Use it to see how your file is going to be formatted
 # before applying the changes
-show_diff=false
+show_diff = false
 
 
 ##########################  Link Checker  ###########################
@@ -50,33 +50,33 @@ show_diff=false
 # List of glob URI patterns to ignore when checking links
 # Can be used for both hyperlinks and file links
 # Example: ["**this-host-will-be-ignored**", "/**.rs"]
-ignore_wildcards=[]
+ignore_wildcards = []
 # List of acceptable HTTP status codes.
 # Links with these status codes will be considered working
-accept=[200, 301, 302, 307, 308]
+accept = [200, 301, 302, 307, 308]
 # Timeout in seconds for HTTP requests before giving up
-timeout=10
+timeout = 10
 # Maximum number of retries for HTTP requests before giving up
-max_retries=1
+max_retries = 1
 # When true, the link checker will check if the email is valid
 # Sometimes it is useful to disable e-mail check. For example,
 # when you have a very restricted network configuration
-check_emails=true
+check_emails = true
 # Optional GitHub token used for GitHub links.
 # This allows much more request before getting rate-limited
 # github_token=""
 # Optional user agent to use for HTTP requests
-user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
+user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
 # Allow insecure SSL certificates
 # WARN: Insecure. Use only as a last resort
-allow_insecure=false
+allow_insecure = false
 
 
 #############################  Linter  ##############################
 [linter]
 # List of HTML elements to ignore when linting, e.g. "a", "img", etc.
 # Example: ["a", "img"]
-allowed_html_tags=[]
+allowed_html_tags = []
 
 
 #############################  Open AI  #############################
@@ -89,15 +89,15 @@ allowed_html_tags=[]
 # api_key = ""
 
 #############################  Review  ##############################
-[review]       
+[review]
 # When true, the review will be printed without fix suggestions                     
-no_suggestions=false
+no_suggestions = false
 # Controls how creative AI will be while generating suggestions
 # Higher values will result in less predictable result
 # Min valus is 0 and max value is 100. Default is 10
 # NOTE: Higher values of creativity may result in output with
 #       less quality. Use it with caution
-creativity=10
+creativity = 10
 # Custom prompt for the review
 # Example: "Make a grammar review"
 # prompt="Make a grammar review"
@@ -110,11 +110,11 @@ creativity=10
 # Min valus is 0 and max value is 100. Default is 10
 # NOTE: Higher values of creativity may result in output with
 #       less quality. Use it with caution
-creativity=10
+creativity = 10
 
 
 ########################## Spell Checker  ###########################
 [spelling]
 # List of words to ignore while spell checking
 # Example: ["checkmark", "CLI", "SARIF", "OPEN_AI_API_KEY"]
-words_whitelist=[]
+words_whitelist = []

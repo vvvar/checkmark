@@ -361,7 +361,7 @@ mod tests {
     fn offset_by_line_number_crlf() {
         let text = "Line 1\r\nLine 2\r\nLine 3\r\nLine 4\r\n";
         let expected_offset = 8;
-        let actual_offset = find_offset_by_line_number(&text, 1);
+        let actual_offset = find_offset_by_line_number(text, 1);
         assert_eq!(expected_offset, actual_offset);
     }
 
@@ -370,7 +370,7 @@ mod tests {
     fn offset_by_line_number_lf() {
         let text = "Line 1\nLine 2\nLine 3\nLine 4\n";
         let expected_offset = 7;
-        let actual_offset = find_offset_by_line_number(&text, 1);
+        let actual_offset = find_offset_by_line_number(text, 1);
         assert_eq!(expected_offset, actual_offset);
     }
 }

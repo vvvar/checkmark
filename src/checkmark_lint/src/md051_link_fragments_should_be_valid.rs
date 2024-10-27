@@ -63,7 +63,7 @@ fn extract_html_elements(ast: &Node) -> Vec<scraper::Node> {
 /// Takes a list of links with fragment and for each of them tries to find whether it:
 ///   - has corresponding heading that is convertible to the same fragment
 ///   - has any HTML el with "id" attr or <a> el with "name" attribute that is == to the same fragment
-/// 
+///
 /// For every link that does not satisfy any of these conditions, returns a violation.
 fn find_violations(
     links: &[&Link],

@@ -23,7 +23,7 @@ Checkmark is a tool designed to help maintain high-quality Markdown documentatio
 Make sure you install the latest [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) version. If you are using Windows, ensure that Perl is installed and added to the system's `PATH`. You may consider using [Strawberry Perl](https://strawberryperl.com) for this purpose. Next, run the following command:
 
 ```sh
-cargo install --git https://github.com/vvvar/checkmark.git
+cargo install --git https://github.com/vvvar/checkmark.git --locked
 ```
 
 > **NOTE**: Pre-built as well as installation from crates.io is planned

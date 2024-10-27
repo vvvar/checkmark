@@ -164,7 +164,7 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     fn to_list_ast(src: &str) -> List {
-        let ast = common::ast::parse(&src).unwrap();
+        let ast = common::ast::parse(src).unwrap();
         if let Some(node) = &ast.children().unwrap().first() {
             match node {
                 Node::List(l) => l.clone(),
@@ -179,26 +179,26 @@ mod tests {
     fn md029_detects_when_counts_from_zero() {
         let starts_with_zero = "0. One\n1. Two\n2. Three";
         assert!(counts_from_zero(
-            &to_list_ast(&starts_with_zero),
-            &starts_with_zero
+            &to_list_ast(starts_with_zero),
+            starts_with_zero
         ));
 
         let starts_with_zero_zero = "00. One\n01. Two\n02. Three";
         assert!(counts_from_zero(
-            &to_list_ast(&starts_with_zero_zero),
-            &starts_with_zero_zero
+            &to_list_ast(starts_with_zero_zero),
+            starts_with_zero_zero
         ));
 
         let start_with_one = "1. One\n2. Two\n3. Three";
         assert!(!counts_from_zero(
-            &to_list_ast(&start_with_one),
-            &start_with_one
+            &to_list_ast(start_with_one),
+            start_with_one
         ));
 
         let start_with_zero_one = "01. One\n02. Two\n03. Three";
         assert!(!counts_from_zero(
-            &to_list_ast(&start_with_zero_one),
-            &start_with_zero_one
+            &to_list_ast(start_with_zero_one),
+            start_with_zero_one
         ));
     }
 
@@ -207,27 +207,27 @@ mod tests {
         // Happy paths
         let starts_with_one = "1. One\n2. Two\n3. Three";
         assert!(counts_from_one(
-            &to_list_ast(&starts_with_one),
-            &starts_with_one
+            &to_list_ast(starts_with_one),
+            starts_with_one
         ));
 
         let starts_with_zero_one = "01. One\n02. Two\n03. Three";
         assert!(counts_from_one(
-            &to_list_ast(&starts_with_zero_one),
-            &starts_with_zero_one
+            &to_list_ast(starts_with_zero_one),
+            starts_with_zero_one
         ));
 
         // Negative cases
         let start_with_two = "2. Two\n3. Three\n4. Four";
         assert!(!counts_from_one(
-            &to_list_ast(&start_with_two),
-            &start_with_two
+            &to_list_ast(start_with_two),
+            start_with_two
         ));
 
         let start_with_eleven = "11. Eleven\n12. Twelve\n13. Thirteen";
         assert!(!counts_from_one(
-            &to_list_ast(&start_with_eleven),
-            &start_with_eleven
+            &to_list_ast(start_with_eleven),
+            start_with_eleven
         ));
     }
 
@@ -236,39 +236,39 @@ mod tests {
         // Happy paths
         let increase_in_mun_order_from_zero = "0. One\n1. Two\n2. Three";
         assert!(increases_prefix_in_numerical_order(
-            &to_list_ast(&increase_in_mun_order_from_zero),
-            &increase_in_mun_order_from_zero
+            &to_list_ast(increase_in_mun_order_from_zero),
+            increase_in_mun_order_from_zero
         ));
 
         let increase_in_mun_order_from_one = "1. One\n2. Two\n3. Three";
         assert!(increases_prefix_in_numerical_order(
-            &to_list_ast(&increase_in_mun_order_from_one),
-            &increase_in_mun_order_from_one
+            &to_list_ast(increase_in_mun_order_from_one),
+            increase_in_mun_order_from_one
         ));
 
         let increase_in_mun_order_from_zero_one = "01. One\n02. Two\n03. Three";
         assert!(increases_prefix_in_numerical_order(
-            &to_list_ast(&increase_in_mun_order_from_zero_one),
-            &increase_in_mun_order_from_zero_one
+            &to_list_ast(increase_in_mun_order_from_zero_one),
+            increase_in_mun_order_from_zero_one
         ));
 
         // Negative cases
         let not_valid_increase = "1. Two.\n3. Three.\n";
         assert!(!increases_prefix_in_numerical_order(
-            &to_list_ast(&not_valid_increase),
-            &not_valid_increase
+            &to_list_ast(not_valid_increase),
+            not_valid_increase
         ));
 
         let not_valid_increase_without_prefix = "0. One\n1. Two\n3. Three";
         assert!(!increases_prefix_in_numerical_order(
-            &to_list_ast(&not_valid_increase_without_prefix),
-            &not_valid_increase_without_prefix
+            &to_list_ast(not_valid_increase_without_prefix),
+            not_valid_increase_without_prefix
         ));
 
         let not_valid_increase_with_prefix = "00. One\n01. Two\n03. Three";
         assert!(!increases_prefix_in_numerical_order(
-            &to_list_ast(&not_valid_increase_with_prefix),
-            &not_valid_increase_with_prefix
+            &to_list_ast(not_valid_increase_with_prefix),
+            not_valid_increase_with_prefix
         ));
     }
 
@@ -276,37 +276,37 @@ mod tests {
     fn md029_detects_when_all_prefixes_are_zeros() {
         // Happy paths
         let all_zeros = "0. One\n0. Two\n0. Three";
-        assert!(all_prefixes_are_zeros(&to_list_ast(&all_zeros), &all_zeros));
+        assert!(all_prefixes_are_zeros(&to_list_ast(all_zeros), all_zeros));
 
         let all_zeros_zeros = "00. One\n00. Two\n00. Three";
         assert!(all_prefixes_are_zeros(
-            &to_list_ast(&all_zeros_zeros),
-            &all_zeros_zeros
+            &to_list_ast(all_zeros_zeros),
+            all_zeros_zeros
         ));
 
         let mix_zeros_and_zeros_zeros = "00. One\n0. Two\n00. Three";
         assert!(all_prefixes_are_zeros(
-            &to_list_ast(&mix_zeros_and_zeros_zeros),
-            &mix_zeros_and_zeros_zeros
+            &to_list_ast(mix_zeros_and_zeros_zeros),
+            mix_zeros_and_zeros_zeros
         ));
 
         // Negative cases
         let start_zero_proceed_with_one = "0. One\n1. Two\n2. Three";
         assert!(!all_prefixes_are_zeros(
-            &to_list_ast(&start_zero_proceed_with_one),
-            &start_zero_proceed_with_one
+            &to_list_ast(start_zero_proceed_with_one),
+            start_zero_proceed_with_one
         ));
 
         let start_zero_zero_proceed_with_one = "00. One\n1. Two\n2. Three";
         assert!(!all_prefixes_are_zeros(
-            &to_list_ast(&start_zero_zero_proceed_with_one),
-            &start_zero_zero_proceed_with_one
+            &to_list_ast(start_zero_zero_proceed_with_one),
+            start_zero_zero_proceed_with_one
         ));
 
         let start_with_one = "1. Two\n2. Three";
         assert!(!all_prefixes_are_zeros(
-            &to_list_ast(&start_with_one),
-            &start_with_one
+            &to_list_ast(start_with_one),
+            start_with_one
         ));
     }
 
@@ -315,21 +315,21 @@ mod tests {
         // Happy paths
         let two_lists_and_code = "1. First list\n\n```text\nCode block\n```\n\n1. Second list\n";
         assert!(two_lists_split_by_code_or_block_quote(
-            &common::ast::parse(&two_lists_and_code).unwrap()
+            &common::ast::parse(two_lists_and_code).unwrap()
         )
         .is_some());
 
         let two_lists_quote = "1. First list\n\n> Quote\n\n1. Second list\n";
         assert!(two_lists_split_by_code_or_block_quote(
-            &common::ast::parse(&two_lists_quote).unwrap()
+            &common::ast::parse(two_lists_quote).unwrap()
         )
         .is_some());
 
         // Negative cases
         let one_list = "1. First list\n1. Second list\n";
         assert!(
-            !two_lists_split_by_code_or_block_quote(&common::ast::parse(&one_list).unwrap())
-                .is_some()
+            two_lists_split_by_code_or_block_quote(&common::ast::parse(one_list).unwrap())
+                .is_none()
         );
     }
 
