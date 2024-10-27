@@ -25,7 +25,7 @@ fmt:
 # Run code quality checks against project source code.
 [group('code quality')]
 check: install
-    cargo install taplo-cli cargo-audit cargo-deny --locked
+    cargo install taplo-cli cargo-audit cargo-deny cargo-udeps --locked
     cargo fmt --all --check
     taplo fmt --check --diff
     checkmark fmt --check
@@ -34,6 +34,7 @@ check: install
     checkmark linkcheck
     cargo audit
     cargo deny check
+    cargo +nightly udeps
     cargo clippy --workspace --all-targets --locked
 
 # Generate code coverage report.
