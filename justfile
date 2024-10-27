@@ -34,7 +34,7 @@ check: install
     checkmark linkcheck
     cargo audit
     cargo deny check
-    cargo +nightly udeps
+    cargo udeps
     cargo clippy --workspace --all-targets --locked
 
 # Generate code coverage report.
