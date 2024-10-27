@@ -34,7 +34,7 @@ jobs:
           components: rustfmt, clippy
       - uses: extractions/setup-just@v1
       - name: Set Perl environment variables for Windows
-        if: runner.os == 'windows-latest'
+        if: matrix.os == 'windows-latest'
         run: |
           echo "PERL=$((where.exe perl)[0])" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           echo "OPENSSL_SRC_PERL=$((where.exe perl)[0])" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
