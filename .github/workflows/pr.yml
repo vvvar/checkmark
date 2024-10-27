@@ -8,21 +8,6 @@ env:
 on: [pull_request]
 
 jobs:
-  build:
-    name: build
-    strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-          - windows-latest
-          - macOS-latest
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - uses: extractions/setup-just@v1
-      - run: just build --release
-
   test:
     name: test
     strategy:
@@ -37,7 +22,7 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       - uses: taiki-e/install-action@nextest
       - uses: extractions/setup-just@v1
-      - run: just test
+      - run: just test --release
 
   lint:
     name: lint
@@ -50,5 +35,5 @@ jobs:
       - uses: extractions/setup-just@v1
       - run: cargo install taplo-cli --locked
       - run: cargo install cargo-nextest --locked
-      - run: cargo install --path . --locked
+      - run: cargo install --path src/checkmark_cli --locked
       - run: just lint

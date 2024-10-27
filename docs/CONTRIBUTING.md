@@ -6,7 +6,7 @@
 - Install [nextest](https://nexte.st/docs/installation/from-source/).
 - Install [just](https://github.com/casey/just).
 - Install [taplo](https://taplo.tamasfe.dev/cli/installation/cargo.html).
-- Install [checkmark](../#installation).
+- Install [checkmark](../#installation) (we check ourselves with our own tool on a CI).
 
 ## Building this project
 
