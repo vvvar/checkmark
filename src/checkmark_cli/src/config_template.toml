@@ -94,7 +94,7 @@ allowed_html_tags = []
 no_suggestions = false
 # Controls how creative AI will be while generating suggestions
 # Higher values will result in less predictable result
-# Min valus is 0 and max value is 100. Default is 10
+# Min value is 0 and max value is 100. Default is 10
 # NOTE: Higher values of creativity may result in output with
 #       less quality. Use it with caution
 creativity = 10
@@ -107,7 +107,7 @@ creativity = 10
 [compose]
 # Controls how creative AI will be while generating a file
 # Higher values will result in less predictable result
-# Min valus is 0 and max value is 100. Default is 10
+# Min value is 0 and max value is 100. Default is 10
 # NOTE: Higher values of creativity may result in output with
 #       less quality. Use it with caution
 creativity = 10
