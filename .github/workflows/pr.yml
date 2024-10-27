@@ -9,7 +9,7 @@ on: [pull_request]
 
 jobs:
   test:
-    name: test
+    name: Run tests
     strategy:
       matrix:
         os:
@@ -26,11 +26,10 @@ jobs:
           echo "PERL=$((where.exe perl)[0])" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           echo "OPENSSL_SRC_PERL=$((where.exe perl)[0])" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
       - uses: extractions/setup-just@v1
-      - run: just setup
       - run: just test --release
 
-  lint:
-    name: lint
+  check:
+    name: Check code quality
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,5 +37,19 @@ jobs:
         with:
           components: rustfmt, clippy
       - uses: extractions/setup-just@v1
-      - run: just setup
-      - run: just lint
+      - run: just check
+
+  coverage:
+    name: Generate code coverage report
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: rustfmt, clippy
+      - uses: extractions/setup-just@v1
+      - run: just coverage
+      - uses: actions/upload-artifact@v4
+        with:
+          name: code_coverage_report
+          path: target/tarpaulin/tarpaulin-report.html
