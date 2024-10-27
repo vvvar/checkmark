@@ -4,6 +4,7 @@ description = "Common types, traits and helpers shared across libraries"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+license.workspace = true
 
 [dependencies]
 serde.workspace = true

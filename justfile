@@ -8,6 +8,11 @@ build *CARGO_BUILD_ARGS:
 test *CARGO_NEXTEST_ARGS:
     cargo nextest run --workspace --all-targets --all-features {{CARGO_NEXTEST_ARGS}}
 
+# Install checkmark CLI to a system. Use it to check how tool works on end-user system.
+[group('test')]
+install:
+    cargo install --path src/checkmark_cli --locked
+
 # Auto-format project source code.
 [group('code quality')]
 fmt:
@@ -18,14 +23,15 @@ fmt:
 # Run code quality checks against project source code.
 [group('code quality')]
 lint:
-    cargo clippy --workspace --all-targets
-    cargo fmt --all --check
-    cargo audit
     taplo fmt --check --diff
+    cargo fmt --all --check
     checkmark fmt --check
     checkmark lint
     checkmark spellcheck
     checkmark linkcheck
+    cargo clippy --workspace --all-targets
+    cargo audit
+    cargo deny check
 
 # Setup dev tools.
 [group('other')]
@@ -34,11 +40,7 @@ setup:
     cargo install taplo-cli --locked
     cargo install --path src/checkmark_cli --locked
     cargo install cargo-audit --locked
-
-# Install checkmark CLI to a system. Use it to check how tool works on end-user system.
-[group('other')]
-install:
-    cargo install --path src/checkmark_cli --locked
+    cargo install cargo-deny --locked
 
 # Cleanup project artifacts & tmp files.
 [group('other')]

@@ -89,7 +89,7 @@ struct OpenAIRequestData {
 ///       your API token in order to work.
 ///       When no OPEN_AI_API_KEY env var set returns OpenAIError.
 fn read_open_ai_api_key() -> Result<String, OpenAIError> {
-    dotenv::dotenv().ok();
+    dotenvy::dotenv().ok();
     if let Ok(api_key) = std::env::var("OPEN_AI_API_KEY") {
         Ok(api_key)
     } else {

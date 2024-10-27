@@ -4,6 +4,7 @@ description = "Library that lists Markdown files in provided dir"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+license.workspace = true
 
 [dependencies]
 common.workspace = true

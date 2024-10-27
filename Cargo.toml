@@ -2,6 +2,7 @@
 version = "0.6.0"
 edition = "2021"
 publish = false
+license = "MIT"
 
 [workspace]
 members = [
@@ -25,22 +26,22 @@ checkmark_open_ai = { path = "src/checkmark_open_ai" }
 checkmark_render = { path = "src/checkmark_render" }
 checkmark_spelling = { path = "src/checkmark_spelling" }
 common = { path = "src/common" }
-clap = { version = "4.4.11", features = ["derive", "cargo"] }
-tokio = { version = "1.35.0", features = ["full"] }
-serde = { version = "1.0.193", features = ["derive"] }
+clap = { version = "4.5.20", features = ["derive", "cargo"] }
+tokio = { version = "1.41.0", features = ["full"] }
+serde = { version = "1.0.213", features = ["derive"] }
 serde-sarif = "0.4.2"
-serde_json = "1.0.108"
+serde_json = "1.0.132"
 colored = "2.1.0"
-dunce = "1.0.4"
-rayon = "1.8.0"
-futures = "0.3.30"
-log = "0.4.2"
-env_logger = "0.10.1"
-markdown = { version = "1.0.0-alpha.14", features = ["json", "log", "serde"] }
+dunce = "1.0.5"
+rayon = "1.10.0"
+futures = "0.3.31"
+log = "0.4.22"
+env_logger = "0.10.2"
+markdown = { version = "1.0.0-alpha.21", features = ["json", "log", "serde"] }
 prettydiff = "0.6.4"
-async-std = "1.12.0"
-reqwest = { version = "0.11.22", features = ["blocking", "json"] }
-wildmatch = "2.3.0"
+async-std = "1.13.0"
+reqwest = { version = "0.11.27", features = ["blocking", "json"] }
+wildmatch = "2.4.0"
 lychee-lib = { version = "0.14.1", features = [
   "email-check",
   "vendored-openssl",
@@ -48,24 +49,24 @@ lychee-lib = { version = "0.14.1", features = [
 secrecy = { version = "0.8.0", features = ["serde"] }
 scraper = "0.18.1"
 line-numbers = "0.3.0"
-regex = "1.10.2"
-once_cell = "1.19.0"
+regex = "1.11.1"
+once_cell = "1.20.2"
 glob = "0.3.1"
 is-url = "1.0.4"
-git2 = { version = "0.18.1", features = ["vendored-libgit2"] }
-auth-git2 = "0.5.3"
+git2 = { version = "0.18.3", features = ["vendored-libgit2"] }
+auth-git2 = "0.5.5"
 path-slash = "0.2.1"
-dotenv = "0.15.0"
+dotenvy = "0.15.7"
 os_info = "3"
 fs_extra = "1.3.0"
 html_editor = "0.7.0"
 rouille = "3.6.2"
-open = "5.0.1"
+open = "5.3.0"
 symspell = { git = "https://github.com/vvvar/symspell.git", branch = "no_print_progress" }
-strsim = "0.10.0"
-toml = "0.8.8"
+strsim = "0.11.1"
+toml = "0.8.19"
 spinners = "4.1.1"
 codespan-reporting = "0.11.1"
-assert_cmd = "2.0.12"
-predicates = "3.0.4"
-pretty_assertions = "1.4.0"
+assert_cmd = "2.0.16"
+predicates = "3.1.2"
+pretty_assertions = "1.4.1"
