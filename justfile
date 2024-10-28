@@ -2,13 +2,13 @@
 [group('build')]
 build *CARGO_BUILD_ARGS:
     cargo install cargo-auditable --locked
-    cargo auditable build --workspace --all-targets {{CARGO_BUILD_ARGS}}
+    cargo auditable build --workspace --all-targets {{ CARGO_BUILD_ARGS }}
 
 # Run tests. Additional arguments will be passed as-is to the "cargo nextest run".
 [group('test')]
 test *CARGO_NEXTEST_ARGS:
     cargo install cargo-nextest --locked
-    cargo nextest run --workspace --all-targets --all-features {{CARGO_NEXTEST_ARGS}}
+    cargo nextest run --workspace --all-targets --all-features {{ CARGO_NEXTEST_ARGS }}
 
 # Install checkmark CLI to a system and make it available via terminal.
 [group('test')]
@@ -32,9 +32,10 @@ coverage:
 # Auto-format source code.
 [group('code quality')]
 fmt:
-    cargo fmt --all
+    cargo fmt
     taplo fmt
     checkmark fmt
+    just --unstable --fmt
 
 # Run various linters against source code.
 [group('code quality')]
@@ -46,6 +47,7 @@ lint: install
     checkmark lint
     checkmark spellcheck
     checkmark linkcheck
+    just --unstable --fmt --check   
     cargo clippy --workspace --all-targets --locked
 
 # Cleanup project artifacts & tmp files.
