@@ -1,5 +1,2 @@
 [files]
-extend-exclude = [
-    "src/checkmark_spelling/src/dictionaries/*.txt",
-    "*.svg",
-]
+extend-exclude = ["src/checkmark_spelling/src/dictionaries/*.txt", "*.svg"]

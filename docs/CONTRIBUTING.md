@@ -2,14 +2,10 @@
 
 ## Setting up dev environment
 
-- Install [rust](https://rustup.rs).
-- Install [nextest](https://nexte.st/docs/installation/from-source/).
-- Install [cargo audit](https://github.com/rustsec/rustsec/tree/main/cargo-audit).
-- Install [just](https://github.com/casey/just).
-- Install [taplo](https://taplo.tamasfe.dev/cli/installation/cargo.html).
-- Install [checkmark](../#installation) (we check ourselves with our own tool on a CI).
+Essentials:
 
-> Once `just` is installed, you can can install most of the tools with `just setup`.
+- Install [rust](https://rustup.rs).
+- Install [just](https://github.com/casey/just).
 
 ## Building this project
 
@@ -28,6 +24,26 @@ just test
 ```
 
 ## Running code quality checks
+
+### Audit project dependencies
+
+Run in your terminal:
+
+```sh
+just audit
+```
+
+### Generate code coverage report
+
+Run in your terminal:
+
+```sh
+just coverage
+```
+
+This will generate HTML code coverage report in the `target/tarpaulin`.
+
+### Lint
 
 Run in your terminal:
 
