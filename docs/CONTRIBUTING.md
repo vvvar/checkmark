@@ -23,7 +23,17 @@ Run in your terminal:
 just test
 ```
 
-## Generate code coverage report
+## Running code quality checks
+
+### Audit project dependencies
+
+Run in your terminal:
+
+```sh
+just audit
+```
+
+### Generate code coverage report
 
 Run in your terminal:
 
@@ -33,12 +43,12 @@ just coverage
 
 This will generate HTML code coverage report in the `target/tarpaulin`.
 
-## Running code quality checks
+### Lint
 
 Run in your terminal:
 
 ```sh
-just check
+just lint
 ```
 
 ## Checking how tool will work on the end-user machine
