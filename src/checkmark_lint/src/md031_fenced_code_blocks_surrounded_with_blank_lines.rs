@@ -21,8 +21,19 @@ fn is_code_block_surrounded_with_blank_lines(c: &Code, source: &str) -> bool {
     let start = c.position.as_ref().unwrap().start.line;
     let end = c.position.as_ref().unwrap().end.line;
     let line_before = source.lines().nth(start - 2).unwrap_or("MISSING_LINE");
-    let line_after = source.lines().nth(end).unwrap_or("MISSING_LINE");
-    line_before.is_empty() && line_after.is_empty()
+    if end.eq(&source.lines().count()) {
+        // Special case - code block is at the end of a file.
+        // We need this special handling here since std::lines()
+        // does not account trailing line break as a line.
+        // Since we know that there's nothing beyond code block,
+        // we can just check that whole file ends with newline.
+        line_before.is_empty() && source.ends_with('\n')
+    } else {
+        // Normal case - code block placed between other blocks.
+        // Here std::lines() can correctly see a following line.
+        let line_after = source.lines().nth(end).unwrap_or("MISSING_LINE");
+        line_before.is_empty() && line_after.is_empty()
+    }
 }
 
 pub fn md031_fenced_code_blocks_surrounded_with_blank_lines(
@@ -51,6 +62,24 @@ mod tests {
     use super::*;
     use markdown::unist::Position;
     use pretty_assertions::assert_eq;
+
+    #[test]
+    fn md031_code_block_at_the_end_should_not_cause_violation() {
+        let file = MarkDownFile {
+            path: String::from("this/is/a/dummy/path/to/a/file.md"),
+            content: r#"
+```
+echo Hello
+```
+"#
+            .to_string(),
+            issues: vec![],
+        };
+        assert_eq!(
+            Vec::<Violation>::new(),
+            md031_fenced_code_blocks_surrounded_with_blank_lines(&file, true)
+        );
+    }
 
     #[test]
     fn md031_detect_missing_blank_line() {
