@@ -24,6 +24,10 @@ fn auto_links() {
 /// https://www.markdownguide.org/extended-syntax/#footnotes
 #[test]
 fn link_reference() {
+    // Ensure we:
+    // - Preserve link references.
+    // - Preserve folded definitions.
+    // - Do not remove newline after definitions block.
     utils::assert_unchanged_after_formatting(
         "# Attribution
 
@@ -33,6 +37,8 @@ version 2.1, available at
 
 [homepage]: https://www.contributor-covenant.org
 [v2.1]: https://www.contributor-covenant.org/version/2/1/code_of_conduct.html
+
+## Another header
 ",
     );
 
