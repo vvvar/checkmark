@@ -122,13 +122,12 @@ fn definition_is_followed_by_other_definition(
 ) -> bool {
     let line_number = d.position.as_ref().unwrap().end.line;
     let following_line = source.lines().nth(line_number).unwrap_or_default();
-    let ast = common::ast::parse(&following_line).unwrap();
+    let ast = common::ast::parse(following_line).unwrap();
     ast.children().is_some_and(|children| {
         // Is there any child definition?
-        children.iter().any(|child| match child {
-            Node::Definition(_) => true,
-            _ => false,
-        })
+        children
+            .iter()
+            .any(|child| matches!(child, Node::Definition(_)))
     })
 }
 
@@ -691,7 +690,7 @@ mod tests {
     fn independent_definition_correctly_detected() {
         let source = r#"[homepage]: https://www.contributor-covenant.org"#;
 
-        let ast = common::ast::parse(&source).unwrap();
+        let ast = common::ast::parse(source).unwrap();
         let only_definition = match ast.children().unwrap().first().unwrap() {
             Node::Definition(d) => d,
             _ => panic!("unexpected parsing result - first node is not a Definition"),
@@ -708,7 +707,7 @@ mod tests {
         let source = r#"[homepage]: https://www.contributor-covenant.org
 [v2.1]: https://www.contributor-covenant.org/version/2/1/code_of_conduct.html"#;
 
-        let ast = common::ast::parse(&source).unwrap();
+        let ast = common::ast::parse(source).unwrap();
         let first_definition = match ast.children().unwrap().first().unwrap() {
             Node::Definition(d) => d,
             _ => panic!("unexpected parsing result - first node is not a Definition"),
