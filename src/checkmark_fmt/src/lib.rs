@@ -112,6 +112,25 @@ fn escape_special_characters(str: &str) -> String {
         .replace('<', "\\<")
 }
 
+/// Check that there's another definition node that follows this one.
+/// For instance:
+/// [org]: https://www.example.org
+/// [com]: https://www.example.com
+fn definition_is_followed_by_other_definition(
+    d: &markdown::mdast::Definition,
+    source: &str,
+) -> bool {
+    let line_number = d.position.as_ref().unwrap().end.line;
+    let following_line = source.lines().nth(line_number).unwrap_or_default();
+    let ast = common::ast::parse(following_line).unwrap();
+    ast.children().is_some_and(|children| {
+        // Is there any child definition?
+        children
+            .iter()
+            .any(|child| matches!(child, Node::Definition(_)))
+    })
+}
+
 /// Render Markdown file from AST
 fn to_md(
     node: &mdast::Node,
@@ -501,6 +520,19 @@ fn to_md(
             if let Some(title) = &d.title {
                 buffer.push_str(&format!(" \"{}\"", &title));
             }
+            if !definition_is_followed_by_other_definition(d, source) {
+                // We want to preserve folded definitions.
+                // For instance:
+                //    [org]: https://www.example.org
+                //    [com]: https://www.example.com
+                // should not be unfolded, so no additional
+                // newlines between definitions needed.
+                // However, we would like to add newline when
+                // there's no following definition, so we're
+                // adding newline ony when definition is not
+                // followed by another definition.
+                buffer.push('\n');
+            }
         }
         Node::LinkReference(lr) => {
             buffer.push('[');
@@ -648,4 +680,42 @@ pub fn check_md_format(
         issues.push(issue.build());
     }
     issues
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn independent_definition_correctly_detected() {
+        let source = r#"[homepage]: https://www.contributor-covenant.org"#;
+
+        let ast = common::ast::parse(source).unwrap();
+        let only_definition = match ast.children().unwrap().first().unwrap() {
+            Node::Definition(d) => d,
+            _ => panic!("unexpected parsing result - first node is not a Definition"),
+        };
+
+        assert!(!definition_is_followed_by_other_definition(
+            only_definition,
+            source
+        ));
+    }
+
+    #[test]
+    fn definition_followed_by_other_definition_correctly_detected() {
+        let source = r#"[homepage]: https://www.contributor-covenant.org
+[v2.1]: https://www.contributor-covenant.org/version/2/1/code_of_conduct.html"#;
+
+        let ast = common::ast::parse(source).unwrap();
+        let first_definition = match ast.children().unwrap().first().unwrap() {
+            Node::Definition(d) => d,
+            _ => panic!("unexpected parsing result - first node is not a Definition"),
+        };
+
+        assert!(definition_is_followed_by_other_definition(
+            first_definition,
+            source
+        ));
+    }
 }
