@@ -1,14 +1,41 @@
-use crate::violation::{Violation, ViolationBuilder};
-use common::MarkDownFile;
-use markdown::mdast::Node;
+use checkmark_lint_common::*;
+use checkmark_lint_macro::*;
 
-fn violation_builder() -> ViolationBuilder {
-    ViolationBuilder::default()
-        .code("MD007")
-        .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md007.md")
-        .rationale("Indenting by 2 spaces allows the content of a nested list to be in line with the start of the content of the parent list when a single space is used after the list marker. Indenting by 4 spaces is consistent with code blocks and simpler for editors to implement. Additionally, this can be a compatibility issue for other Markdown parsers, which require 4-space indents")
-        .push_additional_link("https://cirosantilli.com/markdown-style-guide/#indentation-of-content-inside-lists")
-        .is_fmt_fixable(true)
+#[rule(
+    requirement = "Unordered list items should be indented with 2 or 4 spaces",
+    rationale = "Indenting by 2 spaces allows the content of a nested list to be in line with the start of the content of the parent list when a single space is used after the list marker. Indenting by 4 spaces is consistent with code blocks and simpler for editors to implement. Additionally, this can be a compatibility issue for other Markdown parsers, which require 4-space indents",
+    documentation = "https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md007.md",
+    additional_links = ["https://cirosantilli.com/markdown-style-guide/#indentation-of-content-inside-lists"],
+    is_fmt_fixable = true
+)]
+fn md007(ast: &Node, file: &MarkDownFile, _: &Config) -> Vec<Violation> {
+    let indent = 2; // TODO: Allow configuring from outside.
+
+    // Extract all root-level lists
+    let mut top_level_lists: Vec<&Node> = vec![];
+    let mut stack: Vec<&Node> = vec![];
+    stack.push(ast);
+    while let Some(current) = stack.pop() {
+        if let Node::List(_) = current {
+            top_level_lists.push(current);
+        } else if let Some(children) = current.children() {
+            for child in children.iter().rev() {
+                stack.push(child);
+            }
+        }
+    }
+
+    let mut violations: Vec<Violation> = vec![];
+    for list in top_level_lists {
+        let is_ordered = if let Node::List(l) = list {
+            l.ordered
+        } else {
+            false
+        };
+        analyze_list(&mut violations, list, is_ordered, 0, 0, file, indent);
+    }
+
+    violations
 }
 
 /// Takes a lin and calculates number of spaces before the first non-space character
@@ -63,8 +90,11 @@ fn analyze_list(
                 let actual_ident = calculate_ident(line);
                 if actual_ident.ne(&expected_ident) {
                     violations.push(
-                        violation_builder()
-                            .message(&format!("Wrong indentation of unordered list item. Expected {} spaces, got {} spaces", expected_ident, actual_ident))
+                        ViolationBuilder::default()
+                            .message("Wrong indentation of unordered list item")
+                            .assertion(&format!(
+                                "Expected {expected_ident} spaces, got {actual_ident}"
+                            ))
                             .position(&li.position)
                             .build(),
                     );
@@ -116,49 +146,11 @@ fn analyze_list(
     }
 }
 
-pub fn md007_unordered_list_indentation(file: &MarkDownFile, indent: usize) -> Vec<Violation> {
-    log::debug!("[MD007] File: {:#?}", &file.path);
-
-    let ast = common::ast::parse(&file.content).unwrap();
-
-    // Extract all root-level lists
-    let mut top_level_lists: Vec<&Node> = vec![];
-    let mut stack: Vec<&Node> = vec![];
-    stack.push(&ast);
-    while let Some(current) = stack.pop() {
-        if let Node::List(_) = current {
-            top_level_lists.push(current);
-        } else if let Some(children) = current.children() {
-            for child in children.iter().rev() {
-                stack.push(child);
-            }
-        }
-    }
-
-    let mut violations: Vec<Violation> = vec![];
-    for list in top_level_lists {
-        let is_ordered = if let Node::List(l) = list {
-            l.ordered
-        } else {
-            false
-        };
-        analyze_list(&mut violations, list, is_ordered, 0, 0, file, indent);
-    }
-
-    violations
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use markdown::unist::Position;
-    use pretty_assertions::assert_eq;
 
-    #[test]
-    fn md007() {
-        let file = MarkDownFile {
-            path: String::from("this/is/a/dummy/path/to/a/file.md"),
-            content: "# Wrong List Item Indentation
+    #[rule_test(markdown = "# Wrong List Item Indentation
 
 ## Unordered nested list
 
@@ -211,45 +203,37 @@ mod tests {
 2. Two
 	 - Two-One
 
-"
-            .to_string(),
-            issues: vec![],
-        };
-
+")]
+    fn detect_forbidden_num_of_spaces(ast: &Node, file: &MarkDownFile, config: &Config) {
         assert_eq!(
             vec![
-                violation_builder()
-                    .message(
-                        "Wrong indentation of unordered list item. Expected 4 spaces, got 5 spaces"
-                    )
+                ViolationBuilder::default()
+                    .message("Wrong indentation of unordered list item")
+                    .assertion("Expected 4 spaces, got 5")
                     .position(&Some(Position::new(9, 5, 97, 9, 19, 111)))
                     .build(),
-                violation_builder()
-                    .message(
-                        "Wrong indentation of unordered list item. Expected 0 spaces, got 1 spaces"
-                    )
+                ViolationBuilder::default()
+                    .message("Wrong indentation of unordered list item")
+                    .assertion("Expected 0 spaces, got 1")
                     .position(&Some(Position::new(20, 3, 231, 20, 14, 242)))
                     .build(),
-                violation_builder()
-                    .message(
-                        "Wrong indentation of unordered list item. Expected 0 spaces, got 1 spaces"
-                    )
+                ViolationBuilder::default()
+                    .message("Wrong indentation of unordered list item")
+                    .assertion("Expected 0 spaces, got 1")
                     .position(&Some(Position::new(26, 3, 310, 26, 13, 320)))
                     .build(),
-                violation_builder()
-                    .message(
-                        "Wrong indentation of unordered list item. Expected 0 spaces, got 1 spaces"
-                    )
+                ViolationBuilder::default()
+                    .message("Wrong indentation of unordered list item")
+                    .assertion("Expected 0 spaces, got 1")
                     .position(&Some(Position::new(30, 5, 355, 30, 15, 365)))
                     .build(),
-                violation_builder()
-                    .message(
-                        "Wrong indentation of unordered list item. Expected 0 spaces, got 2 spaces"
-                    )
+                ViolationBuilder::default()
+                    .message("Wrong indentation of unordered list item")
+                    .assertion("Expected 0 spaces, got 2")
                     .position(&Some(Position::new(46, 1, 557, 47, 1, 569)))
                     .build(),
             ],
-            md007_unordered_list_indentation(&file, 2)
+            MD007.check(ast, file, config)
         );
     }
 }

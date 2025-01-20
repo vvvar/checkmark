@@ -4,7 +4,7 @@ Checkmark is a CLI tool designed to streamline your Markdown workflow. It provid
 
 ![main](./assets/fmt.svg)
 
-## Features
+### Features
 
 Checkmark is a tool designed to help maintain high-quality Markdown documentation. It offers a range of commands to automate various tasks related to formatting, checking, and reviewing Markdown files:
 
@@ -18,7 +18,7 @@ Checkmark is a tool designed to help maintain high-quality Markdown documentatio
 - **remote check**: Check documents from the remote Git repository.
 - **CI mode**: Turns off interactive prompts and outputs reports in a format suitable for CI/CD pipelines.
 
-## Installation
+###### Installation
 
 Make sure you install the latest [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) version. If you are using Windows, ensure that Perl is installed and added to the system's `PATH`. You may consider using [Strawberry Perl](https://strawberryperl.com) for this purpose. Next, run the following command:
 
@@ -34,7 +34,8 @@ You can verify the installation with the following command:
 checkmark --version
 ```
 
-## Getting started
+Getting started
+=====
 
 Checkmark has a bunch of different commands. Each serves its purpose. Below you will find descriptions of all available commands.
 
@@ -301,6 +302,11 @@ checkmark fmt --check git@github.com:vvvar/checkmark.git
 ## Contributing
 
 For information about contribution, please refer to the [CONTRIBUTING.md](./docs/CONTRIBUTING.md) file.
+
+- One
+ - Two
++ Three
+   - For
 
 ## Support
 

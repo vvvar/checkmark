@@ -9,7 +9,9 @@ members = [
   "src/checkmark_cli",
   "src/checkmark_fmt",
   "src/checkmark_link_checker",
-  "src/checkmark_lint",
+  "src/checkmark_lint/common",
+  "src/checkmark_lint/core",
+  "src/checkmark_lint/macro",
   "src/checkmark_ls",
   "src/checkmark_open_ai",
   "src/checkmark_spelling",
@@ -20,7 +22,9 @@ resolver = "2"
 [workspace.dependencies]
 checkmark_fmt = { path = "src/checkmark_fmt" }
 checkmark_link_checker = { path = "src/checkmark_link_checker" }
-checkmark_lint = { path = "src/checkmark_lint" }
+checkmark_lint_common = { path = "src/checkmark_lint/common" }
+checkmark_lint_core = { path = "src/checkmark_lint/core" }
+checkmark_lint_macro = { path = "src/checkmark_lint/macro" }
 checkmark_ls = { path = "src/checkmark_ls" }
 checkmark_open_ai = { path = "src/checkmark_open_ai" }
 checkmark_render = { path = "src/checkmark_render" }
@@ -69,4 +73,11 @@ spinners = "4.1.1"
 codespan-reporting = "0.11.1"
 assert_cmd = "2.0.16"
 predicates = "3.1.2"
+url = "2.5.4"
+url-macro = "0.1.9"
 pretty_assertions = "1.4.1"
+proc-macro2 = "1.0.93"
+paste = "1.0.15"
+quote = "1.0.38"
+darling = "0.20.10"
+syn = "2.0.96"

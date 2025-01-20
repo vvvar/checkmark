@@ -13,7 +13,7 @@ path = "src/main.rs"
 [dependencies]
 checkmark_fmt.workspace = true
 checkmark_link_checker.workspace = true
-checkmark_lint.workspace = true
+checkmark_lint_core.workspace = true
 checkmark_ls.workspace = true
 checkmark_open_ai.workspace = true
 checkmark_render.workspace = true

@@ -6,6 +6,7 @@
         "marklint",
         "mdast",
         "reqwest",
+        "setext",
         "sorensen",
         "strsim"
     ],
