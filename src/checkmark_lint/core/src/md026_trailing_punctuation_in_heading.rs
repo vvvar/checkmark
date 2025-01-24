@@ -48,7 +48,7 @@ mod tests {
     use super::*;
 
     #[rule_test(markdown = "# This is a heading.\n\n## This is fine\n")]
-    fn detects_trailing_puntuctuation_in_heading(ast: &Node, file: &MarkDownFile, config: &Config) {
+    fn detects_trailing_punctuation_in_heading(ast: &Node, file: &MarkDownFile, config: &Config) {
         assert_eq!(
             vec![violation_builder()
                 .position(&Some(Position::new(1, 1, 0, 1, 21, 20)))

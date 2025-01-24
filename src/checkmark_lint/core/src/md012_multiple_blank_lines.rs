@@ -16,7 +16,7 @@ fn md012(_: &Node, file: &MarkDownFile, _: &Config) -> Vec<Violation> {
         .map(|(i, _)| {
             let line_positions = LinePositions::from(file.content.as_str());
             ViolationBuilder::default()
-                .message("Found multiple consecutive blank lines")
+                .message("Multiple consecutive blank lines")
                 .assertion("Expected single blank line, got multiple")
                 .push_fix("Remove unnecessary blank line")
                 .position(&Some(Position::new(
@@ -43,7 +43,7 @@ mod tests {
     fn detect_multiple_consecutive_blank_lines(ast: &Node, file: &MarkDownFile, config: &Config) {
         assert_eq!(
             vec![ViolationBuilder::default()
-                .message("Found multiple consecutive blank lines")
+                .message("Multiple consecutive blank lines")
                 .assertion("Expected single blank line, got multiple")
                 .push_fix("Remove unnecessary blank line")
                 .position(&Some(Position::new(1, 1, 5, 2, 1, 6)))

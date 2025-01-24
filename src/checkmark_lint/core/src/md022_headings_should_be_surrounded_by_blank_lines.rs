@@ -43,7 +43,7 @@ fn to_violation(i: usize, h: &Heading) -> Violation {
             .push_fix("Add a blank line after the the header");
     } else {
         violation = violation
-            .message("Heading is not surrounded by blank lines")
+            .message("Heading is not surrounded with blank lines")
             .assertion("Expected a blank line before and after the heading, got none")
             .push_fix("Ensure there is a blank line before and after the header");
     }
@@ -71,7 +71,7 @@ mod tests {
                     .position(&Some(Position::new(1, 1, 0, 1, 12, 11)))
                     .build(),
                 ViolationBuilder::default()
-                    .message("Heading is not surrounded by blank lines")
+                    .message("Heading is not surrounded with blank lines")
                     .assertion("Expected a blank line before and after the heading, got none")
                     .push_fix("Ensure there is a blank line before and after the header")
                     .position(&Some(Position::new(9, 1, 65, 9, 13, 77)))

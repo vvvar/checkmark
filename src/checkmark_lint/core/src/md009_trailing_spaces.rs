@@ -25,7 +25,7 @@ fn md009(_: &Node, file: &MarkDownFile, _: &Config) -> Vec<Violation> {
         })
         .map(|(i, line)| {
             ViolationBuilder::default()
-                .message("Found trailing space")
+                .message("Trailing space")
                 .assertion("Expected no trailing space, found one")
                 .position(&Some(Position::new(
                     i,
@@ -66,25 +66,25 @@ This trailing space does not count
         assert_eq!(
             vec![
                 ViolationBuilder::default()
-                    .message("Found trailing space")
+                    .message("Trailing space")
                     .assertion("Expected no trailing space, found one")
                     .set_fixes(vec![String::from("Remove trailing space")])
                     .position(&Some(Position::new(1, 1, 5, 1, 18, 23)))
                     .build(),
                 ViolationBuilder::default()
-                    .message("Found trailing space")
+                    .message("Trailing space")
                     .assertion("Expected no trailing space, found one")
                     .set_fixes(vec![String::from("Remove trailing space")])
                     .position(&Some(Position::new(9, 1, 80, 9, 21, 101)))
                     .build(),
                 ViolationBuilder::default()
-                    .message("Found trailing space")
+                    .message("Trailing space")
                     .assertion("Expected no trailing space, found one")
                     .set_fixes(vec![String::from("Remove trailing space")])
                     .position(&Some(Position::new(13, 1, 179, 13, 8, 187)))
                     .build(),
                 ViolationBuilder::default()
-                    .message("Found trailing space")
+                    .message("Trailing space")
                     .assertion("Expected no trailing space, found one")
                     .set_fixes(vec![String::from("Remove trailing space")])
                     .position(&Some(Position::new(15, 1, 189, 15, 21, 210)))

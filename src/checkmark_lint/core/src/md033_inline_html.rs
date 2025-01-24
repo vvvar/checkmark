@@ -60,7 +60,7 @@ fn md033(ast: &Node, _: &MarkDownFile, config: &Config) -> Vec<Violation> {
 }
 
 fn violation_builder() -> ViolationBuilder {
-    ViolationBuilder::default().message("Found non-whitelisted inline HTML")
+    ViolationBuilder::default().message("Non-whitelisted inline HTML")
 }
 
 #[cfg(test)]
