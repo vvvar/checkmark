@@ -18,7 +18,6 @@ regex.workspace = true
 once_cell.workspace = true
 rayon.workspace = true
 colored.workspace = true
-paste.workspace = true
 url-macro.workspace = true
 url.workspace = true
 

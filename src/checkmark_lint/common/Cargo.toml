@@ -9,7 +9,3 @@ license.workspace = true
 markdown.workspace = true
 common.workspace = true
 url.workspace = true
-url-macro.workspace = true
-
-[dev-dependencies]
-pretty_assertions.workspace = true
