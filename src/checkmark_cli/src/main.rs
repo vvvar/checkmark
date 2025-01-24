@@ -138,7 +138,8 @@ async fn main() -> Result<(), errors::AppError> {
         cli::Subcommands::Lint(_) => {
             tui.lock().unwrap().start_spinner("Linting...");
             files.par_iter_mut().for_each(|file| {
-                file.issues.append(&mut checkmark_lint::lint(file, &config));
+                file.issues
+                    .append(&mut checkmark_lint_core::lint(file, &config));
                 tui.lock().unwrap().print_file_check_status(file);
             });
         }

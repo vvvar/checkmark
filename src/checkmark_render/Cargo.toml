@@ -25,6 +25,3 @@ html_editor.workspace = true
 rouille.workspace = true
 rayon.workspace = true
 open.workspace = true
-
-[dev-dependencies]
-pretty_assertions.workspace = true

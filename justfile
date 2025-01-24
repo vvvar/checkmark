@@ -1,3 +1,6 @@
+# Full project workflow. Run this before making PR.
+default: clean fmt build test audit lint coverage install
+
 # Build project. Additional arguments will be passed as-is to the "cargo build".
 [group('build')]
 build *CARGO_BUILD_ARGS:
@@ -21,7 +24,7 @@ audit:
     cargo install cargo-audit cargo-deny cargo-udeps --locked
     cargo audit
     cargo deny check
-    cargo udeps
+    cargo udeps --all-targets
 
 # Generate code coverage report.
 [group('code quality')]

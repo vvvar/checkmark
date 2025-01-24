@@ -1,0 +1,5 @@
+[advisories]
+ignore = [
+  "RUSTSEC-2024-0402", # Caused by outdated lychee that we cant update.
+  "RUSTSEC-2024-0421", # Caused by outdated lychee that we cant update.
+]

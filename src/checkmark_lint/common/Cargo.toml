@@ -1,0 +1,11 @@
+[package]
+name = "checkmark_lint_common"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+markdown.workspace = true
+common.workspace = true
+url.workspace = true

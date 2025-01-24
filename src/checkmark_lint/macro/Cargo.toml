@@ -1,0 +1,15 @@
+[package]
+name = "checkmark_lint_macro"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote.workspace = true
+syn.workspace = true
+darling.workspace = true
+proc-macro2.workspace = true

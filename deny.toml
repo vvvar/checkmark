@@ -39,7 +39,9 @@ targets = [
 # so it should be used with care. The identifiers are [Package ID Specifications]
 # (https://doc.rust-lang.org/cargo/reference/pkgid-spec.html)
 exclude = [
-  "lychee-lib",
+  "lychee-lib",  # we can't update lychee.
+  "reqwest",     # We have to ignore request because we're locked on its version since lychee leaks it.
+  "toml",        # We're on the latest version as of now.
   "prettydiff",
   "symspell",
   "rouille",
@@ -105,6 +107,7 @@ allow = [
   "MPL-2.0",
   "ISC",
   "Unicode-DFS-2016",
+  "Unicode-3.0",
   "Zlib",
 ]
 # The confidence threshold for detecting a license from license text.

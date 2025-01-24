@@ -1,0 +1,25 @@
+[package]
+name = "checkmark_lint_core"
+description = "Library to lint Markdown files"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+common.workspace = true
+checkmark_lint_common.workspace = true
+checkmark_lint_macro.workspace = true
+scraper.workspace = true
+serde-sarif.workspace = true
+log.workspace = true
+line-numbers.workspace = true
+regex.workspace = true
+once_cell.workspace = true
+rayon.workspace = true
+colored.workspace = true
+url-macro.workspace = true
+url.workspace = true
+
+[dev-dependencies]
+pretty_assertions.workspace = true

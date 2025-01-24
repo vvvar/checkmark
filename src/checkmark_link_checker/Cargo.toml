@@ -17,6 +17,3 @@ futures.workspace = true
 log.workspace = true
 secrecy.workspace = true
 colored.workspace = true
-
-[dev-dependencies]
-pretty_assertions.workspace = true
