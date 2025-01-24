@@ -11,7 +11,7 @@ use common::ast::{try_cast_to_code, BfsIterator};
     is_fmt_fixable = false,
 )]
 fn md014(ast: &Node, _: &MarkDownFile, _: &Config) -> Vec<Violation> {
-    BfsIterator::from(&ast)
+    BfsIterator::from(ast)
         .filter_map(|n| try_cast_to_code(n))
         .filter(|c| is_all_lines_starts_with_dollar_sign(c))
         .map(to_issue)
@@ -24,8 +24,8 @@ fn is_all_lines_starts_with_dollar_sign(code: &Code) -> bool {
 
 fn to_issue(code: &Code) -> Violation {
     ViolationBuilder::default()
-        .message("All lines in a code block starts with $")
-        .assertion("Expected ")
+        .message("All lines in a code block starts with dollar sign")
+        .assertion("Expected to have a command output, got all lines with a dollar sign")
         .push_fix("The dollar signs are unnecessary in this situation, and should not be included")
         .position(&code.position)
         .build()
@@ -50,9 +50,9 @@ $ less bar
     ) {
         assert_eq!(
             vec![ViolationBuilder::default()
-            .message("Dollar signs has been used before commands without showing output")
-        .assertion("Expected none code block lines with a dollar sign, got all of them")
-        .push_fix("The dollar signs are unnecessary in this situation, and should not be included")
+            .message("All lines in a code block starts with dollar sign")
+            .assertion("Expected to have a command output, got all lines with a dollar sign")
+            .push_fix("The dollar signs are unnecessary in this situation, and should not be included")
                 .position(&Some(Position::new(3, 1, 6, 7, 4, 39)))
                 .build(),],
             MD014.check(ast, file, config)

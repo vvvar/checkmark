@@ -1,16 +1,51 @@
-use crate::violation::{Violation, ViolationBuilder};
-use common::MarkDownFile;
-use markdown::mdast::{List, Node};
+use checkmark_lint_common::*;
+use checkmark_lint_macro::*;
+
 use std::collections::VecDeque;
+
+#[rule(
+    requirement = "Ordered list should start with 0. or 1. and go in numerical order",
+    rationale = "Parsers could miss-interpret list and render them as two separate lists",
+    documentation = "https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md029.md",
+    additional_links = [],
+    is_fmt_fixable = true,
+)]
+fn md029(ast: &Node, file: &MarkDownFile, _: &Config) -> Vec<Violation> {
+    let mut violations = common::ast::BfsIterator::from(ast)
+        .filter_map(|n| common::ast::try_cast_to_list(n))
+        .filter(|l| l.ordered)
+        .filter(|h| {
+            let counts_from_zero = counts_from_zero(h, &file.content);
+            let counts_from_one = counts_from_one(h, &file.content);
+            let all_prefixes_are_zeros = all_prefixes_are_zeros(h, &file.content);
+            let all_prefixes_are_ones = all_prefixes_are_ones(h, &file.content);
+            let increases_prefix_in_numerical_order =
+                increases_prefix_in_numerical_order(h, &file.content);
+            // Everything that does not satisfy our criteria of a valid list is a violation
+            !((all_prefixes_are_zeros || all_prefixes_are_ones)
+                || (increases_prefix_in_numerical_order && (counts_from_zero || counts_from_one)))
+        })
+        .map(|h| violation_builder().position(&h.position).build())
+        .collect::<Vec<Violation>>();
+    if let Some(position) = two_lists_split_by_code_or_block_quote(ast) {
+        violations.push(
+            violation_builder()
+                .position(&Some(position.clone()))
+                .message("Improperly-indented code block or quote appears between two list items and breaks the list in two")
+                .set_fixes(vec![
+                    "Indent the code block or quote so it becomes part of the preceding list item as intended".to_string()
+                ])
+                .build()
+        );
+    }
+    violations
+}
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
-        .code("MD029")
-        .message("Ordered list item prefix should go in ordered")
-        .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md029.md")
-        .rationale("Consistent formatting makes it easier to understand a document.")
-        .push_fix("Fix the prefixes to be in numerical order.")
-        .is_fmt_fixable(true)
+        .message("Ordered list item prefix should go in order")
+        .assertion("Expected ordered list item prefix to go in numerical ordered, got unordered")
+        .push_fix("Fix the prefixes to be in numerical order")
 }
 
 fn counts_from_zero(l: &List, source: &str) -> bool {
@@ -85,9 +120,7 @@ fn increases_prefix_in_numerical_order(l: &List, source: &str) -> bool {
 // 1. One
 //    > Quote
 // 2. Two
-fn two_lists_split_by_code_or_block_quote(
-    root: &markdown::mdast::Node,
-) -> Option<markdown::unist::Position> {
+fn two_lists_split_by_code_or_block_quote(root: &Node) -> Option<Position> {
     let mut stack: VecDeque<&Node> = VecDeque::new();
     for el in root.children().unwrap() {
         if stack.len() >= 3 {
@@ -123,45 +156,9 @@ fn two_lists_split_by_code_or_block_quote(
     None
 }
 
-pub fn md029_ordered_list_item_prefix(file: &MarkDownFile) -> Vec<Violation> {
-    log::debug!("[MD029] File: {:#?}", &file.path);
-
-    let ast = common::ast::parse(&file.content).unwrap();
-    let mut violations = common::ast::BfsIterator::from(&ast)
-        .filter_map(|n| common::ast::try_cast_to_list(n))
-        .filter(|l| l.ordered)
-        .filter(|h| {
-            let counts_from_zero = counts_from_zero(h, &file.content);
-            let counts_from_one = counts_from_one(h, &file.content);
-            let all_prefixes_are_zeros = all_prefixes_are_zeros(h, &file.content);
-            let all_prefixes_are_ones = all_prefixes_are_ones(h, &file.content);
-            let increases_prefix_in_numerical_order =
-                increases_prefix_in_numerical_order(h, &file.content);
-            // Everything that does not satisfy our criteria of a valid list is a violation
-            !((all_prefixes_are_zeros || all_prefixes_are_ones)
-                || (increases_prefix_in_numerical_order && (counts_from_zero || counts_from_one)))
-        })
-        .map(|h| violation_builder().position(&h.position).build())
-        .collect::<Vec<Violation>>();
-    if let Some(position) = two_lists_split_by_code_or_block_quote(&ast) {
-        violations.push(
-            violation_builder()
-                .position(&Some(position.clone()))
-                .message("Improperly-indented code block or quote appears between two list items and breaks the list in two")
-                .rationale("Parsers could miss-interpret list and render them as two separate lists.")
-                .set_fixes(vec![
-                    "Indent the code block or quote so it becomes part of the preceding list item as intended".to_string()
-                ])
-                .build()
-        );
-    }
-    violations
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pretty_assertions::assert_eq;
 
     fn to_list_ast(src: &str) -> List {
         let ast = common::ast::parse(src).unwrap();
@@ -176,7 +173,7 @@ mod tests {
     }
 
     #[test]
-    fn md029_detects_when_counts_from_zero() {
+    fn detects_when_counts_from_zero() {
         let starts_with_zero = "0. One\n1. Two\n2. Three";
         assert!(counts_from_zero(
             &to_list_ast(starts_with_zero),
@@ -203,7 +200,7 @@ mod tests {
     }
 
     #[test]
-    fn md029_detects_when_counts_from_one() {
+    fn detects_when_counts_from_one() {
         // Happy paths
         let starts_with_one = "1. One\n2. Two\n3. Three";
         assert!(counts_from_one(
@@ -232,7 +229,7 @@ mod tests {
     }
 
     #[test]
-    fn md029_increases_prefix_in_numerical_order() {
+    fn test_increases_prefix_in_numerical_order() {
         // Happy paths
         let increase_in_mun_order_from_zero = "0. One\n1. Two\n2. Three";
         assert!(increases_prefix_in_numerical_order(
@@ -273,7 +270,7 @@ mod tests {
     }
 
     #[test]
-    fn md029_detects_when_all_prefixes_are_zeros() {
+    fn detects_when_all_prefixes_are_zeros() {
         // Happy paths
         let all_zeros = "0. One\n0. Two\n0. Three";
         assert!(all_prefixes_are_zeros(&to_list_ast(all_zeros), all_zeros));
@@ -311,7 +308,7 @@ mod tests {
     }
 
     #[test]
-    fn md029_detect_list_items_separated_by_element() {
+    fn detect_list_items_separated_by_element() {
         // Happy paths
         let two_lists_and_code = "1. First list\n\n```text\nCode block\n```\n\n1. Second list\n";
         assert!(two_lists_split_by_code_or_block_quote(
@@ -333,12 +330,7 @@ mod tests {
         );
     }
 
-    #[test]
-    fn md029_e2e_happy() {
-        let valid_file = common::MarkDownFile {
-            path: String::from("test.md"),
-            content: String::from(
-                "
+    #[rule_test(markdown = "
 # Valid. All one
 
 1. Do this.
@@ -380,20 +372,12 @@ mod tests {
    > Quote
 
 2. Still first list
-",
-            ),
-            issues: vec![],
-        };
-        assert_eq!(md029_ordered_list_item_prefix(&valid_file), vec![]);
+")]
+    fn e2e_happy(ast: &Node, file: &MarkDownFile, config: &Config) {
+        assert_eq!(MD029.check(ast, file, config), vec![]);
     }
 
-    #[test]
-    fn md029_e2e_negative() {
-        // Negative cases
-        let invalid_file = common::MarkDownFile {
-            path: String::from("test.md"),
-            content: String::from(
-                "
+    #[rule_test(markdown = "
 # Invalid. Not in order
 
 1. Do this.
@@ -408,22 +392,18 @@ Code block
 ```
 
 1. Second list
-",
-            ),
-            issues: vec![],
-        };
-
-        assert_eq!(md029_ordered_list_item_prefix(&invalid_file), vec![
+")]
+    fn e2e_negative(ast: &Node, file: &MarkDownFile, config: &Config) {
+        assert_eq!(MD029.check(ast, file, config), vec![
             violation_builder()
-                .position(&Some(markdown::unist::Position::new(4, 1, 26, 6, 1, 47)))
+                .position(&Some(Position::new(4, 1, 26, 6, 1, 47)))
                 .build(),
             violation_builder()
                 .message("Improperly-indented code block or quote appears between two list items and breaks the list in two")
-                .rationale("Parsers could miss-interpret list and render them as two separate lists.")
                 .set_fixes(vec![
                     "Indent the code block or quote so it becomes part of the preceding list item as intended".to_string()
                 ])
-                .position(&Some(markdown::unist::Position::new(11, 1, 95, 13, 4, 117)))
+                .position(&Some(Position::new(11, 1, 95, 13, 4, 117)))
                 .build()
         ]);
     }

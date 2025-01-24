@@ -1,15 +1,28 @@
-use crate::violation::{Violation, ViolationBuilder};
-use common::MarkDownFile;
-use markdown::mdast::Blockquote;
+use checkmark_lint_common::*;
+use checkmark_lint_macro::*;
+
 use regex::Regex;
+
+#[rule(
+    requirement = "Block quote symbol (>) should be followed by a single space",
+    rationale = "Consistent formatting makes it easier to understand a document",
+    documentation = "https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md027.md",
+    additional_links = [],
+    is_fmt_fixable = true,
+)]
+fn md027(ast: &Node, file: &MarkDownFile, _: &Config) -> Vec<Violation> {
+    common::ast::BfsIterator::from(ast)
+        .filter_map(|n| common::ast::try_cast_to_block_quote(n))
+        .filter(|bq| has_multiple_spaces_after_bq_symbol(bq, &file.content))
+        .map(|bq| violation_builder().position(&bq.position).build())
+        .collect::<Vec<Violation>>()
+}
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
-        .code("MD027")
         .message("Multiple spaces after block quote symbol")
-        .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md027.md")
-        .rationale("Consistent formatting makes it easier to understand a document")
-        .is_fmt_fixable(true)
+        .assertion("Expected a single space after the block quote symbol (>), got multiple")
+        .push_fix("Remove any extraneous space after the \">\" symbol")
 }
 
 // Check that block quote has multiple spaces after bq symbol:
@@ -22,39 +35,21 @@ fn has_multiple_spaces_after_bq_symbol(bq: &Blockquote, source: &str) -> bool {
     Regex::new(r">\s\s+\S").unwrap().is_match(text)
 }
 
-pub fn md027_multiple_spaces_after_block_quote_symbol(file: &MarkDownFile) -> Vec<Violation> {
-    log::debug!("[MD027] File: {:#?}", &file.path);
-    let ast = common::ast::parse(&file.content).unwrap();
-    common::ast::BfsIterator::from(&ast)
-        .filter_map(|n| common::ast::try_cast_to_block_quote(n))
-        .filter(|bq| has_multiple_spaces_after_bq_symbol(bq, &file.content))
-        .map(|bq| {
-            violation_builder()
-                .position(&bq.position)
-                .push_fix("Remove any extraneous space after the \">\" symbol")
-                .build()
-        })
-        .collect::<Vec<Violation>>()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use markdown::unist::Position;
-    use pretty_assertions::assert_eq;
 
-    #[test]
-    fn md027() {
-        let file = MarkDownFile {
-            path: String::from("this/is/a/dummy/path/to/a/file.md"),
-            content: ">  This is a block quote with bad indentation".to_string(),
-            issues: vec![],
-        };
+    #[rule_test(markdown = ">  This is a block quote with bad indentation")]
+    fn detect_multiple_spaces_after_block_quote_symbol(
+        ast: &Node,
+        file: &MarkDownFile,
+        config: &Config,
+    ) {
         assert_eq!(
             vec![violation_builder()
                 .position(&Some(Position::new(1, 1, 0, 1, 46, 45)))
                 .build()],
-            md027_multiple_spaces_after_block_quote_symbol(&file)
+            MD027.check(ast, file, config)
         );
     }
 }

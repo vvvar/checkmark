@@ -1,30 +1,45 @@
-use crate::violation::{Violation, ViolationBuilder};
-use common::MarkDownFile;
-use markdown::mdast::{Heading, Link, Node};
+use checkmark_lint_common::*;
+use checkmark_lint_macro::*;
+use common::ast::{try_cast_to_heading, try_cast_to_html, try_cast_to_link, BfsIterator};
+
+use scraper::{Html, Node as HtmlNode};
+
+#[rule(
+    requirement = "Link fragments should be valid",
+    rationale = "GitHub section links are created automatically for every heading when Markdown content is displayed on GitHub. This makes it easy to link directly to different sections within a document. However, section links change if headings are renamed or removed. This rule helps identify broken section links within a document.\n\nSection links are not part of the CommonMark specification. This rule enforces the GitHub heading algorithm which is: convert heading to lowercase, remove punctuation, convert spaces to dashes, append an incrementing integer as needed for uniqueness",
+    documentation = "https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md051.md",
+    additional_links = [
+        "https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#section-links",
+        "https://github.com/gjtorikian/html-pipeline/blob/f13a1534cb650ba17af400d1acd3a22c28004c09/lib/html/pipeline/toc_filter.rb"
+    ],
+    is_fmt_fixable = false,
+)]
+fn md051(ast: &Node, _: &MarkDownFile, _: &Config) -> Vec<Violation> {
+    let links = extract_links_with_fragments(ast);
+    let headings = extract_headings(ast);
+    let html_elements = extract_html_elements(ast);
+    find_violations(&links, &headings, &html_elements)
+}
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
-        .code("MD051")
-        .message("Link fragments should be valid")
-        .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md051.md")
-        .rationale("GitHub section links are created automatically for every heading when Markdown content is displayed on GitHub. This makes it easy to link directly to different sections within a document. However, section links change if headings are renamed or removed. This rule helps identify broken section links within a document.\n\nSection links are not part of the CommonMark specification. This rule enforces the GitHub heading algorithm which is: convert heading to lowercase, remove punctuation, convert spaces to dashes, append an incrementing integer as needed for uniqueness")
-        .push_additional_link("https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#section-links")
-        .push_additional_link("https://github.com/gjtorikian/html-pipeline/blob/f13a1534cb650ba17af400d1acd3a22c28004c09/lib/html/pipeline/toc_filter.rb")
+        .message("Invalid link fragments")
+        .assertion("Expected link fragment to reference an existing heading's generated name, got link fragment that matches to none")
         .push_fix("Add missing anchor")
 }
 
 /// Get all Markdown links that points to a document fragment.
 /// For example: [About](#about-us)
 fn extract_links_with_fragments(ast: &Node) -> Vec<&Link> {
-    common::ast::BfsIterator::from(ast)
-        .filter_map(|n| common::ast::try_cast_to_link(n))
+    BfsIterator::from(ast)
+        .filter_map(|n| try_cast_to_link(n))
         .filter(|l| l.url.starts_with('#'))
         .collect::<Vec<&Link>>()
 }
 
 fn extract_headings(ast: &Node) -> Vec<&Heading> {
-    common::ast::BfsIterator::from(ast)
-        .filter_map(|n| common::ast::try_cast_to_heading(n))
+    BfsIterator::from(ast)
+        .filter_map(|n| try_cast_to_heading(n))
         .collect::<Vec<&Heading>>()
 }
 
@@ -50,14 +65,14 @@ fn heading_to_fragment(heading: &Heading) -> String {
 
 /// Get all HTML links(<a/>).
 /// At least one of them shall contain an anchor.
-fn extract_html_elements(ast: &Node) -> Vec<scraper::Node> {
-    common::ast::BfsIterator::from(ast)
-        .filter_map(|n| common::ast::try_cast_to_html(n))
+fn extract_html_elements(ast: &Node) -> Vec<HtmlNode> {
+    BfsIterator::from(ast)
+        .filter_map(|n| try_cast_to_html(n))
         .flat_map(|html| {
-            let fragment = scraper::Html::parse_fragment(&html.value);
+            let fragment = Html::parse_fragment(&html.value);
             fragment.tree.clone().into_iter().collect::<Vec<_>>()
         })
-        .collect::<Vec<scraper::Node>>()
+        .collect::<Vec<HtmlNode>>()
 }
 
 /// Takes a list of links with fragment and for each of them tries to find whether it:
@@ -97,69 +112,66 @@ fn find_violations(
         .filter(|link| !does_fragment_points_to_header(link) && !does_fragment_points_to_html(link))
         .map(|link| violation_builder().position(&link.position).build())
         .collect();
-    log::debug!("[MD051] Violations: {:#?}", &violations);
     violations
-}
-
-pub fn md051_link_fragments_should_be_valid(file: &MarkDownFile) -> Vec<Violation> {
-    log::debug!("[MD051] File: {:#?}", &file.path);
-    let ast = common::ast::parse(&file.content).unwrap();
-    let links = extract_links_with_fragments(&ast);
-    let headings = extract_headings(&ast);
-    let html_elements = extract_html_elements(&ast);
-    find_violations(&links, &headings, &html_elements)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use markdown::unist::Position;
-    use pretty_assertions::assert_eq;
 
-    fn lint(content: &str) -> Vec<Violation> {
-        let file = MarkDownFile {
-            path: String::from("this/is/a/dummy/path/to/a/file.md"),
-            content: content.to_string(),
-            issues: vec![],
-        };
-        md051_link_fragments_should_be_valid(&file)
-    }
-
-    #[test]
-    fn md051() {
-        // Has invalid fragment
+    #[rule_test(markdown = "# Heading Name\n\n[Link](#fragment)")]
+    fn detect_invalid_fragment(ast: &Node, file: &MarkDownFile, config: &Config) {
         assert_eq!(
-            lint("# Heading Name\n\n[Link](#fragment)"),
             vec![violation_builder()
                 .position(&Some(Position::new(3, 1, 16, 3, 18, 33)))
-                .build()]
+                .build()],
+            MD051.check(ast, file, config)
         );
+    }
 
-        // Valid fragment from heading name
-        assert_eq!(lint("# Section\n\n[Song](#section)"), vec![]);
+    #[rule_test(markdown = "# Section\n\n[Song](#section)")]
+    fn do_not_complain_about_valid_fragment_from_heading_name(
+        ast: &Node,
+        file: &MarkDownFile,
+        config: &Config,
+    ) {
+        assert_eq!(Vec::<Violation>::new(), MD051.check(ast, file, config));
+    }
 
-        // More complex case when heading name is transformed
-        assert_eq!(lint("# Seek & Destroy\n\n[Song](#seek--destroy)"), vec![]);
+    #[rule_test(markdown = "# Seek & Destroy\n\n[Song](#seek--destroy)")]
+    fn handle_more_complex_case_when_heading_name_is_transformed(
+        ast: &Node,
+        file: &MarkDownFile,
+        config: &Config,
+    ) {
+        assert_eq!(Vec::<Violation>::new(), MD051.check(ast, file, config));
+    }
 
-        // Random HTML el can be used as a fragment
-        assert_eq!(
-            lint("[Link](#anywhere)\n\n<span id='anywhere'>Hello<\\span>"),
-            vec![]
-        );
+    #[rule_test(markdown = "[Link](#anywhere)\n\n<span id='anywhere'>Hello<\\span>")]
+    fn handle_random_html_element_as_a_fragment(ast: &Node, file: &MarkDownFile, config: &Config) {
+        assert_eq!(Vec::<Violation>::new(), MD051.check(ast, file, config));
+    }
 
-        // <a> tag with name attr can be used as a fragment
-        assert_eq!(
-            lint("[Link](#anywhere)\n\n<a name='anywhere'>Hello<\\a>"),
-            vec![]
-        );
+    #[rule_test(markdown = "[Link](#anywhere)\n\n<a name='anywhere'>Hello<\\a>")]
+    fn do_nor_complain_when_a_tag_with_name_attr_is_used_as_fragment(
+        ast: &Node,
+        file: &MarkDownFile,
+        config: &Config,
+    ) {
+        assert_eq!(Vec::<Violation>::new(), MD051.check(ast, file, config));
+    }
 
-        // <a> tag with id attr can be used as a fragment
-        assert_eq!(
-            lint("[Link](#anywhere)\n\n<a id='anywhere'>Hello<\\a>"),
-            vec![]
-        );
+    #[rule_test(markdown = "[Link](#anywhere)\n\n<a id='anywhere'>Hello<\\a>")]
+    fn do_nor_complain_when_a_tag_with_id_attr_is_used_as_fragment(
+        ast: &Node,
+        file: &MarkDownFile,
+        config: &Config,
+    ) {
+        assert_eq!(Vec::<Violation>::new(), MD051.check(ast, file, config));
+    }
 
-        // "+" symbol considered
-        assert_eq!(lint("# C++ and C code\n\n[Code](#c-and-c-code)"), vec![]);
+    #[rule_test(markdown = "# C++ and C code\n\n[Code](#c-and-c-code)")]
+    fn consider_plus_symbol(ast: &Node, file: &MarkDownFile, config: &Config) {
+        assert_eq!(Vec::<Violation>::new(), MD051.check(ast, file, config));
     }
 }

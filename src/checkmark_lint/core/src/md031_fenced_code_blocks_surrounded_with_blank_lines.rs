@@ -1,13 +1,36 @@
-use crate::violation::{Violation, ViolationBuilder};
-use common::MarkDownFile;
-use markdown::mdast::Code;
+use checkmark_lint_common::*;
+use checkmark_lint_macro::*;
+
+use common::ast::{is_list_item, try_cast_to_code, BfsIterator};
+
+#[rule(
+    requirement = "Fenced code blocks should be surrounded by blank lines",
+    rationale = "Aside from aesthetic reasons, some parsers, including kramdown, will not parse fenced code blocks that don't have blank lines before and after them",
+    documentation = "https://github.com/DavidAnson/markdownlint/blob/main/doc/md031.md",
+    additional_links = [],
+    is_fmt_fixable = false,
+)]
+fn md031(ast: &Node, file: &MarkDownFile, config: &Config) -> Vec<Violation> {
+    BfsIterator::from(ast)
+        .filter(|n| {
+            if !config.linter.md031_list_items {
+                // Filter-out list items only when code blocks from them has to be excluded
+                is_list_item(n)
+            } else {
+                true
+            }
+        })
+        .filter_map(|n| try_cast_to_code(n))
+        .filter(|c| is_code_block_fenced(c, &file.content))
+        .filter(|c| !is_code_block_surrounded_with_blank_lines(c, &file.content))
+        .map(|c| violation_builder().position(&c.position).build())
+        .collect::<Vec<Violation>>()
+}
 
 fn violation_builder() -> ViolationBuilder {
     ViolationBuilder::default()
-        .code("MD031")
         .message("Fenced code blocks should be surrounded by blank lines")
-        .doc_link("https://github.com/DavidAnson/markdownlint/blob/main/doc/md031.md")
-        .rationale("Aside from aesthetic reasons, some parsers, including kramdown, will not parse fenced code blocks that don't have blank lines before and after them.")
+        .assertion("Expected blank lines before/after code block, got none")
 }
 
 fn is_code_block_fenced(c: &Code, source: &str) -> bool {
@@ -36,115 +59,73 @@ fn is_code_block_surrounded_with_blank_lines(c: &Code, source: &str) -> bool {
     }
 }
 
-pub fn md031_fenced_code_blocks_surrounded_with_blank_lines(
-    file: &MarkDownFile,
-    list_items: bool,
-) -> Vec<Violation> {
-    let ast = common::ast::parse(&file.content).unwrap();
-    common::ast::BfsIterator::from(&ast)
-        .filter(|n| {
-            if !list_items {
-                // Filter-out list items only when code blocks from them has to be excluded
-                common::ast::is_list_item(n)
-            } else {
-                true
-            }
-        })
-        .filter_map(|n| common::ast::try_cast_to_code(n))
-        .filter(|c| is_code_block_fenced(c, &file.content))
-        .filter(|c| !is_code_block_surrounded_with_blank_lines(c, &file.content))
-        .map(|c| violation_builder().position(&c.position).build())
-        .collect::<Vec<Violation>>()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use markdown::unist::Position;
-    use pretty_assertions::assert_eq;
 
-    #[test]
-    fn md031_code_block_at_the_end_should_not_cause_violation() {
-        let file = MarkDownFile {
-            path: String::from("this/is/a/dummy/path/to/a/file.md"),
-            content: r#"
+    #[rule_test(markdown = r#"
 ```
 echo Hello
 ```
-"#
-            .to_string(),
-            issues: vec![],
-        };
-        assert_eq!(
-            Vec::<Violation>::new(),
-            md031_fenced_code_blocks_surrounded_with_blank_lines(&file, true)
-        );
+"#)]
+    fn code_block_at_the_end_should_not_cause_violation(
+        ast: &Node,
+        file: &MarkDownFile,
+        config: &Config,
+    ) {
+        assert_eq!(Vec::<Violation>::new(), MD031.check(ast, file, config));
     }
 
-    #[test]
-    fn md031_detect_missing_blank_line() {
-        let file = MarkDownFile {
-            path: String::from("this/is/a/dummy/path/to/a/file.md"),
-            content: r#"
+    #[rule_test(markdown = r#"
 ```
 var i = 1;
 ```
 
 ```
 var i = 2;
-```"#
-                .to_string(),
-            issues: vec![],
-        };
-
+```"#)]
+    fn should_detect_missing_blank_line(ast: &Node, file: &MarkDownFile, config: &mut Config) {
         // Plain case
+        config.linter.md031_list_items = true;
         assert_eq!(
             vec![violation_builder()
                 .position(&Some(Position::new(6, 1, 21, 8, 4, 39)))
                 .build()],
-            md031_fenced_code_blocks_surrounded_with_blank_lines(&file, true),
+            MD031.check(ast, file, config),
         );
     }
 
-    #[test]
-    fn md031_detect_missing_blank_line_in_list_item() {
-        let file = MarkDownFile {
-            path: String::from("this/is/a/dummy/path/to/a/file.md"),
-            content: r#"
+    #[rule_test(markdown = r#"
 1. List Item One
 ```
 var i = 2;
-```"#
-                .to_string(),
-            issues: vec![],
-        };
-
+```"#)]
+    fn should_detect_missing_blank_line_in_list_item(
+        ast: &Node,
+        file: &MarkDownFile,
+        config: &mut Config,
+    ) {
         // Plain case
+        config.linter.md031_list_items = true;
         assert_eq!(
             vec![violation_builder()
                 .position(&Some(Position::new(3, 1, 18, 5, 4, 36)))
                 .build()],
-            md031_fenced_code_blocks_surrounded_with_blank_lines(&file, true),
+            MD031.check(ast, file, config),
         );
     }
 
-    #[test]
-    fn md031_ignore_missing_blank_line_in_list_when_disabled() {
-        let file = MarkDownFile {
-            path: String::from("this/is/a/dummy/path/to/a/file.md"),
-            content: r#"
+    #[rule_test(markdown = r#"
 1. List Item One
 ```
 var i = 2;
-```"#
-                .to_string(),
-            issues: vec![],
-        };
-
+```"#)]
+    fn should_ignore_missing_blank_line_in_list_when_disabled(
+        ast: &Node,
+        file: &MarkDownFile,
+        config: &Config,
+    ) {
         // Plain case
-        assert_eq!(
-            Vec::<Violation>::new(),
-            md031_fenced_code_blocks_surrounded_with_blank_lines(&file, false),
-        );
+        assert_eq!(Vec::<Violation>::new(), MD031.check(ast, file, config));
     }
 }

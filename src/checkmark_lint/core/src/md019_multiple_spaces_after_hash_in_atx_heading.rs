@@ -1,16 +1,28 @@
-use crate::violation::{Violation, ViolationBuilder};
-use common::MarkDownFile;
-use markdown::mdast::Heading;
+use checkmark_lint_common::*;
+use checkmark_lint_macro::*;
+
 use regex::Regex;
 
-fn violation_builder() -> ViolationBuilder {
-    ViolationBuilder::default()
-        .code("MD019")
-        .message("Multiple spaces after hash on atx style heading")
-        .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md019.md")
-        .rationale("Extra space has no purpose and does not affect the rendering of content")
-        .push_fix("Separate the heading text from the hash character by a single space")
-        .is_fmt_fixable(true)
+#[rule(
+    requirement = "Hash symbol in ATX-style heading should be followed with a single space",
+    rationale = "Extra space has no purpose and does not affect the rendering of content",
+    documentation = "https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md019.md",
+    additional_links = [],
+    is_fmt_fixable = true,
+)]
+fn md019(ast: &Node, file: &MarkDownFile, _: &Config) -> Vec<Violation> {
+    common::ast::BfsIterator::from(ast)
+        .filter_map(|n| common::ast::try_cast_to_heading(n))
+        .filter(|h| start_with_atx_heading_without_space(h, &file.content))
+        .map(|h| {
+            ViolationBuilder::default()
+                .message("Found multiple spaces after hash in atx style heading")
+                .assertion("Expected single space, got multiple")
+                .push_fix("Separate the heading text from the hash character by a single space")
+                .position(&h.position)
+                .build()
+        })
+        .collect()
 }
 
 // Returns true if the line starts
@@ -26,37 +38,20 @@ fn start_with_atx_heading_without_space(h: &Heading, source: &str) -> bool {
     Regex::new(r"^#+\s\s+\b").unwrap().is_match(text)
 }
 
-pub fn md019_multiple_spaces_after_hash_on_atx_style_heading(
-    file: &MarkDownFile,
-) -> Vec<Violation> {
-    log::debug!("[MD019] File: {:#?}", &file.path);
-
-    let ast = common::ast::parse(&file.content).unwrap();
-    common::ast::BfsIterator::from(&ast)
-        .filter_map(|n| common::ast::try_cast_to_heading(n))
-        .filter(|h| start_with_atx_heading_without_space(h, &file.content))
-        .map(|h| violation_builder().position(&h.position).build())
-        .collect()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pretty_assertions::assert_eq;
 
-    #[test]
-    pub fn md019() {
-        let file = common::MarkDownFile {
-            path: String::from("this/is/a/dummy/path/to/a/file.md"),
-            content: "#   fff".to_string(),
-            issues: vec![],
-        };
-
+    #[rule_test(markdown = "#   fff")]
+    fn detects_multiple_spaces_after_hash_symbol(ast: &Node, file: &MarkDownFile, config: &Config) {
         assert_eq!(
-            vec![violation_builder()
-                .position(&Some(markdown::unist::Position::new(1, 1, 0, 1, 8, 7)))
-                .build(),],
-            md019_multiple_spaces_after_hash_on_atx_style_heading(&file)
+            vec![ViolationBuilder::default()
+                .message("Found multiple spaces after hash in atx style heading")
+                .assertion("Expected single space, got multiple")
+                .push_fix("Separate the heading text from the hash character by a single space")
+                .position(&Some(Position::new(1, 1, 0, 1, 8, 7)))
+                .build()],
+            MD019.check(ast, file, config)
         );
     }
 }

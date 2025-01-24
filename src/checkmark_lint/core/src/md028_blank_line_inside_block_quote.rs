@@ -1,28 +1,18 @@
-use crate::violation::{Violation, ViolationBuilder};
-use common::MarkDownFile;
-use markdown::mdast::Blockquote;
-use markdown::unist::Position;
+use checkmark_lint_common::*;
+use checkmark_lint_macro::*;
 
-fn violation_builder() -> ViolationBuilder {
-    ViolationBuilder::default()
-        .code("MD028")
-        .message("Blank line inside block quote")
-        .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md028.md")
-        .rationale("Some Markdown parsers will treat two block quotes separated by one or more blank lines as the same block quote, while others will treat them as separate block quotes")
-        .push_fix("If you want to have a single block quote - remove blank line")
-        .push_fix("If you want to have block quotes split - add any text between them, for example an empty comment \"<!--  -->\"")
-}
-
-pub fn md028_blank_line_inside_block_quote(file: &MarkDownFile) -> Vec<Violation> {
-    log::debug!("[MD028] File: {:#?}", &file.path);
-
-    let ast = common::ast::parse(&file.content).unwrap();
-
+#[rule(
+    requirement = "Block quote should not have blank lines",
+    rationale = "Some parsers will treat two block quotes separated by one or more blank lines as the same block quote, while others will treat them as separate block quotes",
+    documentation = "https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md028.md",
+    additional_links = [],
+    is_fmt_fixable = false,
+)]
+fn md028(ast: &Node, file: &MarkDownFile, _: &Config) -> Vec<Violation> {
     // Get all block quotes
-    let block_quotes = common::ast::BfsIterator::from(&ast)
+    let block_quotes = common::ast::BfsIterator::from(ast)
         .filter_map(|n| common::ast::try_cast_to_block_quote(n))
         .collect::<Vec<&Blockquote>>();
-    log::debug!("[MD028] Block quotes(in sequence): {:#?}", &block_quotes);
 
     let mut violations: Vec<Violation> = vec![];
     for (i, current_block_quote) in block_quotes.iter().enumerate() {
@@ -54,21 +44,23 @@ pub fn md028_blank_line_inside_block_quote(file: &MarkDownFile) -> Vec<Violation
             }
         }
     }
-    log::debug!("[MD051] Violations: {:#?}", &violations);
 
     violations
+}
+
+fn violation_builder() -> ViolationBuilder {
+    ViolationBuilder::default()
+        .message("Found a blank line inside block quote")
+        .assertion("Expected code block to be a single one, got a separation with a blank line")
+        .push_fix("If you want to have a single block quote - remove blank line")
+        .push_fix("If you want to have block quotes split - add any text between them, for example an empty comment \"<!--  -->\"")
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pretty_assertions::assert_eq;
 
-    #[test]
-    fn md028() {
-        let file = MarkDownFile {
-            path: String::from("this/is/a/dummy/path/to/a/file.md"),
-            content: "
+    #[rule_test(markdown = "
 > Block quote 1
 > > Block quote 1.2
     
@@ -79,11 +71,8 @@ mod tests {
 
 Here some text
 
-> Block quote 4"
-                .to_string(),
-            issues: vec![],
-        };
-
+> Block quote 4")]
+    fn detect_block_quotes_with_blank_lines(ast: &Node, file: &MarkDownFile, config: &Config) {
         assert_eq!(
             vec![
                 violation_builder()
@@ -93,7 +82,7 @@ Here some text
                     .position(&Some(Position::new(6, 1, 58, 7, 1, 59)))
                     .build()
             ],
-            md028_blank_line_inside_block_quote(&file)
+            MD028.check(ast, file, config)
         );
     }
 }

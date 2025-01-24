@@ -1,19 +1,15 @@
-use crate::violation::{Violation, ViolationBuilder};
-use common::MarkDownFile;
+use checkmark_lint_common::*;
+use checkmark_lint_macro::*;
 
-fn violation_builder() -> ViolationBuilder {
-    ViolationBuilder::default()
-        .code("MD025")
-        .message("Multiple top-level headings in the same document")
-        .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md025.md")
-        .rationale("A top-level heading is an h1 on the first line of the file, and serves as the title for the document. If this convention is in use, then there can not be more than one title for the document, and the entire document should be contained within this heading")
-        .push_fix("Structure your document so there is a single h1 heading that is the title for the document. Subsequent headings must be lower-level headings (h2, h3, etc.)")
-}
-
-pub fn md025_multiple_top_level_headings(file: &MarkDownFile) -> Vec<Violation> {
-    log::debug!("[MD025] File: {:#?}", &file.path);
-    let ast = common::ast::parse(&file.content).unwrap();
-    common::ast::BfsIterator::from(&ast)
+#[rule(
+    requirement = "Document should have a single top-level heading",
+    rationale = "A top-level heading is an h1 on the first line of the file, and serves as the title for the document. If this convention is in use, then there can not be more than one title for the document, and the entire document should be contained within this heading",
+    documentation = "https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md025.md",
+    additional_links = [],
+    is_fmt_fixable = false,
+)]
+fn md025(ast: &Node, _: &MarkDownFile, _: &Config) -> Vec<Violation> {
+    common::ast::BfsIterator::from(ast)
         .filter_map(|n| common::ast::try_cast_to_heading(n))
         .filter(|h| h.depth == 1) // We only need 1st level headings
         .skip(1) // First heading is always legit
@@ -21,25 +17,26 @@ pub fn md025_multiple_top_level_headings(file: &MarkDownFile) -> Vec<Violation> 
         .collect::<Vec<Violation>>()
 }
 
+fn violation_builder() -> ViolationBuilder {
+    ViolationBuilder::default()
+        .message("Found multiple top-level headings")
+        .assertion("Expected single top-level heading, got several")
+        .push_fix("Structure your document so there is a single h1 heading that is the title for the document. Subsequent headings must be lower-level headings (h2, h3, etc.)")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use markdown::unist::Position;
-    use pretty_assertions::assert_eq;
 
-    #[test]
-    fn md025() {
-        let file = MarkDownFile {
-            path: String::from("this/is/a/dummy/path/to/a/file.md"),
-            content: "# Top level heading\n\n# Another top-level heading\n\n## Legit heading"
-                .to_string(),
-            issues: vec![],
-        };
+    #[rule_test(
+        markdown = "# Top level heading\n\n# Another top-level heading\n\n## Legit heading"
+    )]
+    fn detect_multiple_top_level_headings(ast: &Node, file: &MarkDownFile, config: &Config) {
         assert_eq!(
             vec![violation_builder()
                 .position(&Some(Position::new(3, 1, 21, 3, 28, 48)))
                 .build(),],
-            md025_multiple_top_level_headings(&file)
+            MD025.check(ast, file, config)
         );
     }
 }

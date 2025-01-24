@@ -1,17 +1,42 @@
-use crate::violation::{Violation, ViolationBuilder};
-use common::MarkDownFile;
-use markdown::mdast::ListItem;
+use checkmark_lint_common::*;
+use checkmark_lint_macro::*;
+use common::ast::{try_cast_to_list_item, BfsIterator};
+
 use regex::Regex;
 
 pub const DEFAULT_NUM_SPACES_AFTER_MARKER: u8 = 1;
 
+#[rule(
+    requirement = "List marker should be followed by configured number of spaces",
+    rationale = "Violations of this rule can lead to improperly rendered content",
+    documentation = "https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md030.md",
+    additional_links = [],
+    is_fmt_fixable = false,
+)]
+fn md030(ast: &Node, file: &MarkDownFile, config: &Config) -> Vec<Violation> {
+    let expected_num_spaces = match config.style.num_spaces_after_list_marker {
+        Some(n) => n,
+        None => DEFAULT_NUM_SPACES_AFTER_MARKER,
+    };
+    BfsIterator::from(ast)
+        .filter_map(|n| try_cast_to_list_item(n))
+        .filter(|li| !assert_spaces_after_list_marker(li, &file.content, expected_num_spaces))
+        .map(|li| {
+            violation_builder()
+                .assertion(&format!(
+                    "Expected {expected_num_spaces} spaces, got other amount"
+                ))
+                .push_fix(&format!(
+                    "Ensure {expected_num_spaces} spaces are used after the list marker"
+                ))
+                .position(&li.position)
+                .build()
+        })
+        .collect::<Vec<Violation>>()
+}
+
 fn violation_builder() -> ViolationBuilder {
-    ViolationBuilder::default()
-        .code("MD030")
-        .message("Spaces after list markers")
-        .rationale("Violations of this rule can lead to improperly rendered content.")
-        .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md030.md")
-        .is_fmt_fixable(true)
+    ViolationBuilder::default().message("Wrong number of spaces after the list marker")
 }
 
 // Returns true when number of spaces after list marker matches expected value
@@ -35,36 +60,14 @@ fn assert_spaces_after_list_marker(l: &ListItem, source: &str, expected_num_spac
     ident.eq(&expected_num_spaces)
 }
 
-pub fn md030_spaces_after_list_markers(
-    file: &MarkDownFile,
-    expected_num_spaces: u8,
-) -> Vec<Violation> {
-    log::debug!("[MD030] File: {:#?}", &file.path);
-    let ast = common::ast::parse(&file.content).unwrap();
-    common::ast::BfsIterator::from(&ast)
-        .filter_map(|n| common::ast::try_cast_to_list_item(n))
-        .filter(|li| !assert_spaces_after_list_marker(li, &file.content, expected_num_spaces))
-        .map(|li| {
-            violation_builder()
-                .position(&li.position)
-                .push_fix(&format!(
-                    "Ensure {} spaces are used after the list marker.",
-                    expected_num_spaces
-                ))
-                .build()
-        })
-        .collect::<Vec<Violation>>()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pretty_assertions::assert_eq;
 
     fn to_list_items_ast(src: &str) -> Vec<ListItem> {
         let ast = common::ast::parse(src).unwrap();
-        common::ast::BfsIterator::from(&ast)
-            .filter_map(|n| common::ast::try_cast_to_list_item(n))
+        BfsIterator::from(&ast)
+            .filter_map(|n| try_cast_to_list_item(n))
             .cloned()
             .collect::<Vec<ListItem>>()
     }
@@ -117,12 +120,7 @@ mod tests {
         }
     }
 
-    #[test]
-    fn md029_e2e_happy() {
-        let valid_file = common::MarkDownFile {
-            path: String::from("test.md"),
-            content: String::from(
-                "
+    #[rule_test(markdown = "
 # Valid. Unordered. Asterisk
 
 * Do this
@@ -148,23 +146,12 @@ mod tests {
 
 1. Do this
 2. Do that
-",
-            ),
-            issues: vec![],
-        };
-        assert_eq!(
-            md030_spaces_after_list_markers(&valid_file, DEFAULT_NUM_SPACES_AFTER_MARKER),
-            vec![]
-        );
+")]
+    fn e2e_happy(ast: &Node, file: &MarkDownFile, config: &Config) {
+        assert_eq!(MD030.check(ast, file, config), vec![]);
     }
 
-    #[test]
-    fn md029_e2e_negative() {
-        // Negative cases
-        let invalid_file = common::MarkDownFile {
-            path: String::from("test.md"),
-            content: String::from(
-                "
+    #[rule_test(markdown = "
 # Invalid. Unordered. Asterisk
 
 *   Foo
@@ -180,29 +167,31 @@ mod tests {
     Second paragraph
 
 1.  Bar
-",
-            ),
-            issues: vec![],
-        };
-
+")]
+    fn e2e_negative(ast: &Node, file: &MarkDownFile, config: &Config) {
+        // Negative cases
         assert_eq!(
-            md030_spaces_after_list_markers(&invalid_file, DEFAULT_NUM_SPACES_AFTER_MARKER),
+            MD030.check(ast, file, config),
             vec![
                 violation_builder()
-                    .position(&Some(markdown::unist::Position::new(4, 1, 33, 7, 13, 75)))
+                    .assertion("Expected 1 spaces, got other amount")
+                    .push_fix("Ensure 1 spaces are used after the list marker")
+                    .position(&Some(Position::new(4, 1, 33, 7, 13, 75)))
                     .build(),
                 violation_builder()
-                    .position(&Some(markdown::unist::Position::new(8, 1, 76, 9, 1, 84)))
+                    .assertion("Expected 1 spaces, got other amount")
+                    .push_fix("Ensure 1 spaces are used after the list marker")
+                    .position(&Some(Position::new(8, 1, 76, 9, 1, 84)))
                     .build(),
                 violation_builder()
-                    .position(&Some(markdown::unist::Position::new(
-                        12, 1, 105, 15, 1, 135
-                    )))
+                    .assertion("Expected 1 spaces, got other amount")
+                    .push_fix("Ensure 1 spaces are used after the list marker")
+                    .position(&Some(Position::new(12, 1, 105, 15, 1, 135)))
                     .build(),
                 violation_builder()
-                    .position(&Some(markdown::unist::Position::new(
-                        16, 1, 136, 16, 8, 143
-                    )))
+                    .assertion("Expected 1 spaces, got other amount")
+                    .push_fix("Ensure 1 spaces are used after the list marker")
+                    .position(&Some(Position::new(16, 1, 136, 16, 8, 143)))
                     .build()
             ]
         );

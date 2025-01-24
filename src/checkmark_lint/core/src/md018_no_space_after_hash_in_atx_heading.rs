@@ -1,15 +1,23 @@
-use crate::violation::{Violation, ViolationBuilder};
+use checkmark_lint_common::*;
+use checkmark_lint_macro::*;
+
 use common::{find_offset_by_line_number, MarkDownFile};
 use regex::Regex;
 
-fn violation_builder() -> ViolationBuilder {
-    ViolationBuilder::default()
-        .code("MD018")
-        .message("No space after hash on atx style heading")
-        .doc_link("https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md018.md")
-        .rationale("Violations of this rule can lead to improperly rendered content")
-        .push_fix("Separate the heading text from the hash character by a single space")
-        .is_fmt_fixable(true)
+#[rule(
+    requirement = "Hash symbol in ATX-style heading should be followed with a space symbol",
+    rationale = "Violations of this rule can lead to improperly rendered content",
+    documentation = "https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md018.md",
+    additional_links = [],
+    is_fmt_fixable = true,
+)]
+fn md018(_: &Node, file: &MarkDownFile, _: &Config) -> Vec<Violation> {
+    file.content
+        .lines()
+        .enumerate()
+        .filter(|(_, line)| start_with_atx_heading_without_space(line))
+        .map(|(i, line)| to_issue(i, line, &file.content))
+        .collect()
 }
 
 // Returns true if the line starts
@@ -24,8 +32,11 @@ fn start_with_atx_heading_without_space(text: &str) -> bool {
 fn to_issue(line_number: usize, line: &str, file: &str) -> Violation {
     let offset_start = find_offset_by_line_number(file, line_number);
     let offset_end = offset_start + line.find(' ').unwrap_or(1);
-    violation_builder()
-        .position(&Some(markdown::unist::Position::new(
+    ViolationBuilder::default()
+        .message("Missing a space after a hash in ATX-style heading")
+        .assertion("Expected a space after the hash symbol, got none")
+        .push_fix("Separate the heading text from the hash character by a single space")
+        .position(&Some(Position::new(
             line_number,
             1,
             offset_start,
@@ -36,34 +47,24 @@ fn to_issue(line_number: usize, line: &str, file: &str) -> Violation {
         .build()
 }
 
-pub fn md018_no_space_after_hash_in_atx_heading(file: &MarkDownFile) -> Vec<Violation> {
-    log::debug!("[MD018] File: {:#?}", &file.path);
-    file.content
-        .lines()
-        .enumerate()
-        .filter(|(_, line)| start_with_atx_heading_without_space(line))
-        .map(|(i, line)| to_issue(i, line, &file.content))
-        .collect()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pretty_assertions::assert_eq;
 
-    #[test]
-    pub fn md018() {
-        let file = common::MarkDownFile {
-            path: String::from("this/is/a/dummy/path/to/a/file.md"),
-            content: "#fff".to_string(),
-            issues: vec![],
-        };
-
+    #[rule_test(markdown = "#fff")]
+    fn detect_missing_space_after_atx_heading_hash(
+        ast: &Node,
+        file: &MarkDownFile,
+        config: &Config,
+    ) {
         assert_eq!(
-            vec![violation_builder()
-                .position(&Some(markdown::unist::Position::new(0, 1, 0, 0, 1, 1)))
+            vec![ViolationBuilder::default()
+                .message("Missing a space after a hash in ATX-style heading")
+                .assertion("Expected a space after the hash symbol, got none")
+                .push_fix("Separate the heading text from the hash character by a single space")
+                .position(&Some(Position::new(0, 1, 0, 0, 1, 1)))
                 .build(),],
-            md018_no_space_after_hash_in_atx_heading(&file)
+            MD018.check(ast, file, config)
         );
     }
 }
