@@ -81,104 +81,107 @@ use md051_link_fragments_should_be_valid::MD051;
 
 use checkmark_lint_common::*;
 use colored::Colorize;
-use common::*;
+use common::{ast::parse, CheckIssue, CheckIssueBuilder, IssueCategory, IssueSeverity};
 use rayon::prelude::*;
 
-type Task = dyn Fn(&Node, &MarkDownFile, &Config) -> (Metadata, Vec<Violation>) + Send + Sync;
+fn convert_into_check_issue(
+    MarkDownFile { path, .. }: &MarkDownFile,
+    Metadata {
+        code,
+        documentation,
+        additional_links,
+        requirement,
+        rationale,
+        is_fmt_fixable,
+    }: &Metadata,
+    Violation {
+        message,
+        assertion,
+        fixes,
+        position,
+        ..
+    }: &Violation,
+) -> CheckIssue {
+    let mut issue = CheckIssueBuilder::default()
+        .set_category(IssueCategory::Linting)
+        .set_severity(IssueSeverity::Error)
+        .set_file_path(path.clone())
+        .set_row_num_start(position.start.line)
+        .set_row_num_end(position.end.line)
+        .set_col_num_start(position.start.column)
+        .set_col_num_end(position.end.line)
+        .set_offset_start(position.start.offset)
+        .set_offset_end(position.end.offset);
 
-fn create_task<T: Rule>() -> Box<Task> {
-    Box::new(|ast: &Node, file: &MarkDownFile, config: &Config| {
-        let rule = T::default();
-        (rule.metadata(), rule.check(ast, file, config))
-    })
+    if assertion.is_empty() {
+        issue = issue.set_message(format!("{code} - {message}."));
+    } else {
+        issue = issue.set_message(format!("{code} - {message}. {assertion}."));
+    }
+
+    issue = issue.push_fix(&format!("📝 {}   {requirement}.", "Requirement".cyan()));
+
+    issue = issue.push_fix(&format!("🧠 {}     {rationale}.", "Rationale".cyan()));
+
+    for fix in fixes {
+        let prefix = "Suggestion".cyan();
+        issue = issue.push_fix(&format!("💡 {prefix}    {fix}.",));
+    }
+
+    if *is_fmt_fixable {
+        let prefix = "Auto-fix".cyan();
+        issue = issue.push_fix(&format!("🚀 {prefix}      checkmark fmt {path}"));
+    }
+
+    issue = issue.push_fix(&format!("📚 {} {documentation}", "Documentation".cyan()));
+
+    for link in additional_links {
+        let prefix = "Also see".cyan();
+        issue = issue.push_fix(&format!("🔗 {prefix}      {link}"));
+    }
+
+    issue.build()
 }
 
-/// Return formatted Markdown file
 pub fn lint(file: &MarkDownFile, config: &Config) -> Vec<CheckIssue> {
-    let ast = common::ast::parse(&file.content).expect("unable to parse markdown file");
-    vec![
-        create_task::<MD001>(),
-        create_task::<MD003>(),
-        create_task::<MD004>(),
-        create_task::<MD005>(),
-        create_task::<MD007>(),
-        create_task::<MD009>(),
-        create_task::<MD010>(),
-        create_task::<MD011>(),
-        create_task::<MD012>(),
-        create_task::<MD014>(),
-        create_task::<MD018>(),
-        create_task::<MD019>(),
-        create_task::<MD020>(),
-        create_task::<MD021>(),
-        create_task::<MD022>(),
-        create_task::<MD023>(),
-        create_task::<MD024>(),
-        create_task::<MD025>(),
-        create_task::<MD026>(),
-        create_task::<MD027>(),
-        create_task::<MD028>(),
-        create_task::<MD029>(),
-        create_task::<MD030>(),
-        create_task::<MD031>(),
-        create_task::<MD033>(),
-        create_task::<MD046>(),
-        create_task::<MD051>(),
-    ]
-    .into_par_iter()
-    .map(|f| f(&ast, file, config))
-    .collect::<Vec<_>>()
-    .iter()
-    .flat_map(|(metadata, violations)| {
-        violations.iter().map(|violation| {
-            let mut issue = common::CheckIssueBuilder::default()
-                .set_category(common::IssueCategory::Linting)
-                .set_severity(common::IssueSeverity::Error)
-                .set_file_path(file.path.clone())
-                .set_row_num_start(violation.position.start.line)
-                .set_row_num_end(violation.position.end.line)
-                .set_col_num_start(violation.position.start.column)
-                .set_col_num_end(violation.position.end.line)
-                .set_offset_start(violation.position.start.offset)
-                .set_offset_end(violation.position.end.offset);
-            if violation.assertion.is_empty() {
-                issue = issue.set_message(format!("{} - {}.", metadata.code, violation.message));
-            } else {
-                issue = issue.set_message(format!(
-                    "{} - {}. {}.",
-                    metadata.code, violation.message, violation.assertion
-                ));
-            }
-            issue = issue.push_fix(&format!(
-                "📝 {}   {}.",
-                "Requirement".cyan(),
-                &metadata.requirement
-            ));
-            issue = issue.push_fix(&format!(
-                "🧠 {}     {}.",
-                "Rationale".cyan(),
-                &metadata.rationale
-            ));
-            for fix in &violation.fixes {
-                issue = issue.push_fix(&format!("💡 {}    {}.", "Suggestion".cyan(), fix));
-            }
-            if metadata.is_fmt_fixable {
-                issue = issue.push_fix(&format!(
-                    "🚀 {}      checkmark fmt {}",
-                    "Auto-fix".cyan(),
-                    &file.path
-                ));
-            }
-            issue = issue.push_fix(&format!(
-                "📚 {} {}",
-                "Documentation".cyan(),
-                metadata.documentation
-            ));
-            for link in &metadata.additional_links {
-                issue = issue.push_fix(&format!("🔗 {}      {}", "Also see".cyan(), link));
-            }
-            issue.build()
+    let ast = parse(&file.content).expect("unable to parse markdown file");
+    let rules: Vec<Box<dyn Rule>> = vec![
+        Box::new(MD001),
+        Box::new(MD003),
+        Box::new(MD004),
+        Box::new(MD005),
+        Box::new(MD007),
+        Box::new(MD009),
+        Box::new(MD010),
+        Box::new(MD011),
+        Box::new(MD012),
+        Box::new(MD014),
+        Box::new(MD018),
+        Box::new(MD019),
+        Box::new(MD020),
+        Box::new(MD021),
+        Box::new(MD022),
+        Box::new(MD023),
+        Box::new(MD024),
+        Box::new(MD025),
+        Box::new(MD026),
+        Box::new(MD027),
+        Box::new(MD028),
+        Box::new(MD029),
+        Box::new(MD030),
+        Box::new(MD031),
+        Box::new(MD033),
+        Box::new(MD046),
+        Box::new(MD051),
+    ];
+    rules
+        .into_par_iter()
+        .filter(|rule| rule.is_enabled(config))
+        .map(|rule| (rule.metadata(), rule.check(&ast, file, config)))
+        .flat_map(|(metadata, violations)| {
+            violations
+                .into_par_iter()
+                .map(move |violation| convert_into_check_issue(file, &metadata, &violation))
         })
-    })
-    .collect::<Vec<CheckIssue>>()
+        .collect::<Vec<_>>()
 }

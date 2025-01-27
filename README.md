@@ -302,13 +302,6 @@ checkmark fmt --check git@github.com:vvvar/checkmark.git
 
 For information about contribution, please refer to the [CONTRIBUTING.md](./docs/CONTRIBUTING.md) file.
 
-- One
-
-- Two
-
-- Three
-  - For
-
 ## Support
 
 For support information, please refer to the [SUPPORT.md](./docs/SUPPORT.md) file.

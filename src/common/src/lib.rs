@@ -577,6 +577,9 @@ pub struct LinterConfig {
 
     #[serde(default)]
     pub md033_allowed_html_tags: Vec<String>,
+
+    #[serde(default)]
+    pub exclude: Vec<String>,
 }
 
 #[derive(Debug, Default, Clone, serde::Deserialize)]

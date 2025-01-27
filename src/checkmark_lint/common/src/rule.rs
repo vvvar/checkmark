@@ -7,11 +7,21 @@ use url::Url;
 
 pub trait Rule
 where
-    Self: Default,
+    Self: Send + Sync,
 {
     fn metadata(&self) -> Metadata;
 
     fn check(&self, ast: &Node, file: &MarkDownFile, config: &Config) -> Vec<Violation>;
+
+    fn is_enabled(&self, config: &Config) -> bool {
+        config
+            .linter
+            .exclude
+            .iter()
+            .map(|rule_name| rule_name.to_lowercase())
+            .find(|rule_name| rule_name.eq(&String::from(self.metadata().code.to_lowercase())))
+            .is_none()
+    }
 }
 
 pub struct Metadata {
