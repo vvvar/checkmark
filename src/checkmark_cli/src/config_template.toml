@@ -77,6 +77,9 @@ allow_insecure = false
 # List of HTML elements to ignore when linting, e.g. "a", "img", etc.
 # Example: ["a", "img"]
 allowed_html_tags = []
+# List of rule ID's that will be excluded from the check (case-insensitive).
+# Example: ["MD001", "md002"]
+exclude = []
 
 
 #############################  Open AI  #############################
