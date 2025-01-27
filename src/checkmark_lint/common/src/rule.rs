@@ -19,8 +19,7 @@ where
             .exclude
             .iter()
             .map(|rule_name| rule_name.to_lowercase())
-            .find(|rule_name| rule_name.eq(&String::from(self.metadata().code.to_lowercase())))
-            .is_none()
+            .any(|rule_name| rule_name.eq(&self.metadata().code.to_lowercase()))
     }
 }
 
